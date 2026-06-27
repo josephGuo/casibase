@@ -48,6 +48,16 @@ export function getDefaultAiAvatar() {
   return `${StaticBaseUrl}/img/openagent.png`;
 }
 
+let builtInSiteFigureUrl = "";
+
+export function setBuiltInSiteFigureUrl(url) {
+  builtInSiteFigureUrl = url || "";
+}
+
+export function getVirtualFigureUrl(store) {
+  return store?.figureUrl || builtInSiteFigureUrl || `${StaticBaseUrl}/img/openagent-figure.png`;
+}
+
 export function getAvatarFallback() {
   return `${StaticBaseUrl}/gravatar/error.png`;
 }
