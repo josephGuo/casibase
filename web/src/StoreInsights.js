@@ -17,6 +17,9 @@ import {Button, Card, Empty, Layout, Menu, Segmented, Space, Tooltip, Typography
 import {CloudOutlined, DollarOutlined, EnvironmentOutlined, ReloadOutlined, TeamOutlined, ThunderboltOutlined} from "@ant-design/icons";
 import i18next from "i18next";
 import InsightsPulse from "./InsightsPulse";
+import InsightsContributors from "./InsightsContributors";
+import InsightsTraffic from "./InsightsTraffic";
+import InsightsWordCloud from "./InsightsWordCloud";
 
 const {Sider, Content} = Layout;
 const {Text} = Typography;
@@ -76,9 +79,9 @@ class StoreInsights extends React.Component {
 
     switch (activeSubTab) {
     case "pulse": return <InsightsPulse {...common} />;
-    case "contributors":
-    case "traffic":
-    case "wordcloud":
+    case "contributors": return <InsightsContributors {...common} />;
+    case "traffic": return <InsightsTraffic {...common} />;
+    case "wordcloud": return <InsightsWordCloud {...common} />;
     case "cost":
       return (
         <Card>
