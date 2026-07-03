@@ -728,6 +728,9 @@
     "Skill folder path placeholder": "e.g. /Users/alice/skills/my-skill  or  D:\\skills\\my-skill"
   },
   "store": {
+    "24h": "24h",
+    "30d": "30d",
+    "7d": "7d",
     "About": "About",
     "Active users": "Active users",
     "Activity over time": "Activity over time",
@@ -742,6 +745,7 @@
     "Apply for Permission": "Apply for Permission",
     "Are you sure you want to delete the selected items?": "Are you sure you want to delete the selected items?",
     "Auto read": "Auto read",
+    "Avg per message": "Avg per message",
     "Brief": "Brief",
     "Brief - Tooltip": "One-sentence introduction shown on the Hub card",
     "By": "by",
@@ -890,6 +894,8 @@
     "Top referrers": "Top referrers",
     "Topic": "Topic",
     "Topic - Tooltip": "Main topic or theme of this agent",
+    "Total cost": "Total cost",
+    "Total tokens": "Total tokens",
     "Total views": "Total views",
     "Traffic": "Traffic",
     "Tutor": "Tutor",

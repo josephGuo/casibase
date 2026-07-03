@@ -13,21 +13,22 @@
 // limitations under the License.
 
 import React from "react";
-import {Button, Card, Empty, Layout, Menu, Segmented, Space, Tooltip, Typography} from "antd";
+import {Button, Layout, Menu, Segmented, Space, Tooltip, Typography} from "antd";
 import {CloudOutlined, DollarOutlined, EnvironmentOutlined, ReloadOutlined, TeamOutlined, ThunderboltOutlined} from "@ant-design/icons";
 import i18next from "i18next";
 import InsightsPulse from "./InsightsPulse";
 import InsightsContributors from "./InsightsContributors";
 import InsightsTraffic from "./InsightsTraffic";
 import InsightsWordCloud from "./InsightsWordCloud";
+import InsightsCost from "./InsightsCost";
 
 const {Sider, Content} = Layout;
 const {Text} = Typography;
 
 const PERIOD_OPTIONS = [
-  {value: "24h", label: "24h"},
-  {value: "7d", label: "7d"},
-  {value: "30d", label: "30d"},
+  {value: "24h", i18nKey: "store:24h"},
+  {value: "7d", i18nKey: "store:7d"},
+  {value: "30d", i18nKey: "store:30d"},
 ];
 
 const SUB_TABS = [
@@ -49,15 +50,24 @@ class StoreInsights extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      activeSubTab: "pulse",
       period: "7d",
       refreshTick: 0,
       asOf: null,
     };
   }
 
+  componentDidUpdate(prevProps) {
+    // Sub-tab switched via URL — clear the previously displayed asOf so the
+    // shell shows "—" until the newly-mounted sub-tab reports its own fetch time.
+    if (prevProps.activeSub !== this.props.activeSub) {
+      this.setState({asOf: null});
+    }
+  }
+
   handleSubTabChange = (key) => {
-    this.setState({activeSubTab: key, asOf: null});
+    if (this.props.onSubTabChange) {
+      this.props.onSubTabChange(key);
+    }
   };
 
   handlePeriodChange = (period) => {
@@ -73,27 +83,24 @@ class StoreInsights extends React.Component {
   };
 
   renderSubTabContent() {
-    const {activeSubTab, period, refreshTick} = this.state;
+    const {period, refreshTick} = this.state;
     const {owner, storeName} = this.props;
+    const activeSub = this.props.activeSub || "pulse";
     const common = {owner, storeName, period, refreshTick, onLoaded: this.handleChildLoaded};
 
-    switch (activeSubTab) {
+    switch (activeSub) {
     case "pulse": return <InsightsPulse {...common} />;
     case "contributors": return <InsightsContributors {...common} />;
     case "traffic": return <InsightsTraffic {...common} />;
     case "wordcloud": return <InsightsWordCloud {...common} />;
-    case "cost":
-      return (
-        <Card>
-          <Empty description={i18next.t("store:This tab is coming soon")} />
-        </Card>
-      );
+    case "cost": return <InsightsCost {...common} />;
     default: return null;
     }
   }
 
   render() {
-    const {activeSubTab, period, asOf} = this.state;
+    const {period, asOf} = this.state;
+    const activeSub = this.props.activeSub || "pulse";
 
     return (
       <Layout style={{background: "transparent"}}>
@@ -103,7 +110,7 @@ class StoreInsights extends React.Component {
         >
           <Menu
             mode="inline"
-            selectedKeys={[activeSubTab]}
+            selectedKeys={[activeSub]}
             onClick={({key}) => this.handleSubTabChange(key)}
             style={{background: "transparent", border: "none"}}
             items={SUB_TABS.map((t) => ({
@@ -126,7 +133,7 @@ class StoreInsights extends React.Component {
           >
             <Space size="middle">
               <Segmented
-                options={PERIOD_OPTIONS}
+                options={PERIOD_OPTIONS.map((o) => ({value: o.value, label: i18next.t(o.i18nKey)}))}
                 value={period}
                 onChange={this.handlePeriodChange}
               />
