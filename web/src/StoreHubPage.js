@@ -13,12 +13,13 @@
 // limitations under the License.
 
 import React from "react";
-import {Avatar, Button, Card, Col, Empty, Input, Row, Select, Spin, Tag, Tooltip, Typography} from "antd";
-import {CopyOutlined, InfoCircleOutlined, LinkOutlined, RobotOutlined, SortAscendingOutlined, SortDescendingOutlined} from "@ant-design/icons";
+import {Avatar, Button, Card, Col, Empty, Input, Row, Segmented, Select, Spin, Tag, Tooltip, Typography} from "antd";
+import {CopyOutlined, EyeOutlined, ForkOutlined, InfoCircleOutlined, LinkOutlined, RobotOutlined, SortAscendingOutlined, SortDescendingOutlined, StarOutlined} from "@ant-design/icons";
 import * as StoreBackend from "./backend/StoreBackend";
 import * as Setting from "./Setting";
 import i18next from "i18next";
 import StoreHubDrawer, {getChatUrl} from "./StoreHubDrawer";
+import UserLabel from "./common/UserLabel";
 
 const {Text, Paragraph} = Typography;
 
@@ -28,19 +29,49 @@ class StoreHubPage extends React.Component {
     this.state = {
       stores: [],
       loading: true,
+      view: "all",
+      favoredStores: [],
+      favoredLoading: false,
       drawerVisible: false,
       selectedStore: null,
       searchText: "",
       filterSubject: "",
       filterGrade: "",
       filterTopic: "",
-      sortField: "",
-      sortOrder: "asc",
+      sortField: "starCount",
+      sortOrder: "desc",
     };
   }
 
   componentDidMount() {
     this.getHubStores();
+  }
+
+  isSignedIn() {
+    const {account} = this.props;
+    return account && !Setting.isAnonymousUser(account);
+  }
+
+  getActiveStores() {
+    const {view, stores, favoredStores} = this.state;
+    return view === "all" ? stores : favoredStores;
+  }
+
+  handleViewChange(view) {
+    this.setState({view});
+    if (view === "star" || view === "watch") {
+      this.setState({favoredLoading: true});
+      StoreBackend.getFavoredStores(view)
+        .then((res) => {
+          if (res.status === "ok") {
+            this.setState({favoredStores: res.data || [], favoredLoading: false});
+          } else {
+            Setting.showMessage("error", `${i18next.t("general:Failed to get")}: ${res.msg}`);
+            this.setState({favoredLoading: false});
+          }
+        })
+        .catch(() => this.setState({favoredLoading: false}));
+    }
   }
 
   getHubStores() {
@@ -59,13 +90,12 @@ class StoreHubPage extends React.Component {
   }
 
   getUniqueValues(field) {
-    const {stores} = this.state;
-    return [...new Set(stores.map(s => s[field]).filter(Boolean))].sort();
+    return [...new Set(this.getActiveStores().map(s => s[field]).filter(Boolean))].sort();
   }
 
   getFilteredStores() {
-    const {stores, searchText, filterSubject, filterGrade, filterTopic, sortField, sortOrder} = this.state;
-    let result = [...stores];
+    const {searchText, filterSubject, filterGrade, filterTopic, sortField, sortOrder} = this.state;
+    let result = [...this.getActiveStores()];
 
     if (searchText) {
       const q = searchText.toLowerCase();
@@ -87,7 +117,13 @@ class StoreHubPage extends React.Component {
     }
 
     if (sortField) {
+      const numericFields = ["starCount", "watchCount", "forkCount"];
       result.sort((a, b) => {
+        if (numericFields.includes(sortField)) {
+          const va = a[sortField] || 0;
+          const vb = b[sortField] || 0;
+          return sortOrder === "asc" ? va - vb : vb - va;
+        }
         let va, vb;
         if (sortField === "displayName") {
           va = (a.displayName || a.name || "").toLowerCase();
@@ -109,8 +145,10 @@ class StoreHubPage extends React.Component {
   }
 
   hasActiveFilters() {
-    const {searchText, filterSubject, filterGrade, filterTopic, sortField} = this.state;
-    return !!(searchText || filterSubject || filterGrade || filterTopic || sortField);
+    const {searchText, filterSubject, filterGrade, filterTopic, sortField, sortOrder} = this.state;
+    // The default "most starred" sort is not considered an active filter.
+    const nonDefaultSort = sortField !== "starCount" || sortOrder !== "desc";
+    return !!(searchText || filterSubject || filterGrade || filterTopic || nonDefaultSort);
   }
 
   resetFilters() {
@@ -119,8 +157,8 @@ class StoreHubPage extends React.Component {
       filterSubject: "",
       filterGrade: "",
       filterTopic: "",
-      sortField: "",
-      sortOrder: "asc",
+      sortField: "starCount",
+      sortOrder: "desc",
     });
   }
 
@@ -143,8 +181,13 @@ class StoreHubPage extends React.Component {
   }
 
   handleViewAgent(store) {
-    this.closeDrawer();
-    this.props.history.push(`/agents/${store.owner}/${store.name}`);
+    const agentPath = `/agents/${store.owner}/${store.name}`;
+    if (store.endpoint) {
+      window.open(`${store.endpoint}${agentPath}`, "_blank", "noopener,noreferrer");
+    } else {
+      this.closeDrawer();
+      this.props.history.push(agentPath);
+    }
   }
 
   handleCopyLink(store) {
@@ -157,7 +200,8 @@ class StoreHubPage extends React.Component {
   }
 
   renderFilterBar() {
-    const {searchText, filterSubject, filterGrade, filterTopic, sortField, sortOrder, stores} = this.state;
+    const {searchText, filterSubject, filterGrade, filterTopic, sortField, sortOrder} = this.state;
+    const activeStores = this.getActiveStores();
     const subjects = this.getUniqueValues("subject");
     const grades = this.getUniqueValues("grade");
     const topics = this.getUniqueValues("topic");
@@ -166,7 +210,9 @@ class StoreHubPage extends React.Component {
     const isFiltered = this.hasActiveFilters();
 
     const sortFieldOptions = [
-      {value: "", label: i18next.t("general:Sort")},
+      {value: "starCount", label: i18next.t("store:Stars")},
+      {value: "watchCount", label: i18next.t("store:Watchers")},
+      {value: "forkCount", label: i18next.t("store:Forks")},
       {value: "displayName", label: i18next.t("general:Display name")},
       {value: "author", label: i18next.t("general:Author")},
       {value: "affiliation", label: i18next.t("store:Affiliation")},
@@ -177,18 +223,29 @@ class StoreHubPage extends React.Component {
 
     return (
       <div style={{marginBottom: 16, display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center"}}>
+        {this.isSignedIn() ? (
+          <Segmented
+            value={this.state.view}
+            onChange={(v) => this.handleViewChange(v)}
+            options={[
+              {value: "all", label: i18next.t("store:All agents")},
+              {value: "star", label: i18next.t("store:Starred")},
+              {value: "watch", label: i18next.t("store:Watching")},
+            ]}
+          />
+        ) : null}
         <Input.Search
-          placeholder={i18next.t("store:Please input your search term")}
+          placeholder={i18next.t("store:Please search here")}
           value={searchText}
           onChange={e => this.setState({searchText: e.target.value})}
           allowClear
-          style={{width: 220}}
+          style={{width: 250}}
         />
         {subjects.length > 0 ? (
           <Select
             value={filterSubject || ""}
             onChange={v => this.setState({filterSubject: v})}
-            style={{minWidth: 130}}
+            style={{minWidth: 150}}
             options={[
               {value: "", label: `${i18next.t("store:Subject")}: ${allLabel}`},
               ...subjects.map(s => ({value: s, label: s})),
@@ -199,7 +256,7 @@ class StoreHubPage extends React.Component {
           <Select
             value={filterGrade || ""}
             onChange={v => this.setState({filterGrade: v})}
-            style={{minWidth: 130}}
+            style={{minWidth: 150}}
             options={[
               {value: "", label: `${i18next.t("store:Grade")}: ${allLabel}`},
               ...grades.map(g => ({value: g, label: g})),
@@ -210,7 +267,7 @@ class StoreHubPage extends React.Component {
           <Select
             value={filterTopic || ""}
             onChange={v => this.setState({filterTopic: v})}
-            style={{minWidth: 130}}
+            style={{minWidth: 150}}
             options={[
               {value: "", label: `${i18next.t("store:Topic")}: ${allLabel}`},
               ...topics.map(t => ({value: t, label: t})),
@@ -236,7 +293,7 @@ class StoreHubPage extends React.Component {
         ) : null}
         {isFiltered ? (
           <Text type="secondary" style={{fontSize: 13}}>
-            {filteredCount} / {stores.length}
+            {filteredCount} / {activeStores.length}
           </Text>
         ) : null}
       </div>
@@ -284,8 +341,11 @@ class StoreHubPage extends React.Component {
                   </Tooltip>
                 ) : null}
               </div>
-              <Text type="secondary" style={{fontSize: 12}}>
-                {i18next.t("store:By")} {authorName}
+              <Text type="secondary" style={{fontSize: 12}} onClick={(e) => e.stopPropagation()}>
+                {i18next.t("store:By")}{" "}
+                {store.author
+                  ? authorName
+                  : <UserLabel user={store.owner} account={this.props.account} showAvatar={false} nameStyle={{fontSize: 12}} />}
               </Text>
               {store.affiliation ? (
                 <div style={{fontSize: 11, color: "var(--ant-color-text-tertiary)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"}}>
@@ -309,6 +369,11 @@ class StoreHubPage extends React.Component {
           ) : (
             <div style={{height: 60}} />
           )}
+          <div style={{display: "flex", alignItems: "center", gap: 14, marginBottom: 10, color: "var(--ant-color-text-secondary)", fontSize: 12}}>
+            <Tooltip title={i18next.t("store:Stars")}><span><StarOutlined /> {store.starCount || 0}</span></Tooltip>
+            <Tooltip title={i18next.t("store:Watchers")}><span><EyeOutlined /> {store.watchCount || 0}</span></Tooltip>
+            <Tooltip title={i18next.t("store:Forks")}><span><ForkOutlined /> {store.forkCount || 0}</span></Tooltip>
+          </div>
           <div
             style={{
               display: "flex",
@@ -360,9 +425,21 @@ class StoreHubPage extends React.Component {
     );
   }
 
+  renderEmptyForView() {
+    const {view} = this.state;
+    if (view === "star") {
+      return <Empty description={i18next.t("store:No starred agents yet")} style={{marginTop: 60}} />;
+    }
+    if (view === "watch") {
+      return <Empty description={i18next.t("store:No watched agents yet")} style={{marginTop: 60}} />;
+    }
+    return <Empty description={i18next.t("general:No published agents yet")} style={{marginTop: 60}} />;
+  }
+
   render() {
-    const {loading, stores, drawerVisible, selectedStore} = this.state;
+    const {loading, favoredLoading, drawerVisible, selectedStore} = this.state;
     const filteredStores = this.getFilteredStores();
+    const activeStores = this.getActiveStores();
 
     return (
       <div style={{padding: "24px 32px", minHeight: "100vh", background: "var(--ant-color-bg-layout)"}}>
@@ -376,12 +453,16 @@ class StoreHubPage extends React.Component {
           <div style={{textAlign: "center", padding: "80px 0"}}>
             <Spin size="large" />
           </div>
-        ) : stores.length === 0 ? (
-          <Empty description={i18next.t("general:No published agents yet")} style={{marginTop: 80}} />
         ) : (
           <>
             {this.renderFilterBar()}
-            {filteredStores.length === 0 ? (
+            {favoredLoading ? (
+              <div style={{textAlign: "center", padding: "80px 0"}}>
+                <Spin size="large" />
+              </div>
+            ) : activeStores.length === 0 ? (
+              this.renderEmptyForView()
+            ) : filteredStores.length === 0 ? (
               <Empty description={i18next.t("general:No data")} style={{marginTop: 60}} />
             ) : (
               <Row gutter={[16, 16]}>
@@ -391,6 +472,7 @@ class StoreHubPage extends React.Component {
           </>
         )}
         <StoreHubDrawer
+          account={this.props.account}
           store={selectedStore}
           visible={drawerVisible}
           onClose={() => this.closeDrawer()}

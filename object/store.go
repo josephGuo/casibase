@@ -124,6 +124,9 @@ type Store struct {
 	ChatCount    int    `xorm:"-" json:"chatCount"`
 	MessageCount int    `xorm:"-" json:"messageCount"`
 	VectorCount  int    `xorm:"-" json:"vectorCount"`
+	StarCount    int    `xorm:"-" json:"starCount"`
+	WatchCount   int    `xorm:"-" json:"watchCount"`
+	ForkCount    int    `xorm:"-" json:"forkCount"`
 	HubDbName    string `xorm:"-" json:"hubDbName"`
 	Endpoint     string `xorm:"-" json:"endpoint"`
 
@@ -387,6 +390,12 @@ func DeleteStore(store *Store) (bool, error) {
 	}
 
 	err = deleteCommentsByTargetWithSession(session, CommentTargetTypeAgentHub, store.GetId())
+	if err != nil {
+		session.Rollback()
+		return false, err
+	}
+
+	_, err = session.Where("store_owner = ? and store_name = ?", store.Owner, store.Name).Delete(&StoreFavorite{})
 	if err != nil {
 		session.Rollback()
 		return false, err
