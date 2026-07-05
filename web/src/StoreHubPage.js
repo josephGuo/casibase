@@ -14,7 +14,7 @@
 
 import React from "react";
 import {Avatar, Button, Card, Col, Empty, Input, Row, Segmented, Select, Spin, Tag, Tooltip, Typography} from "antd";
-import {CopyOutlined, EyeOutlined, ForkOutlined, InfoCircleOutlined, LinkOutlined, RobotOutlined, SortAscendingOutlined, SortDescendingOutlined, StarOutlined} from "@ant-design/icons";
+import {CommentOutlined, CopyOutlined, EyeOutlined, ForkOutlined, InfoCircleOutlined, LinkOutlined, MessageOutlined, RobotOutlined, SortAscendingOutlined, SortDescendingOutlined, StarOutlined} from "@ant-design/icons";
 import * as StoreBackend from "./backend/StoreBackend";
 import * as Setting from "./Setting";
 import i18next from "i18next";
@@ -291,11 +291,9 @@ class StoreHubPage extends React.Component {
         {isFiltered ? (
           <Button onClick={() => this.resetFilters()}>{i18next.t("general:Reset")}</Button>
         ) : null}
-        {isFiltered ? (
-          <Text type="secondary" style={{fontSize: 13}}>
-            {filteredCount} / {activeStores.length}
-          </Text>
-        ) : null}
+        <Text type="secondary" style={{fontSize: 13}}>
+          {isFiltered ? `${filteredCount} / ${activeStores.length}` : `${activeStores.length}`} {i18next.t("general:Agents")}
+        </Text>
       </div>
     );
   }
@@ -318,7 +316,7 @@ class StoreHubPage extends React.Component {
             borderColor: "var(--ant-color-border)",
           }}
           bodyStyle={{padding: "20px"}}
-          onClick={() => this.openDrawer(store)}
+          onClick={() => this.handleViewAgent(store)}
         >
           <div style={{display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12}}>
             {store.avatar ? (
@@ -369,10 +367,16 @@ class StoreHubPage extends React.Component {
           ) : (
             <div style={{height: 60}} />
           )}
-          <div style={{display: "flex", alignItems: "center", gap: 14, marginBottom: 10, color: "var(--ant-color-text-secondary)", fontSize: 12}}>
-            <Tooltip title={i18next.t("store:Stars")}><span><StarOutlined /> {store.starCount || 0}</span></Tooltip>
-            <Tooltip title={i18next.t("store:Watchers")}><span><EyeOutlined /> {store.watchCount || 0}</span></Tooltip>
-            <Tooltip title={i18next.t("store:Forks")}><span><ForkOutlined /> {store.forkCount || 0}</span></Tooltip>
+          <div style={{display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, color: "var(--ant-color-text-secondary)", fontSize: 12}}>
+            <div style={{display: "flex", alignItems: "center", gap: 14}}>
+              <Tooltip title={i18next.t("store:Stars")}><span><StarOutlined /> {store.starCount || 0}</span></Tooltip>
+              <Tooltip title={i18next.t("store:Watchers")}><span><EyeOutlined /> {store.watchCount || 0}</span></Tooltip>
+              <Tooltip title={i18next.t("store:Forks")}><span><ForkOutlined /> {store.forkCount || 0}</span></Tooltip>
+            </div>
+            <div style={{display: "flex", alignItems: "center", gap: 14}}>
+              <Tooltip title={i18next.t("general:Chats")}><span><CommentOutlined /> {store.chatCount || 0}</span></Tooltip>
+              <Tooltip title={i18next.t("general:Messages")}><span><MessageOutlined /> {store.messageCount || 0}</span></Tooltip>
+            </div>
           </div>
           <div
             style={{
@@ -408,14 +412,14 @@ class StoreHubPage extends React.Component {
             </Tooltip>
           </div>
           <div style={{display: "flex", alignItems: "center", justifyContent: "space-between"}}>
-            <div style={{display: "flex", alignItems: "center", gap: 4, color: "var(--ant-color-primary)", fontSize: 13}}>
+            <div
+              style={{display: "flex", alignItems: "center", gap: 4, color: "var(--ant-color-primary)", fontSize: 13, cursor: "pointer"}}
+              onClick={(e) => {e.stopPropagation(); this.openDrawer(store);}}
+            >
               <InfoCircleOutlined />
               <span>{i18next.t("store:View Details")}</span>
             </div>
-            <div
-              style={{display: "flex", alignItems: "center", gap: 4, color: "var(--ant-color-text-secondary)", fontSize: 13, cursor: "pointer"}}
-              onClick={(e) => {e.stopPropagation(); this.handleViewAgent(store);}}
-            >
+            <div style={{display: "flex", alignItems: "center", gap: 4, color: "var(--ant-color-text-secondary)", fontSize: 13}}>
               <RobotOutlined />
               <span>{i18next.t("store:Enter Agent")}</span>
             </div>
@@ -443,8 +447,8 @@ class StoreHubPage extends React.Component {
 
     return (
       <div style={{padding: "24px 32px", minHeight: "100vh", background: "var(--ant-color-bg-layout)"}}>
-        <div style={{marginBottom: 24}}>
-          <h2 style={{fontWeight: 700, fontSize: 24, marginBottom: 4}}>{i18next.t("general:Hub")}</h2>
+        <div style={{marginBottom: 24, display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap"}}>
+          <h2 style={{fontWeight: 700, fontSize: 24, margin: 0}}>{i18next.t("general:Hub")}</h2>
           <p style={{color: "var(--ant-color-text-secondary)", margin: 0}}>
             {this.props.site?.hubDesc || i18next.t("general:Hub desc")}
           </p>

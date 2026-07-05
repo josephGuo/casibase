@@ -42,6 +42,10 @@ func (c *ApiController) GetHubStores() {
 		c.ResponseError(err.Error())
 		return
 	}
+	if err := object.FillStoreActivityCounts(stores); err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
 	c.ResponseOk(object.GetMaskedStores(stores, c.GetSessionUser()))
 }
 
@@ -630,4 +634,24 @@ func (c *ApiController) ForkStore() {
 	}
 
 	c.ResponseOk(object.GetMaskedStore(newStore, c.GetSessionUser()))
+}
+
+// GetStoreForks returns the stores forked from the given store.
+// @router /get-store-forks [get]
+func (c *ApiController) GetStoreForks() {
+	owner := c.Input().Get("owner")
+	name := c.Input().Get("name")
+	hubDbName := c.Input().Get("hubDbName")
+	if owner == "" || name == "" {
+		c.ResponseError("owner and name are required")
+		return
+	}
+
+	stores, err := object.GetStoreForks(owner, name, hubDbName)
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+
+	c.ResponseOk(object.GetMaskedStores(stores, c.GetSessionUser()))
 }

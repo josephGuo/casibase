@@ -14,8 +14,9 @@
 
 import * as Setting from "../Setting";
 
-export function getStoreWordCloud(storeName) {
-  return fetch(`${Setting.ServerUrl}/api/get-store-word-cloud?storeName=${encodeURIComponent(storeName)}`, {
+export function getStoreWordCloud(storeName, period) {
+  const extra = period ? `&period=${encodeURIComponent(period)}` : "";
+  return fetch(`${Setting.ServerUrl}/api/get-store-word-cloud?storeName=${encodeURIComponent(storeName)}${extra}`, {
     method: "GET",
     credentials: "include",
     headers: {
@@ -60,6 +61,17 @@ export function getStoreTraffic(owner, storeName, period) {
 
 export function getStoreCostSeries(owner, storeName, period) {
   const url = `${Setting.ServerUrl}/api/get-store-cost-series?owner=${encodeURIComponent(owner)}&storeName=${encodeURIComponent(storeName)}&period=${encodeURIComponent(period)}`;
+  return fetch(url, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Accept-Language": Setting.getAcceptLanguage(),
+    },
+  }).then(res => Setting.handleFetchResponse(res));
+}
+
+export function getStoreSecurity(owner, storeName, period) {
+  const url = `${Setting.ServerUrl}/api/get-store-security?owner=${encodeURIComponent(owner)}&storeName=${encodeURIComponent(storeName)}&period=${encodeURIComponent(period)}`;
   return fetch(url, {
     method: "GET",
     credentials: "include",

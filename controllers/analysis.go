@@ -24,6 +24,7 @@ import (
 // @Title GetStoreWordCloud
 // @Tag Analysis API
 // @Description get word cloud data for a store based on its chat messages
+// @Param   period      query   string  false "time window: 24h | 7d | 30d; omit for all-time"
 // @Success 200 {object} map[string]int The Response object
 // @router /get-store-word-cloud [get]
 func (c *ApiController) GetStoreWordCloud() {
@@ -32,13 +33,14 @@ func (c *ApiController) GetStoreWordCloud() {
 		c.ResponseError("storeName is required")
 		return
 	}
+	period := c.Input().Get("period")
 
 	_, ok := c.RequireSignedIn()
 	if !ok {
 		return
 	}
 
-	wordCount, err := object.GetStoreWordCloud(storeName)
+	wordCount, err := object.GetStoreWordCloud(storeName, period)
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
@@ -175,6 +177,39 @@ func (c *ApiController) GetStoreCostSeries() {
 	}
 
 	data, err := object.GetStoreCostSeries(owner, storeName, period)
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	c.ResponseOk(data)
+}
+
+// GetStoreSecurity
+// @Title GetStoreSecurity
+// @Tag Analysis API
+// @Description Security posture report for the Security sub-tab: configuration audit checks, an overall score/grade, and activity-based signals (forbidden-word violations, error replies, guest vs authenticated traffic) over the window.
+// @Param   owner       query   string  true  "store owner"
+// @Param   storeName   query   string  true  "store name"
+// @Param   period      query   string  true  "time window: 24h | 7d | 30d"
+// @Success 200 {object} object.StoreSecurity The Response object
+// @router /get-store-security [get]
+func (c *ApiController) GetStoreSecurity() {
+	owner := c.Input().Get("owner")
+	storeName := c.Input().Get("storeName")
+	period := c.Input().Get("period")
+	if owner == "" || storeName == "" {
+		c.ResponseError("owner and storeName are required")
+		return
+	}
+	if period == "" {
+		period = "7d"
+	}
+
+	if _, ok := c.RequireSignedIn(); !ok {
+		return
+	}
+
+	data, err := object.GetStoreSecurity(owner, storeName, period)
 	if err != nil {
 		c.ResponseError(err.Error())
 		return

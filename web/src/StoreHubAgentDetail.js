@@ -16,7 +16,10 @@ import React from "react";
 import {Avatar, Button, Card, Col, Row, Space, Tabs, Tag, Tooltip, Typography} from "antd";
 import StoreInsights from "./StoreInsights";
 import StoreIssues from "./StoreIssues";
-import {AppstoreOutlined, BarChartOutlined, BugOutlined, CommentOutlined, EyeFilled, EyeOutlined, FolderOpenOutlined, ForkOutlined, SettingOutlined, StarFilled, StarOutlined} from "@ant-design/icons";
+import StoreSecurity from "./StoreSecurity";
+import StoreEditPage from "./StoreEditPage";
+import ChatPage from "./ChatPage";
+import {AppstoreOutlined, BarChartOutlined, BugOutlined, CommentOutlined, EyeFilled, EyeOutlined, FolderOpenOutlined, ForkOutlined, SafetyCertificateOutlined, SettingOutlined, StarFilled, StarOutlined} from "@ant-design/icons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import i18next from "i18next";
@@ -63,17 +66,29 @@ function renderHeader(store, account, onStartChat, onFork, forking, favoriteStat
               <Text type="secondary" style={{fontSize: 20, fontWeight: 400}}> / </Text>
               {store.displayName || store.name}
             </Title>
-            <div style={{display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap"}}>
+            <div style={{display: "flex", alignItems: "center", gap: 28, flexWrap: "wrap"}}>
               <Text type="secondary" style={{fontSize: 14}}>
                 {i18next.t("store:By")}{" "}
                 {store.author
                   ? <strong>{store.author}</strong>
                   : <UserLabel user={store.owner} account={account} showAvatar={false} strong />}
               </Text>
-              {isForked ? (
-                <Tag icon={<ForkOutlined />} color="blue" style={{margin: 0}}>
-                  {i18next.t("store:Forked from")} {store.forkedFromOwner}/{store.forkedFromName}
-                </Tag>
+              {store.affiliation ? (
+                <Text type="secondary" style={{fontSize: 13}}>
+                  {store.affiliation}
+                </Text>
+              ) : null}
+              {(store.subject || store.grade || store.topic || isForked) ? (
+                <div style={{display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap"}}>
+                  {store.subject ? <Tag color="purple" style={{margin: 0}}>{store.subject}</Tag> : null}
+                  {store.grade ? <Tag color="cyan" style={{margin: 0}}>{store.grade}</Tag> : null}
+                  {store.topic ? <Tag color="geekblue" style={{margin: 0}}>{store.topic}</Tag> : null}
+                  {isForked ? (
+                    <Tag icon={<ForkOutlined />} color="blue" style={{margin: 0}}>
+                      {i18next.t("store:Forked from")} {store.forkedFromOwner}/{store.forkedFromName}
+                    </Tag>
+                  ) : null}
+                </div>
               ) : null}
             </div>
           </div>
@@ -105,18 +120,8 @@ function renderHeader(store, account, onStartChat, onFork, forking, favoriteStat
             </Button>
           </Space>
         </div>
-        {store.affiliation ? (
-          <div style={{fontSize: 13, color: "var(--ant-color-text-tertiary)", marginTop: 2}}>
-            {store.affiliation}
-          </div>
-        ) : null}
-        <div style={{marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6}}>
-          {store.subject ? <Tag color="purple">{store.subject}</Tag> : null}
-          {store.grade ? <Tag color="cyan">{store.grade}</Tag> : null}
-          {store.topic ? <Tag color="geekblue">{store.topic}</Tag> : null}
-        </div>
         {store.brief ? (
-          <div style={{marginTop: 8, fontSize: 14, color: "var(--ant-color-text-secondary)", maxWidth: 640}}>
+          <div style={{marginTop: 8, fontSize: 14, color: "var(--ant-color-text-secondary)", maxWidth: "100%"}}>
             {store.brief}
           </div>
         ) : null}
@@ -137,9 +142,9 @@ function renderAbout(store, account) {
     [i18next.t("store:Topic"), store.topic],
   ].filter(([, value]) => value);
   const stats = [
-    [i18next.t("store:Chat count"), store.chatCount],
+    [i18next.t("general:Chats"), store.chatCount],
     [i18next.t("general:Messages"), store.messageCount],
-    [i18next.t("store:Vector count"), store.vectorCount],
+    [i18next.t("general:Vectors"), store.vectorCount],
   ].filter(([, value]) => value !== undefined && value !== null);
 
   return (
@@ -211,7 +216,7 @@ function renderOverview(account, store, onStoreUpdate, onRefresh) {
 
   return (
     <Row gutter={[16, 16]}>
-      <Col xs={24} lg={16}>
+      <Col xs={24} lg={18}>
         <div style={{display: "grid", gap: 16}}>
           {renderFiles(account, store, onStoreUpdate, onRefresh)}
           {renderReadme(store)}
@@ -225,16 +230,26 @@ function renderOverview(account, store, onStoreUpdate, onRefresh) {
           />
         </div>
       </Col>
-      <Col xs={24} lg={8}>
+      <Col xs={24} lg={6}>
         {renderAbout(store, account)}
       </Col>
     </Row>
   );
 }
 
-function renderIssues(account, store) {
+function renderIssues(account, store, activeIssueName, onIssueChange) {
   return (
-    <StoreIssues account={account} store={store} />
+    <StoreIssues account={account} store={store} activeIssueName={activeIssueName} onIssueChange={onIssueChange} />
+  );
+}
+
+function renderSecurity(account, store) {
+  return (
+    <StoreSecurity
+      account={account}
+      owner={store.owner}
+      storeName={store.name}
+    />
   );
 }
 
@@ -250,24 +265,66 @@ function renderInsights(account, store, activeSub, onSubTabChange) {
   );
 }
 
-function renderTabContent(account, store, activeTab, activeSub, onStoreUpdate, onRefresh, onSubTabChange) {
+function renderSettings(account, store, history) {
+  return (
+    <StoreEditPage
+      account={account}
+      history={history}
+      location={{}}
+      match={{params: {owner: store.owner, storeName: store.name}}}
+      basePath="/agents"
+    />
+  );
+}
+
+// ChatPage internally calls history.push() whenever a chat is auto-selected
+// or created, which would otherwise navigate the whole agent detail page
+// away from the Chat tab. Give it a no-op history so it stays put.
+const noopHistory = {push: () => {}, replace: () => {}};
+
+function renderChat(account, store) {
+  return (
+    <div style={{margin: "0 -32px -24px", borderTop: "1px solid var(--ant-color-border-secondary)"}}>
+      <ChatPage
+        account={account}
+        history={noopHistory}
+        location={{}}
+        match={{params: {storeName: store.name}}}
+        autoFocusInput={false}
+      />
+    </div>
+  );
+}
+
+function renderTabContent(account, store, activeTab, activeSub, activeIssueName, onStoreUpdate, onRefresh, onSubTabChange, onIssueChange, history) {
   if (activeTab === "files") {
     return renderFiles(account, store, onStoreUpdate, onRefresh);
   }
   if (activeTab === "issues") {
-    return renderIssues(account, store);
+    return renderIssues(account, store, activeIssueName, onIssueChange);
+  }
+  if (activeTab === "security") {
+    return renderSecurity(account, store);
   }
   if (activeTab === "insights") {
     return renderInsights(account, store, activeSub, onSubTabChange);
   }
+  if (activeTab === "settings") {
+    return renderSettings(account, store, history);
+  }
+  if (activeTab === "chat") {
+    return renderChat(account, store);
+  }
   return renderOverview(account, store, onStoreUpdate, onRefresh);
 }
 
-function StoreHubAgentDetail({account, store, activeTab, activeSub, canManage, onTabChange, onSubTabChange, onStartChat, onFork, forking, favoriteStatus, starLoading, watchLoading, onToggleFavorite, onStoreUpdate, onRefresh}) {
+function StoreHubAgentDetail({account, store, activeTab, activeSub, activeIssueName, canManage, onTabChange, onSubTabChange, onIssueChange, onStartChat, onFork, forking, favoriteStatus, starLoading, watchLoading, onToggleFavorite, onStoreUpdate, onRefresh, history}) {
   const tabItems = [
     {key: "overview", label: <span><AppstoreOutlined /> {i18next.t("store:Overview")}</span>},
+    {key: "chat", label: <span><CommentOutlined /> {i18next.t("general:Chat")}</span>},
     {key: "files", label: <span><FolderOpenOutlined /> {i18next.t("general:Files")}</span>},
     {key: "issues", label: <span><BugOutlined /> {i18next.t("store:Issues")}</span>},
+    {key: "security", label: <span><SafetyCertificateOutlined /> {i18next.t("store:Security")}</span>},
     {key: "insights", label: <span><BarChartOutlined /> {i18next.t("store:Insights")}</span>},
   ];
 
@@ -276,7 +333,7 @@ function StoreHubAgentDetail({account, store, activeTab, activeSub, canManage, o
   }
 
   return (
-    <div style={{padding: "24px 32px", maxWidth: 1280, margin: "0 auto"}}>
+    <div style={{padding: "24px 32px", maxWidth: 1400, margin: "0 auto"}}>
       {renderHeader(store, account, onStartChat, onFork, forking, favoriteStatus, starLoading, watchLoading, onToggleFavorite)}
       <Tabs
         activeKey={activeTab}
@@ -284,7 +341,7 @@ function StoreHubAgentDetail({account, store, activeTab, activeSub, canManage, o
         onChange={onTabChange}
         style={{marginBottom: 16}}
       />
-      {renderTabContent(account, store, activeTab, activeSub, onStoreUpdate, onRefresh, onSubTabChange)}
+      {renderTabContent(account, store, activeTab, activeSub, activeIssueName, onStoreUpdate, onRefresh, onSubTabChange, onIssueChange, history)}
     </div>
   );
 }
