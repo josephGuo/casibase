@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import React, {useEffect, useRef, useState} from "react";
+import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Link, Redirect, Route, Switch, withRouter} from "react-router-dom";
-import {Avatar, Button, Card, Drawer, Dropdown, Layout, Menu, Result} from "antd";
+import {Avatar, Badge, Button, Card, Drawer, Dropdown, Layout, Menu, Result, Tooltip} from "antd";
 import {
   ApartmentOutlined,
   ApiOutlined,
@@ -39,6 +39,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   MessageOutlined,
+  NotificationOutlined,
   OrderedListOutlined,
   RocketOutlined,
   SafetyOutlined,
@@ -108,6 +109,9 @@ import SiteListPage from "./SiteListPage";
 import SiteEditPage from "./SiteEditPage";
 import CommentListPage from "./CommentListPage";
 import CommentEditPage from "./CommentEditPage";
+import NotificationListPage from "./NotificationListPage";
+import UserNotificationsPage from "./UserNotificationsPage";
+import * as NotificationBackend from "./backend/NotificationBackend";
 const {Header, Footer, Content, Sider} = Layout;
 
 function getMenuParentKey(uri) {
@@ -116,7 +120,7 @@ function getMenuParentKey(uri) {
   if (uri.includes("/providers") || uri.includes("/pipes") || uri.includes("/tools") || uri.includes("/servers")) {return "/connectors";}
   if (uri.includes("/files") || uri.includes("/vectors") || uri.includes("/resources")) {return "/knowledge-base";}
   if (uri.includes("/tasks") || uri.includes("/scales") || uri.includes("/forms")) {return "/multimedia";}
-  if (uri.includes("/sessions") || uri.includes("/records") || uri.includes("/snapshots")) {return "/logs";}
+  if (uri.includes("/sessions") || uri.includes("/records") || uri.includes("/snapshots") || uri.includes("/notifications")) {return "/logs";}
   if (uri.includes("/users") || uri.includes("/casdoor-resources") || uri.includes("/permissions")) {return "/identity";}
   if (uri.includes("/sysinfo") || uri.includes("/swagger") || uri.includes("/visitors") || uri.includes("/sites") || uri.includes("/usages") || uri.includes("/comments")) {return "/admin";}
   return null;
@@ -150,6 +154,7 @@ function persistMenuOpenKeys(keys) {
 function ManagementPage(props) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [siderCollapsed, setSiderCollapsed] = useState(() => localStorage.getItem("siderCollapsed") === "true");
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const siderWasCollapsedRef = useRef(false);
   const [menuOpenKeys, setMenuOpenKeys] = useState(() => {
     if (localStorage.getItem("siderCollapsed") === "true") {
@@ -216,6 +221,28 @@ function ManagementPage(props) {
   const textColor = isDark ? "white" : "black";
   const siderLogo = logo || Setting.getLogo(themeAlgorithm, site?.logoUrl);
   const navbarHtml = Setting.getNavbarHtml(themeAlgorithm, site?.navbarHtml);
+
+  const refreshUnreadNotificationCount = useCallback(() => {
+    if (!account || Setting.isAnonymousUser(account)) {
+      setUnreadNotificationCount(0);
+      return;
+    }
+    NotificationBackend.getUserNotifications(1, 1, "unread")
+      .then((res) => {
+        if (res.status === "ok") {
+          setUnreadNotificationCount(res.data2?.unreadCount || 0);
+        }
+      });
+  }, [account]);
+
+  useEffect(() => {
+    refreshUnreadNotificationCount();
+    if (!account || Setting.isAnonymousUser(account)) {
+      return undefined;
+    }
+    const timer = window.setInterval(refreshUnreadNotificationCount, 30000);
+    return () => window.clearInterval(timer);
+  }, [account, uri, refreshUnreadNotificationCount]);
 
   const toggleSider = () => {
     const next = !siderCollapsed;
@@ -357,6 +384,16 @@ function ManagementPage(props) {
           )}
           <ThemeSelect className="select-box" themeAlgorithm={themeAlgorithm} onChange={setLogoAndThemeAlgorithm} />
           <LanguageSelect className="select-box" />
+          <Tooltip title={i18next.t("general:Notifications")}>
+            <Badge count={unreadNotificationCount} size="small" offset={[-4, 5]}>
+              <Button
+                type="text"
+                icon={<InboxOutlined style={{fontSize: 20}} />}
+                onClick={() => history.push("/user-notifications")}
+                style={{width: 40, height: 40}}
+              />
+            </Badge>
+          </Tooltip>
           {renderRightDropdown()}
         </div>
       );
@@ -452,6 +489,7 @@ function ManagementPage(props) {
 
       res.push(Setting.getItem(<Link style={{color: textColor}} to="/records">{i18next.t("general:Auditing Logs")}</Link>, "/logs", <WalletOutlined />, [
         Setting.getItem(<Link to="/records">{i18next.t("general:Logs")}</Link>, "/records", <DatabaseOutlined />),
+        Setting.getItem(<Link to="/notifications">{i18next.t("general:Notifications")}</Link>, "/notifications", <NotificationOutlined />),
         Setting.getItem(<Link to="/sessions">{i18next.t("general:Sessions")}</Link>, "/sessions", <OrderedListOutlined />),
         Setting.getItem(<Link to="/snapshots">{i18next.t("general:Snapshots")}</Link>, "/snapshots", <HistoryOutlined />),
       ]));
@@ -574,6 +612,8 @@ function ManagementPage(props) {
         <Route exact path="/sessions" render={(props) => renderSigninIfNotSignedIn(<SessionListPage account={account} {...props} />)} />
         <Route exact path="/snapshots" render={(props) => renderSigninIfNotSignedIn(<SnapshotListPage account={account} {...props} />)} />
         <Route exact path="/records" render={(props) => renderSigninIfNotSignedIn(<RecordListPage account={account} {...props} />)} />
+        <Route exact path="/notifications" render={(props) => renderSigninIfNotSignedIn(<NotificationListPage account={account} {...props} />)} />
+        <Route exact path="/user-notifications" render={(props) => renderSigninIfNotSignedIn(<UserNotificationsPage account={account} onUnreadCountChange={setUnreadNotificationCount} {...props} />)} />
         <Route exact path="/records/:organizationName/:recordName" render={(props) => renderSigninIfNotSignedIn(<RecordEditPage account={account} {...props} />)} />
         <Route exact path="/tasks" render={(props) => renderSigninIfNotSignedIn(<TaskListPage account={account} {...props} />)} />
         <Route exact path="/tasks/:owner/:taskName" render={(props) => renderSigninIfNotSignedIn(<TaskEditPage account={account} {...props} />)} />

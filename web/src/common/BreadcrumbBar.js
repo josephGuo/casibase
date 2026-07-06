@@ -24,6 +24,8 @@ const RESOURCE_LABELS = {
   "stores": "general:Stores",
   "files": "general:Files",
   "providers": "general:Providers",
+  "notifications": "general:Notifications",
+  "user-notifications": "general:Notifications",
   "vectors": "general:Vectors",
   "chats": "general:Chats",
   "messages": "general:Messages",

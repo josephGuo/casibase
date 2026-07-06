@@ -73,6 +73,10 @@ func SendEmail(title, content, sender, receiver string) error {
 	return casdoorsdk.SendEmail(title, content, sender, receiver)
 }
 
+func SendNotification(content string, recipient string) error {
+	return casdoorsdk.SendNotification(content, recipient)
+}
+
 func GetPermissions() ([]*Permission, error) {
 	return casdoorsdk.GetPermissions()
 }

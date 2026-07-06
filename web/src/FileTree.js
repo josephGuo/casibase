@@ -468,7 +468,7 @@ class FileTree extends React.Component {
           if (ext !== "") {
             const url = info.node.url;
 
-            if (!this.isExtForDocViewer((ext) && !this.isExtForFileViewer(ext))) {
+            if (!this.isExtForDocViewer(ext) && !this.isExtForFileViewer(ext)) {
               this.setState({
                 loading: true,
               });
