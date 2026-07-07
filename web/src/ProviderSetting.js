@@ -534,11 +534,15 @@ const openaiEmbeddings = [
 
 export function getProviderLogoURL(provider) {
   const otherProviderInfo = getOtherProviderInfo();
-  if (!provider || !otherProviderInfo[provider.category] || !otherProviderInfo[provider.category][provider.type]) {
+  if (!provider) {
+    return "";
+  }
+  const type = provider.category === "Chat" && provider.type === "Weixin Claw" ? "WeChat" : provider.type;
+  if (!otherProviderInfo[provider.category] || !otherProviderInfo[provider.category][type]) {
     return "";
   }
 
-  return otherProviderInfo[provider.category][provider.type].logo;
+  return otherProviderInfo[provider.category][type].logo;
 }
 
 export function isProviderSupportWebSearch(provider) {
@@ -1360,7 +1364,7 @@ export function getProviderAzureApiVersionOptions() {
 }
 
 export function getQuickSetupModelTypes() {
-  return ["OpenAI", "Claude", "Gemini", "DeepSeek", "Grok", "Ollama", "OpenRouter", "Mistral", "Azure", "OpenAI Compatible", "Alibaba Cloud", "Moonshot", "Silicon Flow", "Volcano Engine", "Baidu Cloud", "Amazon Bedrock", "OpenCode"];
+  return ["OpenAI", "Claude", "Gemini", "DeepSeek", "Grok", "Ollama", "OpenRouter", "Mistral", "MiniMax", "Azure", "OpenAI Compatible", "Alibaba Cloud", "Moonshot", "Silicon Flow", "Volcano Engine", "Baidu Cloud", "Amazon Bedrock", "Hugging Face", "iFlytek", "ChatGLM", "Cohere", "Baichuan", "StepFun", "Tencent Cloud", "Yi", "GitHub", "Writer", "Local", "OpenCode"];
 }
 
 export function getModelProviderMetadata(type) {
@@ -1373,6 +1377,7 @@ export function getModelProviderMetadata(type) {
     "Ollama": {desc: "Run models locally", needsApiKey: false, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "deepseek-r1:671b", urlPlaceholder: "http://localhost:11434", defaultUrl: "http://localhost:11434"},
     "OpenRouter": {desc: "100+ models unified", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "anthropic/claude-opus-4-7"},
     "Mistral": {desc: "Mistral Large, Medium...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "mistral-large-latest"},
+    "MiniMax": {desc: "MiniMax-M3, M2...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "MiniMax-M3"},
     "Azure": {desc: "Azure-hosted GPT models", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "gpt-5.5", urlPlaceholder: "https://your-resource.openai.azure.com"},
     "OpenAI Compatible": {desc: "Any compatible API", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "", urlPlaceholder: "https://api.example.com/v1"},
     "Alibaba Cloud": {desc: "Qwen3, Qwen-Max...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "qwen3-235b-a22b"},
@@ -1381,6 +1386,17 @@ export function getModelProviderMetadata(type) {
     "Volcano Engine": {desc: "ByteDance AI platform", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "doubao-seed-2-0-pro-260215"},
     "Baidu Cloud": {desc: "ERNIE Bot models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "ernie-5.0"},
     "Amazon Bedrock": {desc: "Claude, Llama on AWS", needsApiKey: true, needsUrl: false, needsClientId: true, needsRegion: true, defaultSubType: "claude"},
+    "Hugging Face": {desc: "Llama, Falcon, open models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "meta-llama/Llama-2-7b"},
+    "iFlytek": {desc: "Spark X2, Spark Max...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "spark-x2"},
+    "ChatGLM": {desc: "GLM-4, ChatGLM...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "glm-4"},
+    "Cohere": {desc: "Command, Command Light", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "command"},
+    "Baichuan": {desc: "Baichuan4, Baichuan3...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "Baichuan4-Turbo"},
+    "StepFun": {desc: "Step-2, Step-1...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "step-2-16k"},
+    "Tencent Cloud": {desc: "Hunyuan models", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "hunyuan-pro", urlPlaceholder: "https://hunyuan.tencentcloudapi.com"},
+    "Yi": {desc: "Yi Lightning, Yi Vision", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "yi-lightning"},
+    "GitHub": {desc: "GitHub Models catalog", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "gpt-4o"},
+    "Writer": {desc: "Palmyra X5, X4...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "palmyra-x5"},
+    "Local": {desc: "Self-hosted model endpoint", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "custom-model", urlPlaceholder: "http://localhost:8000/v1"},
     "OpenCode": {desc: "Delegate coding to OpenCode agent", needsApiKey: false, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "", urlPlaceholder: "http://localhost:4096", defaultUrl: "http://localhost:4096"},
   };
   return metadata[type] || {desc: "", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: ""};
@@ -1395,6 +1411,7 @@ export function getPipeTypeOptions() {
     {id: "Facebook Messenger", name: "Facebook Messenger"},
     {id: "Threads", name: "Threads"},
     {id: "WeChat", name: "WeChat"},
+    {id: "Weixin Claw", name: "Weixin Claw"},
     {id: "Snapchat", name: "Snapchat"},
     {id: "X Direct Messages", name: "X Direct Messages"},
   ];
@@ -1409,6 +1426,7 @@ export function getPipePlatformMetadata(type) {
     "Facebook Messenger": {desc: "Connect via Facebook Messenger", tokenLabel: "Page Access Token", tokenPlaceholder: "EAAxxxxxxxx...", helpUrl: "https://developers.facebook.com/docs/messenger-platform"},
     "Threads": {desc: "Connect via Meta Threads", tokenLabel: "User Access Token", tokenPlaceholder: "THRDSxxxxxxxx...", helpUrl: "https://developers.facebook.com/docs/threads"},
     "WeChat": {desc: "Connect via WeChat Official Account", tokenLabel: "Access Token", tokenPlaceholder: "your-access-token", helpUrl: "https://developers.weixin.qq.com"},
+    "Weixin Claw": {desc: "Connect via personal Weixin QR login", tokenLabel: "", tokenPlaceholder: "", helpUrl: "https://github.com/the-open-agent/openagent"},
     "Snapchat": {desc: "Connect via Snapchat Kit Bot", tokenLabel: "Access Token", tokenPlaceholder: "your-oauth-access-token", helpUrl: "https://kit.snapchat.com/"},
     "X Direct Messages": {desc: "Connect via X Direct Messages", tokenLabel: "OAuth Token", tokenPlaceholder: "your-oauth-token", helpUrl: "https://developer.x.com"},
   };

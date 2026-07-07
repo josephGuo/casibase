@@ -472,6 +472,10 @@ func GetProviderCount(owner, storeName, field, value string) (int64, error) {
 func collectProviderNames(store *Store) []string {
 	var providerNames []string
 
+	if store == nil {
+		return providerNames
+	}
+
 	if store.StorageProvider != "" {
 		providerNames = append(providerNames, store.StorageProvider)
 	}

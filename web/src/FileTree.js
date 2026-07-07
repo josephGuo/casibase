@@ -802,6 +802,7 @@ class FileTree extends React.Component {
       return (
         <DocViewer
           key={path}
+          className="filetree-doc-viewer"
           style={{height: this.getEditorHeightCss(), border: "1px solid rgb(242,242,242)", borderRadius: "6px"}}
           pluginRenderers={DocViewerRenderers}
           documents={[{uri: url}]}
