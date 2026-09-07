@@ -945,9 +945,35 @@ export function getModelSubTypeOptions(type) {
     ];
   } else if (type === "ChatGLM") {
     return [
-      {id: "glm-3-turbo", name: "glm-3-turbo"},
-      {id: "glm-4", name: "glm-4"},
-      {id: "glm-4V", name: "glm-4V"},
+      // GLM-5 series
+      {id: "glm-5.3", name: "glm-5.3"},
+      {id: "glm-5.2", name: "glm-5.2"},
+      {id: "glm-5.1", name: "glm-5.1"},
+      {id: "glm-5", name: "glm-5"},
+      {id: "glm-5-turbo", name: "glm-5-turbo"},
+      // GLM-4 series
+      {id: "glm-4.7", name: "glm-4.7"},
+      {id: "glm-4.7-flashx", name: "glm-4.7-flashx"},
+      {id: "glm-4.7-flash", name: "glm-4.7-flash"},
+      {id: "glm-4.5-air", name: "glm-4.5-air"},
+      {id: "glm-4.5-flash", name: "glm-4.5-flash"},
+      {id: "glm-4-plus", name: "glm-4-plus"},
+      {id: "glm-4-airx", name: "glm-4-airx"},
+      {id: "glm-4-air", name: "glm-4-air"},
+      {id: "glm-4-long", name: "glm-4-long"},
+      {id: "glm-4-flashx-250414", name: "glm-4-flashx-250414"},
+      {id: "glm-4-flash-250414", name: "glm-4-flash-250414"},
+      // Vision models
+      {id: "glm-5.3-flash", name: "glm-5.3-flash"},
+      {id: "glm-5v-turbo", name: "glm-5v-turbo"},
+      {id: "glm-4.6v", name: "glm-4.6v"},
+      {id: "glm-4.6v-flashx", name: "glm-4.6v-flashx"},
+      {id: "glm-4.6v-flash", name: "glm-4.6v-flash"},
+      {id: "glm-4.5v", name: "glm-4.5v"},
+      {id: "glm-4.1v-thinking-flashx", name: "glm-4.1v-thinking-flashx"},
+      {id: "glm-4.1v-thinking-flash", name: "glm-4.1v-thinking-flash"},
+      {id: "glm-4v-plus-0111", name: "glm-4v-plus-0111"},
+      {id: "glm-4v-flash", name: "glm-4v-flash"},
     ];
   } else if (type === "MiniMax") {
     return [
@@ -987,16 +1013,16 @@ export function getModelSubTypeOptions(type) {
     ];
   } else if (type === "Moonshot") {
     return [
-      {id: "kimi-k2-0905-preview", name: "kimi-k2-0905-preview"},
-      {id: "kimi-k2-0711-preview", name: "kimi-k2-0711-preview"},
-      {id: "kimi-k2-turbo-preview", name: "kimi-k2-turbo-preview"},
-      {id: "kimi-k2-thinking", name: "kimi-k2-thinking"},
-      {id: "kimi-k2-thinking-turbo", name: "kimi-k2-thinking-turbo"},
-      {id: "kimi-latest", name: "kimi-latest (Auto Tier)"},
+      // Kimi open platform
+      {id: "kimi-k3", name: "kimi-k3"},
+      {id: "kimi-k2.7-code", name: "kimi-k2.7-code"},
+      {id: "kimi-k2.7-code-highspeed", name: "kimi-k2.7-code-highspeed"},
+      {id: "kimi-k2.6", name: "kimi-k2.6"},
+      // Kimi Coding Plan
+      {id: "k3", name: "k3 (Kimi Coding Plan)"},
+      {id: "k3-256k", name: "k3-256k (Kimi Coding Plan)"},
       {id: "kimi-for-coding", name: "kimi-for-coding (Kimi Coding Plan)"},
-      {id: "moonshot-v1-128k", name: "moonshot-v1-128k"},
-      {id: "moonshot-v1-32k", name: "moonshot-v1-32k"},
-      {id: "moonshot-v1-8k", name: "moonshot-v1-8k"},
+      {id: "kimi-for-coding-highspeed", name: "kimi-for-coding-highspeed (Kimi Coding Plan)"},
     ];
   } else if (type === "Amazon Bedrock") {
     return [
@@ -1017,21 +1043,28 @@ export function getModelSubTypeOptions(type) {
     ];
   } else if (type === "Alibaba Cloud") {
     return [
+      // Qwen commercial models
+      {id: "qwen3.8-max", name: "qwen3.8-max"},
+      {id: "qwen3.8-flash", name: "qwen3.8-flash"},
+      {id: "qwen3.7-max", name: "qwen3.7-max"},
+      {id: "qwen3.7-plus", name: "qwen3.7-plus"},
+      {id: "qwen3.7-flash", name: "qwen3.7-flash"},
       {id: "qwen3.6-plus", name: "qwen3.6-plus"},
       {id: "qwen3.6-flash", name: "qwen3.6-flash"},
+      {id: "qwen-max", name: "qwen-max"},
+      {id: "qwen-plus", name: "qwen-plus"},
+      {id: "qwen-flash", name: "qwen-flash"},
+      {id: "qwen-long", name: "qwen-long"},
+      // Qwen vision-language models
       {id: "qwen3-vl-plus", name: "qwen3-vl-plus"},
       {id: "qwen3-vl-flash", name: "qwen3-vl-flash"},
-      {id: "qvq-max", name: "qvq-max"},
-      {id: "qvq-plus", name: "qvq-plus"},
-      {id: "qwen-vl-max", name: "qwen-vl-max"},
-      {id: "qwen-vl-plus", name: "qwen-vl-plus"},
+      // Qwen open-source models
+      {id: "qwen3.8-2.4t-a95b", name: "qwen3.8-2.4t-a95b"},
+      {id: "qwen3.8-27b", name: "qwen3.8-27b"},
+      {id: "qwen3.6-27b", name: "qwen3.6-27b"},
+      {id: "qwen3.6-35b-a3b", name: "qwen3.6-35b-a3b"},
       {id: "qwen3-235b-a22b", name: "qwen3-235b-a22b"},
       {id: "qwen3-32b", name: "qwen3-32b"},
-      {id: "qwen-max", name: "qwen-max"},
-      {id: "qwen-max-longcontext", name: "qwen-max-longcontext"},
-      {id: "qwen-plus", name: "qwen-plus"},
-      {id: "qwen-turbo", name: "qwen-turbo"},
-      {id: "qwen-long", name: "qwen-long"},
       {id: "deepseek-r1", name: "deepseek-r1"},
       {id: "deepseek-v3", name: "deepseek-v3"},
       {id: "deepseek-v3.1", name: "deepseek-v3.1"},
@@ -1376,15 +1409,15 @@ export function getModelProviderMetadata(type) {
     "MiniMax": {desc: "MiniMax-M3, M2...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "MiniMax-M3"},
     "Azure": {desc: "Azure-hosted GPT models", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "gpt-5.5", urlPlaceholder: "https://your-resource.openai.azure.com"},
     "OpenAI Compatible": {desc: "Any compatible API", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "", urlPlaceholder: "https://api.example.com/v1"},
-    "Alibaba Cloud": {desc: "Qwen3, Qwen-Max...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "qwen3-235b-a22b"},
-    "Moonshot": {desc: "Kimi K2, long-context models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "kimi-k2-0905-preview"},
+    "Alibaba Cloud": {desc: "Qwen3.8 Max, Qwen3.7 Plus...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "qwen3.8-max"},
+    "Moonshot": {desc: "Kimi K3, Kimi K2.7 Code...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "kimi-k3"},
     "Silicon Flow": {desc: "DeepSeek, Qwen, and more", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "deepseek-ai/DeepSeek-V3.2"},
     "Volcano Engine": {desc: "ByteDance AI platform", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "doubao-seed-2-0-pro-260215"},
     "Baidu Cloud": {desc: "ERNIE Bot models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "ernie-5.0"},
     "Amazon Bedrock": {desc: "Claude, Llama on AWS", needsApiKey: true, needsUrl: false, needsClientId: true, needsRegion: true, defaultSubType: "claude"},
     "Hugging Face": {desc: "Llama, Falcon, open models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "meta-llama/Llama-2-7b"},
     "iFlytek": {desc: "Spark X2, Spark Max...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "spark-x2"},
-    "ChatGLM": {desc: "GLM-4, ChatGLM...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "glm-4"},
+    "ChatGLM": {desc: "GLM-5.3, GLM-4.7...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "glm-5.3"},
     "Cohere": {desc: "Command, Command Light", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "command"},
     "Baichuan": {desc: "Baichuan4, Baichuan3...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "Baichuan4-Turbo"},
     "StepFun": {desc: "Step-2, Step-1...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "step-2-16k"},
