@@ -95,33 +95,27 @@ func getContextLength(typ string) int {
 			return 131072
 		}
 	} else if strings.Contains(typ, "doubao") {
-		if strings.Contains(typ, "pro") {
-			if strings.Contains(typ, "256k") {
-				return 262144
-			} else if strings.Contains(typ, "128k") {
-				return 131072
-			} else if strings.Contains(typ, "32k") {
-				return 32768
-			} else if strings.Contains(typ, "4k") {
-				return 4096
-			}
+		if strings.Contains(typ, "seed-evolving") || strings.Contains(typ, "seed-2-1-pro-260915") {
+			return 1048576
+		} else if strings.Contains(typ, "seed-translation") {
 			return 4096
-		} else if strings.Contains(typ, "lite") {
-			if strings.Contains(typ, "128k") {
-				return 131072
-			} else if strings.Contains(typ, "32k") {
-				return 32768
-			} else if strings.Contains(typ, "4k") {
-				return 4096
-			}
-			return 4096
-		} else if strings.Contains(typ, "1.5") {
-			if strings.Contains(typ, "256k") {
-				return 262144
-			} else if strings.Contains(typ, "32k") {
-				return 32768
-			}
-			return 4096
+		} else if strings.Contains(typ, "seed-character") || strings.Contains(typ, "embedding-vision") {
+			return 131072
+		} else if strings.Contains(typ, "doubao-seed") {
+			// the doubao-seed-2-1 / 2-0 / 1-8 / 1-6 and code-preview series all take 256K
+			return 262144
+		} else if strings.Contains(typ, "1-5-pro-32k-character") || strings.Contains(typ, "1.5-pro-32k-character") {
+			return 32768
+		} else if strings.Contains(typ, "1-5-pro-32k") || strings.Contains(typ, "1.5-pro-32k") {
+			return 131072
+		} else if strings.Contains(typ, "1-5") || strings.Contains(typ, "1.5") {
+			return 32768
+		} else if strings.Contains(typ, "256k") {
+			return 262144
+		} else if strings.Contains(typ, "128k") {
+			return 131072
+		} else if strings.Contains(typ, "32k") {
+			return 32768
 		}
 	} else if strings.Contains(typ, "gemini") {
 		if strings.Contains(typ, "pro") {
@@ -266,9 +260,9 @@ func getContextLength(typ string) int {
 		}
 		return 262144
 	} else if strings.Contains(typ, "glm") {
-		if strings.Contains(typ, "glm-5.3") || strings.Contains(typ, "glm-5.2") || strings.Contains(typ, "glm-4-long") {
+		if strings.Contains(typ, "glm-5.3") || strings.Contains(typ, "glm-5-3") || strings.Contains(typ, "glm-5.2") || strings.Contains(typ, "glm-5-2") || strings.Contains(typ, "glm-4-long") {
 			return 1048576
-		} else if strings.Contains(typ, "glm-5") || strings.Contains(typ, "glm-4.7") {
+		} else if strings.Contains(typ, "glm-5") || strings.Contains(typ, "glm-4.7") || strings.Contains(typ, "glm-4-7") {
 			return 204800
 		} else if strings.Contains(typ, "glm-4.5v") || strings.Contains(typ, "glm-4.1v") {
 			return 65536

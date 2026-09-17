@@ -85,13 +85,13 @@ https://www.volcengine.com/docs/82379/1544106
 
 | Model ID                              | Input Price per 1M tokens (yuan) | Output Price per 1M tokens (yuan) |
 |---------------------------------------|----------------------------------|-----------------------------------|
+| doubao-seedance-2-5-260628            | 70.0                             | 0.0                               |
 | doubao-seedance-2-0-260128            | 46.0                             | 0.0                               |
 | doubao-seedance-2-0-fast-260128       | 37.0                             | 0.0                               |
+| doubao-seedance-2-0-mini-260615       | 23.0                             | 0.0                               |
 | doubao-seedance-1-5-pro-251215        | 16.0                             | 0.0                               |
 | doubao-seedance-1-0-pro-250528        | 15.0                             | 0.0                               |
 | doubao-seedance-1-0-pro-fast-251015   | 4.2                              | 0.0                               |
-| doubao-seedance-1-0-lite-t2v-250428   | 10.0                             | 0.0                               |
-| doubao-seedance-1-0-lite-i2v-250428   | 10.0                             | 0.0                               |
 `
 }
 
@@ -178,11 +178,14 @@ func (p *VolcengineProvider) calculatePrice(result *GenerationResult, lang strin
 	}
 
 	priceTable := map[string][2]float64{
+		"doubao-seedance-2-5":          {0.0700, 0.0},
 		"doubao-seedance-2-0":          {0.0460, 0.0},
 		"doubao-seedance-2-0-fast":     {0.0370, 0.0},
+		"doubao-seedance-2-0-mini":     {0.0230, 0.0},
 		"doubao-seedance-1-5-pro":      {0.0160, 0.0},
 		"doubao-seedance-1-0-pro":      {0.0150, 0.0},
 		"doubao-seedance-1-0-pro-fast": {0.0042, 0.0},
+		// Legacy models, delisted from the Ark model list but kept so existing providers keep working
 		"doubao-seedance-1-0-lite":     {0.0100, 0.0},
 		"doubao-seedance-1-0-lite-t2v": {0.0100, 0.0},
 		"doubao-seedance-1-0-lite-i2v": {0.0100, 0.0},

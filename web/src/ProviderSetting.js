@@ -1097,19 +1097,26 @@ export function getModelSubTypeOptions(type) {
     ];
   } else if (type === "Volcano Engine") {
     return [
+      // Seed 2.1 series and the rolling "evolving" model
+      {id: "doubao-seed-evolving", name: "doubao-seed-evolving"},
+      {id: "doubao-seed-2-1-pro-260915", name: "doubao-seed-2-1-pro-260915"},
+      {id: "doubao-seed-2-1-pro-260628", name: "doubao-seed-2-1-pro-260628"},
+      {id: "doubao-seed-2-1-turbo-260628", name: "doubao-seed-2-1-turbo-260628"},
       // Seed 2.0 series
       {id: "doubao-seed-2-0-pro-260215", name: "doubao-seed-2-0-pro-260215"},
+      {id: "doubao-seed-2-0-lite-260428", name: "doubao-seed-2-0-lite-260428"},
       {id: "doubao-seed-2-0-lite-260215", name: "doubao-seed-2-0-lite-260215"},
+      {id: "doubao-seed-2-0-mini-260428", name: "doubao-seed-2-0-mini-260428"},
       {id: "doubao-seed-2-0-mini-260215", name: "doubao-seed-2-0-mini-260215"},
       {id: "doubao-seed-2-0-code-preview-260215", name: "doubao-seed-2-0-code-preview-260215"},
       // Seed 1.8
       {id: "doubao-seed-1-8-251228", name: "doubao-seed-1-8-251228"},
       // Seed character & code
+      {id: "doubao-seed-character-260628", name: "doubao-seed-character-260628"},
       {id: "doubao-seed-character-251128", name: "doubao-seed-character-251128"},
       {id: "doubao-seed-code-preview-251028", name: "doubao-seed-code-preview-251028"},
       // Seed 1.6 series
       {id: "doubao-seed-1-6-251015", name: "doubao-seed-1-6-251015"},
-      {id: "doubao-seed-1-6-lite-251015", name: "doubao-seed-1-6-lite-251015"},
       {id: "doubao-seed-1-6-flash-250828", name: "doubao-seed-1-6-flash-250828"},
       {id: "doubao-seed-1-6-vision-250815", name: "doubao-seed-1-6-vision-250815"},
       {id: "doubao-seed-translation-250915", name: "doubao-seed-translation-250915"},
@@ -1118,29 +1125,33 @@ export function getModelSubTypeOptions(type) {
       {id: "doubao-1-5-pro-32k-character-250715", name: "doubao-1-5-pro-32k-character-250715"},
       {id: "doubao-1-5-lite-32k-250115", name: "doubao-1-5-lite-32k-250115"},
       {id: "doubao-1-5-vision-pro-32k-250115", name: "doubao-1-5-vision-pro-32k-250115"},
-      // GLM model
+      // GLM models
+      {id: "glm-5-3-flash-260828", name: "glm-5-3-flash-260828"},
+      {id: "glm-5-2-260617", name: "glm-5-2-260617"},
       {id: "glm-4-7-251222", name: "glm-4-7-251222"},
       // DeepSeek models
-      {id: "deepseek-v3-2-251201", name: "deepseek-v3-2-251201"},
-      {id: "deepseek-v3-1-terminus", name: "deepseek-v3-1-terminus"},
-      {id: "deepseek-v3-250324", name: "deepseek-v3-250324"},
-      {id: "deepseek-r1-250528", name: "deepseek-r1-250528"},
+      {id: "deepseek-v4-1-flash-260910", name: "deepseek-v4-1-flash-260910"},
+      {id: "deepseek-v4-pro-ga-260813", name: "deepseek-v4-pro-ga-260813"},
+      {id: "deepseek-v4-flash-ga-260731", name: "deepseek-v4-flash-ga-260731"},
+      {id: "deepseek-v4-pro-260425", name: "deepseek-v4-pro-260425"},
+      {id: "deepseek-v4-flash-260425", name: "deepseek-v4-flash-260425"},
       // Embedding models
       {id: "doubao-embedding-vision-251215", name: "doubao-embedding-vision-251215"},
+      {id: "doubao-embedding-vision-250615", name: "doubao-embedding-vision-250615"},
       // Video generation models
+      {id: "doubao-seedance-2-5-260628", name: "doubao-seedance-2-5-260628"},
       {id: "doubao-seedance-2-0-260128", name: "doubao-seedance-2-0-260128"},
       {id: "doubao-seedance-2-0-fast-260128", name: "doubao-seedance-2-0-fast-260128"},
+      {id: "doubao-seedance-2-0-mini-260615", name: "doubao-seedance-2-0-mini-260615"},
       {id: "doubao-seedance-1-5-pro-251215", name: "doubao-seedance-1-5-pro-251215"},
       {id: "doubao-seedance-1-0-pro-250528", name: "doubao-seedance-1-0-pro-250528"},
       {id: "doubao-seedance-1-0-pro-fast-251015", name: "doubao-seedance-1-0-pro-fast-251015"},
-      {id: "doubao-seedance-1-0-lite-t2v-250428", name: "doubao-seedance-1-0-lite-t2v-250428"},
-      {id: "doubao-seedance-1-0-lite-i2v-250428", name: "doubao-seedance-1-0-lite-i2v-250428"},
       // Image generation models
+      {id: "doubao-seedream-5-0-pro-260628", name: "doubao-seedream-5-0-pro-260628"},
       {id: "doubao-seedream-5-0-260128", name: "doubao-seedream-5-0-260128"},
       {id: "doubao-seedream-5-0-lite-260128", name: "doubao-seedream-5-0-lite-260128"},
       {id: "doubao-seedream-4-5-251128", name: "doubao-seedream-4-5-251128"},
       {id: "doubao-seedream-4-0-250828", name: "doubao-seedream-4-0-250828"},
-      {id: "doubao-seedream-3-0-t2i-250415", name: "doubao-seedream-3-0-t2i-250415"},
     ];
   } else if (type === "DeepSeek") {
     return [
@@ -1427,7 +1438,7 @@ export function getModelProviderMetadata(type) {
     "Alibaba Cloud": {desc: "Qwen3.8 Max, Qwen3.7 Plus...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "qwen3.8-max"},
     "Moonshot": {desc: "Kimi K3, Kimi K2.7 Code...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "kimi-k3"},
     "Silicon Flow": {desc: "DeepSeek, Qwen, and more", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "deepseek-ai/DeepSeek-V3.2"},
-    "Volcano Engine": {desc: "ByteDance AI platform", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "doubao-seed-2-0-pro-260215"},
+    "Volcano Engine": {desc: "ByteDance AI platform", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "doubao-seed-2-1-pro-260915"},
     "Baidu Cloud": {desc: "ERNIE Bot models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "ernie-5.0"},
     "Amazon Bedrock": {desc: "Claude, Llama on AWS", needsApiKey: true, needsUrl: false, needsClientId: true, needsRegion: true, defaultSubType: "claude"},
     "Hugging Face": {desc: "Llama, Falcon, open models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "meta-llama/Llama-2-7b"},
