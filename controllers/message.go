@@ -75,6 +75,11 @@ func (c *ApiController) GetGlobalMessages() {
 			c.ResponseError(err.Error())
 			return
 		}
+		messages, err = c.filterStoreAdminMessages(messages)
+		if err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
 		if err = object.PopulateMessagesReadOnly(messages); err != nil {
 			c.ResponseError(err.Error())
 			return
@@ -169,8 +174,55 @@ func (c *ApiController) GetMessages() {
 		return
 	}
 
+	if !c.IsAdmin() {
+		// Non-admins may only read their own messages. An empty user would match every
+		// message, so it is never used as a filter for them.
+		user = c.GetSessionUsername()
+		if chat == "" {
+			if user == "" {
+				c.ResponseOk([]*object.Message{})
+				return
+			}
+		} else {
+			chatObj, err := object.GetChat(util.GetId("admin", chat))
+			if err != nil {
+				c.ResponseError(err.Error())
+				return
+			}
+			if chatObj != nil && chatObj.User != user {
+				c.ResponseError(c.T("auth:Unauthorized operation"))
+				return
+			}
+		}
+	}
+
+	if chat != "" && !c.IsAdmin() {
+		messages, err := object.GetChatMessages(chat)
+		if err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
+		ownMessages := []*object.Message{}
+		for _, message := range messages {
+			if message.User == user {
+				ownMessages = append(ownMessages, message)
+			}
+		}
+		if err = object.PopulateMessagesReadOnly(ownMessages); err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
+		c.ResponseOk(ownMessages)
+		return
+	}
+
 	if chat == "" {
-		messages, err := object.GetMessages("admin", user, "")
+		messages, err := object.GetLatestMessages("admin", user, maxListSize)
+		if err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
+		messages, err = c.filterStoreAdminMessages(messages)
 		if err != nil {
 			c.ResponseError(err.Error())
 			return
@@ -184,6 +236,11 @@ func (c *ApiController) GetMessages() {
 	}
 
 	messages, err := object.GetChatMessages(chat)
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	messages, err = c.filterStoreAdminMessages(messages)
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
@@ -222,12 +279,8 @@ func (c *ApiController) GetMessage() {
 	}
 
 	// Check if user has permission to view this message
-	if !c.IsAdmin() {
-		username := c.GetSessionUsername()
-		if username != message.User {
-			c.ResponseError(c.T("auth:Unauthorized operation"))
-			return
-		}
+	if !c.requireUserDataAccess(message.User, message.Store) {
+		return
 	}
 
 	c.ResponseOk(message)
@@ -265,11 +318,18 @@ func (c *ApiController) UpdateMessage() {
 		return
 	}
 
-	ok := c.IsCurrentUser(persistedMessage.User)
+	ok := c.requireUserDataAccess(persistedMessage.User, persistedMessage.Store)
 	if !ok {
 		return
 	}
 	preserveMessageOwnership(&message, persistedMessage)
+	if !c.IsAdmin() {
+		// ReplyTo picks the question that an answer (and its notification email) is built from, so a
+		// user repointing it could read any other user's message; the notification is admin-only.
+		message.Author = persistedMessage.Author
+		message.ReplyTo = persistedMessage.ReplyTo
+		message.NeedNotify = false
+	}
 
 	if message.NeedNotify {
 		if conf.IsCasdoorAvailable() {
@@ -316,7 +376,7 @@ func (c *ApiController) AddMessage() {
 
 	var chat *object.Chat
 	if originMessage != nil {
-		if !c.IsCurrentUser(originMessage.User) {
+		if !c.requireUserDataAccess(originMessage.User, originMessage.Store) {
 			return
 		}
 		var mutable bool
@@ -326,13 +386,20 @@ func (c *ApiController) AddMessage() {
 		}
 		preserveMessageOwnership(&message, originMessage)
 	} else {
-		if !c.IsCurrentUser(message.User) {
+		if !c.requireUserDataAccess(message.User, message.Store) {
 			return
 		}
 		if message.Chat != "" {
 			var mutable bool
 			chat, mutable = c.ensureMessageMutable(&message)
 			if !mutable {
+				return
+			}
+			if !c.IsAdmin() && chat.User != message.User {
+				c.ResponseError(c.T("auth:Unauthorized operation"))
+				return
+			}
+			if !c.requireUserDataAccess(chat.User, chat.Store) {
 				return
 			}
 		}
@@ -518,6 +585,9 @@ func (c *ApiController) DeleteMessage() {
 		c.ResponseError("Message not found")
 		return
 	}
+	if !c.requireUserDataAccess(persistedMessage.User, persistedMessage.Store) {
+		return
+	}
 	if _, ok := c.ensureMessageMutable(persistedMessage); !ok {
 		return
 	}
@@ -543,6 +613,10 @@ func (c *ApiController) DeleteWelcomeMessage() {
 	message, err = object.GetMessage(id)
 	if err != nil {
 		c.ResponseError(err.Error())
+		return
+	}
+	if message == nil {
+		c.ResponseError("Message not found")
 		return
 	}
 

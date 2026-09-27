@@ -180,6 +180,16 @@ func IsDemoMode() bool {
 	return strings.ToLower(GetConfigString("isDemoMode")) == "true"
 }
 
+// GetIssuer returns the configured Casdoor endpoint. "issuer" is preferred and "casdoorEndpoint"
+// is read for backward compatibility, so every check for "is Casdoor configured" must use this.
+func GetIssuer() string {
+	issuer := GetConfigString("issuer")
+	if issuer == "" {
+		issuer = GetConfigString("casdoorEndpoint")
+	}
+	return issuer
+}
+
 func GetConfigBatchSize() int {
 	res, err := strconv.Atoi(GetConfigString("batchSize"))
 	if err != nil {
@@ -205,11 +215,7 @@ func GetStringArray(key string) []string {
 func GetWebConfig() *WebConfig {
 	config := &WebConfig{}
 
-	issuer := GetConfigString("issuer")
-	if issuer == "" {
-		issuer = GetConfigString("casdoorEndpoint") // backward compat
-	}
-	config.AuthConfig.Issuer = issuer
+	config.AuthConfig.Issuer = GetIssuer()
 	config.AuthConfig.ClientId = GetConfigString("clientId")
 	config.AuthConfig.AppName = GetConfigString("casdoorApplication")           // casdoor backward compat
 	config.AuthConfig.OrganizationName = GetConfigString("casdoorOrganization") // casdoor backward compat

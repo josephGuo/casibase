@@ -18,6 +18,7 @@
     "Invalid username or password": "Invalid username or password",
     "Please sign in first": "Please sign in first",
     "Sign in is unavailable": "Sign in is unavailable",
+    "Too many uploads, please try again later": "Too many uploads, please try again later",
     "Unauthorized operation": "Unauthorized operation",
     "this operation requires admin privilege": "this operation requires admin privilege"
   },
@@ -68,6 +69,10 @@
     "No permission": "No permission",
     "No records to add": "No records to add",
     "No sessions to delete": "No sessions to delete",
+    "Only the global admin can configure local file system storage": "Only the global admin can configure local file system storage",
+    "Only the global admin can configure tools or MCP servers that run commands on the host": "Only the global admin can configure tools or MCP servers that run commands on the host",
+    "Please re-enter the secret when changing where it is sent": "Please re-enter the secret when changing where it is sent",
+    "The tool type: %s is disabled on this server": "The tool type: %s is disabled on this server",
     "You can only access data from your assigned store": "You can only access data from your assigned store",
     "You can only view your own chats": "You can only view your own chats",
     "You can only view your own messages": "You can only view your own messages"
@@ -191,6 +196,7 @@
     "the record: %s has already been committed, blockId = %s": "the record: %s has already been committed, blockId = %s",
     "the record: %s's block ID should not be empty": "the record: %s's block ID should not be empty",
     "the storage provider type: %s is not supported": "the storage provider type: %s is not supported",
+    "the tool type: %s is disabled on this server": "the tool type: %s is disabled on this server",
     "the video provider type: %s is not supported": "the video provider type: %s is not supported",
     "there is no active blockchain provider": "there is no active blockchain provider",
     "tool test JSON must include non-empty \"tool\"": "tool test JSON must include non-empty \"tool\"",
@@ -201,7 +207,12 @@
   },
   "resource": {
     "Invalid file data format": "Invalid file data format",
-    "Only docx and pdf files are allowed": "Only docx and pdf files are allowed"
+    "Only docx and pdf files are allowed": "Only docx and pdf files are allowed",
+    "Only image files (PNG, JPEG, GIF, WebP, BMP, ICO) can be uploaded": "Only image files (PNG, JPEG, GIF, WebP, BMP, ICO) can be uploaded",
+    "The file is too large, the maximum size is %d MB": "The file is too large, the maximum size is %d MB",
+    "The resource: %s is not found": "The resource: %s is not found",
+    "Unsupported resource category: %s": "Unsupported resource category: %s",
+    "Your uploaded files exceed the quota of %d MB, please delete some files first": "Your uploaded files exceed the quota of %d MB, please delete some files first"
   },
   "storage": {
     "Casdoor is not configured or not reachable": "Casdoor is not configured or not reachable",

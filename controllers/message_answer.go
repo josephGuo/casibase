@@ -50,7 +50,7 @@ func (c *ApiController) GetMessageAnswer() {
 		return
 	}
 	if message != nil {
-		ok := c.IsCurrentUser(message.User)
+		ok := c.requireUserDataAccess(message.User, message.Store)
 		if !ok {
 			return
 		}
@@ -60,7 +60,9 @@ func (c *ApiController) GetMessageAnswer() {
 	c.Ctx.ResponseWriter.Header().Set("Cache-Control", "no-cache")
 	c.Ctx.ResponseWriter.Header().Set("Connection", "keep-alive")
 
-	job := messageAnswerJobs.getOrStart(id, c.Ctx.Request.Host, c.GetAcceptLanguage(), signedIn, signedIn)
+	// Any user can point a chat at any store, so tools that run commands or touch the local
+	// machine are only enabled for the global admin, never for store admins or signed-in users.
+	job := messageAnswerJobs.getOrStart(id, c.Ctx.Request.Host, c.GetAcceptLanguage(), signedIn, c.IsGlobalAdmin())
 	streamMessageAnswerJob(c.Ctx.ResponseWriter, c.Ctx.Request, job)
 }
 
@@ -83,7 +85,7 @@ func (c *ApiController) CancelMessageAnswer() {
 		c.ResponseError(fmt.Sprintf("The message: %s is not found", id))
 		return
 	}
-	ok := c.IsCurrentUser(message.User)
+	ok := c.requireUserDataAccess(message.User, message.Store)
 	if !ok {
 		return
 	}
@@ -94,7 +96,7 @@ func (c *ApiController) CancelMessageAnswer() {
 
 func (c *ApiController) generateMessageAnswer(id string, responseWriter http.ResponseWriter, host string) {
 	_, signedIn := c.CheckSignedIn()
-	generateMessageAnswer(id, responseWriter, host, c.GetAcceptLanguage(), signedIn, signedIn, c.ResponseError)
+	generateMessageAnswer(id, responseWriter, host, c.GetAcceptLanguage(), signedIn, c.IsGlobalAdmin(), c.ResponseError)
 }
 
 func streamMessageAnswerJob(responseWriter http.ResponseWriter, request *http.Request, job *messageAnswerJob) {
@@ -254,6 +256,11 @@ func generateMessageAnswer(id string, responseWriter http.ResponseWriter, host s
 			return
 		}
 		if questionMessage == nil {
+			responseErrorStream(message, fmt.Sprintf("The message: %s is not found", id))
+			return
+		}
+		// Only answer a question from the same chat, never another user's message.
+		if questionMessage.Owner != message.Owner || questionMessage.Chat != message.Chat {
 			responseErrorStream(message, fmt.Sprintf("The message: %s is not found", id))
 			return
 		}
@@ -642,8 +649,18 @@ func (c *ApiController) GetAnswer() {
 	video := c.Input().Get("video")
 	tool := c.Input().Get("tool")
 
-	if tool != "" && !c.RequireAdmin() {
-		return
+	if tool != "" {
+		if !c.RequireAdmin() {
+			return
+		}
+		t, err := object.GetTool(util.GetIdFromOwnerAndName("admin", tool))
+		if err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
+		if !c.requireHighRiskToolPermission(t) {
+			return
+		}
 	}
 
 	if question == "" {
@@ -666,6 +683,10 @@ func (c *ApiController) GetAnswer() {
 	chat, err := object.GetChat(util.GetId("admin", chatName))
 	if err != nil {
 		c.ResponseError(err.Error())
+		return
+	}
+	// The chat name comes from the request, so it may name another user's chat.
+	if chat != nil && !c.requireUserDataAccess(chat.User, chat.Store) {
 		return
 	}
 	if chat == nil {

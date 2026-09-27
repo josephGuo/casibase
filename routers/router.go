@@ -267,7 +267,7 @@ func initAPI() {
 	beego.Router("/api/delete-permission", &controllers.ApiController{}, "POST:DeletePermission")
 
 	beego.Router("/api/get-sessions", &controllers.ApiController{}, "GET:GetSessions")
-	beego.Router("/api/get-session", &controllers.ApiController{}, "GET:GetSession")
+	beego.Router("/api/get-session", &controllers.ApiController{}, "GET:GetSingleSession")
 	beego.Router("/api/update-session", &controllers.ApiController{}, "POST:UpdateSession")
 	beego.Router("/api/add-session", &controllers.ApiController{}, "POST:AddSession")
 	beego.Router("/api/delete-session", &controllers.ApiController{}, "POST:DeleteSession")

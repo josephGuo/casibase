@@ -497,12 +497,18 @@ function ManagementPage(props) {
         Setting.getItem(<Link to="/forms">{i18next.t("general:Forms")}</Link>, "/forms", <FormOutlined />),
       ]));
 
-      res.push(Setting.getItem(<Link style={{color: textColor}} to="/records">{i18next.t("general:Auditing Logs")}</Link>, "/logs", <WalletOutlined />, [
-        Setting.getItem(<Link to="/records">{i18next.t("general:Logs")}</Link>, "/records", <DatabaseOutlined />),
-        Setting.getItem(<Link to="/notifications">{i18next.t("general:Notifications")}</Link>, "/notifications", <NotificationOutlined />),
-        Setting.getItem(<Link to="/sessions">{i18next.t("general:Sessions")}</Link>, "/sessions", <OrderedListOutlined />),
-        Setting.getItem(<Link to="/snapshots">{i18next.t("general:Snapshots")}</Link>, "/snapshots", <HistoryOutlined />),
-      ]));
+      if (Setting.isAdminUser(account)) {
+        res.push(Setting.getItem(<Link style={{color: textColor}} to="/records">{i18next.t("general:Auditing Logs")}</Link>, "/logs", <WalletOutlined />, [
+          Setting.getItem(<Link to="/records">{i18next.t("general:Logs")}</Link>, "/records", <DatabaseOutlined />),
+          Setting.getItem(<Link to="/notifications">{i18next.t("general:Notifications")}</Link>, "/notifications", <NotificationOutlined />),
+          Setting.getItem(<Link to="/sessions">{i18next.t("general:Sessions")}</Link>, "/sessions", <OrderedListOutlined />),
+          Setting.getItem(<Link to="/snapshots">{i18next.t("general:Snapshots")}</Link>, "/snapshots", <HistoryOutlined />),
+        ]));
+      } else {
+        res.push(Setting.getItem(<Link style={{color: textColor}} to="/notifications">{i18next.t("general:Auditing Logs")}</Link>, "/logs", <WalletOutlined />, [
+          Setting.getItem(<Link to="/notifications">{i18next.t("general:Notifications")}</Link>, "/notifications", <NotificationOutlined />),
+        ]));
+      }
 
       res.push(Setting.getItem(<Link style={{color: textColor}} to="#">{i18next.t("general:Identity")}</Link>, "/identity", <LockOutlined />, [
         Setting.getItem(

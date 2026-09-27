@@ -47,6 +47,10 @@ func (c *ApiController) GenerateTextToSpeechAudio() {
 		c.ResponseError(err.Error())
 		return
 	}
+	// Reading an existing message aloud discloses its text, so it is limited to the message's own user.
+	if req.MessageId != "" && !c.requireUserDataAccess(message.User, message.Store) {
+		return
+	}
 
 	audioData, ttsResult, err := providerObj.QueryAudio(message.Text, ctx, c.GetAcceptLanguage())
 	if err != nil {
@@ -86,6 +90,10 @@ func (c *ApiController) GenerateTextToSpeechAudioStream() {
 	message, chat, providerObj, ctx, err := object.PrepareTextToSpeech(storeId, "", messageId, "", c.GetAcceptLanguage())
 	if err != nil {
 		c.ResponseErrorStream(message, err.Error())
+		return
+	}
+	if !c.canAccessUserData(message.User, message.Store) {
+		c.ResponseErrorStream(message, c.T("auth:Unauthorized operation"))
 		return
 	}
 

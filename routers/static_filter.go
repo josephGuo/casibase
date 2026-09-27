@@ -84,6 +84,17 @@ func StaticFilter(ctx *context.Context) {
 		ctx.Output.Header(headerAllowHeaders, "Content-Type, Authorization")
 		ctx.Output.Header(headerAllowCredentials, "true")
 
+		if providerName, key, ok := object.ParseStorageObjectUrlPath(urlPath); ok {
+			serveStorageObject(ctx, providerName, key)
+			return
+		}
+
+		// Legacy URLs carry a file path instead of a signed object key, so only signed-in users may use them.
+		if GetSessionUser(ctx) == nil {
+			http.NotFound(ctx.ResponseWriter, ctx.Request)
+			return
+		}
+
 		if runtime.GOOS == "windows" {
 			urlPath = strings.TrimPrefix(urlPath, "/storage/")
 		} else {
@@ -95,6 +106,7 @@ func StaticFilter(ctx *context.Context) {
 			http.NotFound(ctx.ResponseWriter, ctx.Request)
 			return
 		}
+		setStorageFileSecurityHeaders(ctx, urlPath)
 		makeGzipResponse(ctx.ResponseWriter, ctx.Request, urlPath)
 		return
 	}
@@ -132,6 +144,48 @@ func StaticFilter(ctx *context.Context) {
 			_, _ = fmt.Fprint(ctx.ResponseWriter, `<!DOCTYPE html><html><head><title>Frontend Not Built</title></head><body><h2>Frontend not built</h2><p>Please run <code>cd web &amp;&amp; yarn install &amp;&amp; yarn build</code> to build the frontend.</p></body></html>`)
 		}
 	}
+}
+
+// activeStorageFileExts are file types a browser can execute script in when opened directly.
+var activeStorageFileExts = map[string]bool{
+	".html":  true,
+	".htm":   true,
+	".xhtml": true,
+	".shtml": true,
+	".svg":   true,
+	".svgz":  true,
+	".xml":   true,
+	".xsl":   true,
+	".js":    true,
+	".mjs":   true,
+}
+
+// setStorageFileSecurityHeaders stops user-uploaded files from running script on this origin,
+// which would otherwise let an uploaded HTML/SVG file act with the viewer's session.
+func setStorageFileSecurityHeaders(ctx *context.Context, path string) {
+	ctx.Output.Header("X-Content-Type-Options", "nosniff")
+	if activeStorageFileExts[strings.ToLower(filepath.Ext(path))] {
+		ctx.Output.Header("Content-Security-Policy", "sandbox")
+	}
+}
+
+func serveStorageObject(ctx *context.Context, providerName string, key string) {
+	if !object.IsValidStorageObjectSignature(providerName, key, ctx.Input.Query("sig")) {
+		http.NotFound(ctx.ResponseWriter, ctx.Request)
+		return
+	}
+
+	path, err := object.GetLocalStorageObjectPath(providerName, key)
+	if err != nil {
+		logs.Error("GetLocalStorageObjectPath() error: %s", err.Error())
+	}
+	if path == "" || !isServableStorageFile(path) {
+		http.NotFound(ctx.ResponseWriter, ctx.Request)
+		return
+	}
+
+	setStorageFileSecurityHeaders(ctx, path)
+	makeGzipResponse(ctx.ResponseWriter, ctx.Request, path)
 }
 
 // isServableStorageFile only allows /storage to serve regular files that live inside a
@@ -195,10 +249,7 @@ func serveFileWithReplace(w http.ResponseWriter, r *http.Request, path string) {
 	oldContent := util.ReadStringFromPath(path)
 	newContent := oldContent
 
-	issuer := conf.GetConfigString("issuer")
-	if issuer == "" {
-		issuer = conf.GetConfigString("casdoorEndpoint") // backward compat
-	}
+	issuer := conf.GetIssuer()
 	clientId := conf.GetConfigString("clientId")
 	appName := conf.GetConfigString("casdoorApplication")           // casdoor backward compat
 	organizationName := conf.GetConfigString("casdoorOrganization") // casdoor backward compat

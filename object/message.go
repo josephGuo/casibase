@@ -198,6 +198,12 @@ func GetMessages(owner string, user string, storeName string) ([]*Message, error
 	return messages, nil
 }
 
+func GetLatestMessages(owner string, user string, limit int) ([]*Message, error) {
+	messages := []*Message{}
+	err := adapter.engine.Desc("created_time").Limit(limit).Find(&messages, &Message{Owner: owner, User: user})
+	return messages, err
+}
+
 func GetNearMessageCount(user string, limitMinutes int) (int, error) {
 	sinceTime := util.FormatTimeForCompare(time.Now().Add(-time.Minute * time.Duration(limitMinutes)))
 	nearMessageCount, err := adapter.engine.Desc("created_time").Where("created_time >= ?", sinceTime).Count(&Message{Owner: "admin", User: user, Author: "AI"})

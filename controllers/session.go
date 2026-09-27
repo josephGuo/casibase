@@ -30,6 +30,11 @@ import (
 // @Success 200 {array} string The Response object
 // @router /get-sessions [get]
 func (c *ApiController) GetSessions() {
+	// Sessions hold live session IDs, which would let the reader take over any account.
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	limit := c.Input().Get("pageSize")
 	page := c.Input().Get("p")
 	field := c.Input().Get("field")
@@ -45,7 +50,7 @@ func (c *ApiController) GetSessions() {
 			return
 		}
 
-		c.ResponseOk(sessions)
+		c.ResponseOk(object.GetMaskedSessions(sessions))
 	} else {
 		limit := util.ParseInt(limit)
 		count, err := object.GetSessionCount(owner, field, value)
@@ -60,7 +65,7 @@ func (c *ApiController) GetSessions() {
 			return
 		}
 
-		c.ResponseOk(sessions, paginator.Nums())
+		c.ResponseOk(object.GetMaskedSessions(sessions), paginator.Nums())
 	}
 }
 
@@ -72,6 +77,11 @@ func (c *ApiController) GetSessions() {
 // @Success 200 {array} string The Response object
 // @router /get-session [get]
 func (c *ApiController) GetSingleSession() {
+	// Sessions hold live session IDs, which would let the reader take over any account.
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	id := c.Input().Get("sessionId")
 
 	session, err := object.GetSession(id)
@@ -80,7 +90,7 @@ func (c *ApiController) GetSingleSession() {
 		return
 	}
 
-	c.ResponseOk(session)
+	c.ResponseOk(object.GetMaskedSession(session))
 }
 
 // UpdateSession
@@ -91,6 +101,11 @@ func (c *ApiController) GetSingleSession() {
 // @Success 200 {array} string The Response object
 // @router /update-session [post]
 func (c *ApiController) UpdateSession() {
+	// Sessions hold live session IDs, which would let the reader take over any account.
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	var session object.Session
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &session)
 	if err != nil {
@@ -98,7 +113,17 @@ func (c *ApiController) UpdateSession() {
 		return
 	}
 
-	c.Data["json"] = wrapActionResponse(object.UpdateSession(util.GetIdFromOwnerAndName(session.Owner, session.Name), &session))
+	id := util.GetIdFromOwnerAndName(session.Owner, session.Name)
+	oldSession, err := object.GetSession(id)
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	if oldSession != nil {
+		session.SessionId = oldSession.SessionId
+	}
+
+	c.Data["json"] = wrapActionResponse(object.UpdateSession(id, &session))
 	c.ServeJSON()
 }
 
@@ -111,6 +136,11 @@ func (c *ApiController) UpdateSession() {
 // @Success 200 {array} string The Response object
 // @router /add-session [post]
 func (c *ApiController) AddSession() {
+	// Sessions hold live session IDs, which would let the reader take over any account.
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	var session object.Session
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &session)
 	if err != nil {
@@ -130,6 +160,11 @@ func (c *ApiController) AddSession() {
 // @Success 200 {array} string The Response object
 // @router /delete-session [post]
 func (c *ApiController) DeleteSession() {
+	// Sessions hold live session IDs, which would let the reader take over any account.
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	var session object.Session
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &session)
 	if err != nil {

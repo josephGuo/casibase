@@ -166,7 +166,8 @@ func getFileContent(rawURL string, ext string, lang string) (string, error) {
 			return content.(string), nil
 		}
 
-		content, err := txt.GetParsedTextFromUrl(rawURL, ext, lang)
+		// rawURL comes from the chat text, so it must not be able to reach internal services.
+		content, err := txt.GetParsedTextFromUntrustedUrl(rawURL, ext, lang)
 		if err != nil {
 			return "", err
 		}

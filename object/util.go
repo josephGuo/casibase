@@ -29,9 +29,17 @@ func getUrlFromPath(path string, origin string) (string, error) {
 		return path, nil
 	}
 
+	providerName, key, err := getLocalStorageObjectKey(path)
+	if err != nil {
+		return "", err
+	}
+	if providerName != "" {
+		return strings.TrimSuffix(origin, "/") + getStorageObjectUrlPath(providerName, key), nil
+	}
+
 	res := strings.Replace(path, ":", "|", 1)
 	res = fmt.Sprintf("storage/%s", res)
-	res, err := url.JoinPath(origin, res)
+	res, err = url.JoinPath(origin, res)
 	return res, err
 }
 
@@ -48,7 +56,7 @@ func GetDbSession(owner string, offset, limit int, field, value, sortField, sort
 			session = session.And(fmt.Sprintf("%s like ?", util.SnakeString(field)), fmt.Sprintf("%%%s%%", value))
 		}
 	}
-	if sortField == "" || sortOrder == "" {
+	if sortField == "" || sortOrder == "" || !util.FilterSortField(sortField) {
 		sortField = "created_time"
 	}
 	if sortOrder == "ascend" {

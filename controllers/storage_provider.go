@@ -28,10 +28,23 @@ func getStorageProviders() ([]*auth.Provider, error) {
 	res := []*auth.Provider{}
 	for _, provider := range providers {
 		if provider.Category == "Storage" {
-			res = append(res, provider)
+			res = append(res, getPublicStorageProvider(provider))
 		}
 	}
 	return res, nil
+}
+
+func getPublicStorageProvider(provider *auth.Provider) *auth.Provider {
+	return &auth.Provider{
+		Owner:       provider.Owner,
+		Name:        provider.Name,
+		CreatedTime: provider.CreatedTime,
+		DisplayName: provider.DisplayName,
+		Category:    provider.Category,
+		Type:        provider.Type,
+		SubType:     provider.SubType,
+		Domain:      provider.Domain,
+	}
 }
 
 // GetStorageProviders

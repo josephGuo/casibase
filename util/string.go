@@ -15,6 +15,7 @@
 package util
 
 import (
+	cryptorand "crypto/rand"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -197,6 +198,27 @@ func GetRandomString(length int) string {
 	result := make([]byte, length)
 	for i := range result {
 		result[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(result)
+}
+
+// GetSecureRandomString returns a random alphanumeric string from a cryptographically secure
+// source, for values such as API keys that must not be guessable.
+func GetSecureRandomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	// Discard bytes past the largest multiple of len(charset) so every character is equally likely.
+	const limit = 256 - 256%len(charset)
+	result := make([]byte, 0, length)
+	buf := make([]byte, length)
+	for len(result) < length {
+		if _, err := cryptorand.Read(buf); err != nil {
+			panic(err)
+		}
+		for _, b := range buf {
+			if int(b) < limit && len(result) < length {
+				result = append(result, charset[int(b)%len(charset)])
+			}
+		}
 	}
 	return string(result)
 }

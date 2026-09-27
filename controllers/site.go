@@ -28,7 +28,7 @@ import (
 // @Success 200 {array} object.Site The Response object
 // @router /get-global-sites [get]
 func (c *ApiController) GetGlobalSites() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -48,7 +48,7 @@ func (c *ApiController) GetGlobalSites() {
 // @Success 200 {array} object.Site The Response object
 // @router /get-sites [get]
 func (c *ApiController) GetSites() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -69,6 +69,11 @@ func (c *ApiController) GetSites() {
 // @Success 200 {object} object.Site The Response object
 // @router /get-site [get]
 func (c *ApiController) GetSite() {
+	// The site holds the Casdoor client secret, from which the app-level access token is derived.
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	id := c.Input().Get("id")
 
 	site, err := object.GetSite(id)
@@ -93,6 +98,14 @@ func (c *ApiController) GetBuiltInSite() {
 		return
 	}
 
+	if site != nil && !c.IsGlobalAdmin() {
+		site.ParentDbName = ""
+		site.HubDbNames = ""
+		site.Socks5Proxy = ""
+		site.LogConfig = ""
+		site.IpParsingMode = ""
+	}
+
 	c.ResponseOk(site)
 }
 
@@ -105,7 +118,7 @@ func (c *ApiController) GetBuiltInSite() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /update-site [post]
 func (c *ApiController) UpdateSite() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -142,7 +155,7 @@ func (c *ApiController) UpdateSite() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /add-site [post]
 func (c *ApiController) AddSite() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -150,6 +163,11 @@ func (c *ApiController) AddSite() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &site)
 	if err != nil {
 		c.ResponseError(err.Error())
+		return
+	}
+
+	if site.Owner == "" || site.Name == "" {
+		c.ResponseError(c.T("application:Missing required parameters"))
 		return
 	}
 
@@ -170,7 +188,7 @@ func (c *ApiController) AddSite() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /delete-site [post]
 func (c *ApiController) DeleteSite() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 

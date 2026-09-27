@@ -25,6 +25,7 @@ import (
 	"strings"
 
 	"github.com/sashabaranov/go-openai"
+	"github.com/the-open-agent/openagent/util"
 )
 
 func extractImagesURL(message string) ([]string, string) {
@@ -89,15 +90,26 @@ func safeImageURLForError(text string) string {
 }
 
 func getImageRefinedText(text string) (string, error) {
-	resp, err := http.Get(text)
+	// The image URL comes from message text, so internal addresses are refused.
+	httpClient, err := util.GetUntrustedHttpClient(text)
+	if err != nil {
+		return "", err
+	}
+	resp, err := httpClient.Get(text)
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return "", fmt.Errorf("failed to fetch image %s: HTTP %d", safeImageURLForError(text), resp.StatusCode)
+	}
 
-	data, err := io.ReadAll(resp.Body)
+	data, err := io.ReadAll(io.LimitReader(resp.Body, util.UntrustedFetchMaxBytes+1))
 	if err != nil {
 		return "", err
+	}
+	if len(data) > util.UntrustedFetchMaxBytes {
+		return "", fmt.Errorf("the image %s exceeds %d bytes", safeImageURLForError(text), util.UntrustedFetchMaxBytes)
 	}
 
 	mimeType := supportedImageMimeType(resp.Header.Get("Content-Type"))

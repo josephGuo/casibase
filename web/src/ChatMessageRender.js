@@ -43,7 +43,9 @@ export function renderMarkdown(text) {
   cleanHtml = cleanHtml.replace(/<(ul)>/g, "<ul style='display: flex; flex-direction: column; gap: 10px; margin-top: 10px; margin-bottom: 10px'>").replace(/<(ol)>/g, "<ol style='display: flex; flex-direction: column; gap: 0px; margin-top: 20px; margin-bottom: 20px'>");
   /* adjust code block, for auto line feed. */
   cleanHtml = cleanHtml.replace(/<pre>/g, "<pre style='white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;'>");
-  return cleanHtml;
+  /* the regexes above also match inside attribute values (e.g. title="<a "), which can break out of the
+     attribute and add an event handler, so sanitize again after rewriting. */
+  return DOMPurify.sanitize(cleanHtml, {ADD_ATTR: ["target"]});
 }
 
 export function renderLatex(text) {

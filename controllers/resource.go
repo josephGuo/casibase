@@ -17,14 +17,50 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"mime"
+	"io"
+	"net/http"
 	"path/filepath"
 	"strings"
 
 	"github.com/beego/beego/utils/pagination"
+	"github.com/the-open-agent/openagent/conf"
 	"github.com/the-open-agent/openagent/object"
 	"github.com/the-open-agent/openagent/util"
 )
+
+const maxResourceUploadSize = 10 << 20
+
+const defaultResourceQuotaMb = 200
+
+var resourceCategories = map[string]bool{
+	"avatar":   true,
+	"chat":     true,
+	"document": true,
+}
+
+var resourceImageMimeTypes = map[string][]string{
+	".png":  {"image/png"},
+	".jpg":  {"image/jpeg"},
+	".jpeg": {"image/jpeg"},
+	".gif":  {"image/gif"},
+	".webp": {"image/webp"},
+	".bmp":  {"image/bmp"},
+	".ico":  {"image/x-icon", "image/vnd.microsoft.icon"},
+}
+
+func getResourceImageMimeType(ext string, fileBytes []byte) (string, bool) {
+	allowed, ok := resourceImageMimeTypes[ext]
+	if !ok {
+		return "", false
+	}
+	detected := http.DetectContentType(fileBytes)
+	for _, mimeType := range allowed {
+		if detected == mimeType {
+			return mimeType, true
+		}
+	}
+	return "", false
+}
 
 // GetGlobalResources
 // @Title GetGlobalResources
@@ -47,7 +83,7 @@ func (c *ApiController) GetGlobalResources() {
 	}
 
 	filterUser := ""
-	if !c.IsAdmin() {
+	if !c.IsGlobalAdmin() {
 		filterUser = userName
 	}
 
@@ -104,7 +140,7 @@ func (c *ApiController) GetResource() {
 		return
 	}
 
-	if resource != nil && !c.IsAdmin() && resource.User != userName {
+	if resource != nil && !c.IsGlobalAdmin() && resource.User != userName {
 		c.ResponseError(c.T("auth:Unauthorized operation"))
 		return
 	}
@@ -121,6 +157,10 @@ func (c *ApiController) GetResource() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /update-resource [post]
 func (c *ApiController) UpdateResource() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	id := c.Input().Get("id")
 
 	var resource object.Resource
@@ -147,6 +187,10 @@ func (c *ApiController) UpdateResource() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /add-resource [post]
 func (c *ApiController) AddResource() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	var resource object.Resource
 	err := json.NewDecoder(c.Ctx.Request.Body).Decode(&resource)
 	if err != nil {
@@ -176,25 +220,40 @@ func (c *ApiController) DeleteResource() {
 		return
 	}
 
-	var resource object.Resource
-	err := json.NewDecoder(c.Ctx.Request.Body).Decode(&resource)
+	var form object.Resource
+	err := json.NewDecoder(c.Ctx.Request.Body).Decode(&form)
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
 	}
 
-	if !c.IsAdmin() && resource.User != userName {
+	// Act on the stored resource: the request body could otherwise name any storage object to delete.
+	if form.Owner == "" || form.Name == "" {
+		c.ResponseError(c.T("application:Missing required parameters"))
+		return
+	}
+	resource, err := object.GetResource(util.GetIdFromOwnerAndName(form.Owner, form.Name))
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	if resource == nil {
+		c.ResponseError(fmt.Sprintf(c.T("resource:The resource: %s is not found"), util.GetIdFromOwnerAndName(form.Owner, form.Name)))
+		return
+	}
+
+	if !c.IsGlobalAdmin() && resource.User != userName {
 		c.ResponseError(c.T("auth:Unauthorized operation"))
 		return
 	}
 
-	err = object.DeleteResourceFile(&resource, c.GetAcceptLanguage())
+	err = object.DeleteResourceFile(resource, c.GetAcceptLanguage())
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
 	}
 
-	success, err := object.DeleteResource(&resource)
+	success, err := object.DeleteResource(resource)
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
@@ -225,6 +284,10 @@ func (c *ApiController) UploadResource() {
 	if category == "" {
 		category = "avatar"
 	}
+	if !resourceCategories[category] {
+		c.ResponseError(fmt.Sprintf(c.T("resource:Unsupported resource category: %s"), category))
+		return
+	}
 
 	file, header, err := c.GetFile("file")
 	if err != nil {
@@ -233,34 +296,47 @@ func (c *ApiController) UploadResource() {
 	}
 	defer file.Close()
 
-	fileName := header.Filename
-	fileSize := int(header.Size)
+	fileName := filepath.Base(header.Filename)
+	if header.Size > maxResourceUploadSize {
+		c.ResponseError(fmt.Sprintf(c.T("resource:The file is too large, the maximum size is %d MB"), maxResourceUploadSize>>20))
+		return
+	}
 
-	fileBytes := make([]byte, fileSize)
-	_, err = file.Read(fileBytes)
+	fileBytes, err := io.ReadAll(io.LimitReader(file, maxResourceUploadSize+1))
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
 	}
+	if len(fileBytes) > maxResourceUploadSize {
+		c.ResponseError(fmt.Sprintf(c.T("resource:The file is too large, the maximum size is %d MB"), maxResourceUploadSize>>20))
+		return
+	}
+	fileSize := len(fileBytes)
 
-	// Detect MIME type and file type category
-	ext := strings.ToLower(filepath.Ext(fileName))
-
-	if err = validateFileExtension(fileName, c.GetAcceptLanguage()); err != nil {
+	quotaMb := conf.GetConfigInt("resourceQuotaMb")
+	if quotaMb <= 0 {
+		quotaMb = defaultResourceQuotaMb
+	}
+	usedSize, err := object.GetUserResourceSize(userName)
+	if err != nil {
 		c.ResponseError(err.Error())
 		return
 	}
-	mimeType := header.Header.Get("Content-Type")
-	if mimeType == "" {
-		mimeType = mime.TypeByExtension(ext)
-	}
-	fileTypeParts := strings.SplitN(mimeType, "/", 2)
-	fileType := "unknown"
-	if len(fileTypeParts) > 0 {
-		fileType = fileTypeParts[0]
+	if usedSize+int64(fileSize) > int64(quotaMb)<<20 {
+		c.ResponseError(fmt.Sprintf(c.T("resource:Your uploaded files exceed the quota of %d MB, please delete some files first"), quotaMb))
+		return
 	}
 
-	fullFilePath := fmt.Sprintf("openagent/resources/%s/%s/%s", category, userName, fileName)
+	ext := strings.ToLower(filepath.Ext(fileName))
+	mimeType, ok := getResourceImageMimeType(ext, fileBytes)
+	if !ok {
+		c.ResponseError(c.T("resource:Only image files (PNG, JPEG, GIF, WebP, BMP, ICO) can be uploaded"))
+		return
+	}
+	fileType := strings.SplitN(mimeType, "/", 2)[0]
+
+	storedFileName := fmt.Sprintf("%s%s", util.GetRandomName(), ext)
+	fullFilePath := fmt.Sprintf("openagent/resources/%s/%s/%s", category, userName, storedFileName)
 
 	host := c.Ctx.Request.Host
 	origin := getOriginFromHost(host)

@@ -283,6 +283,7 @@
     "Forms": "Forms",
     "General Settings": "General Settings",
     "General Settings desc": "Basic agent configuration including name, owner and display",
+    "Generate a new key, copy it and save, it will not be shown again": "Generate a new key, copy it and save, it will not be shown again",
     "HTML title": "HTML title",
     "HTML title - Tooltip": "HTML page title displayed in browser tab",
     "Home": "Home",

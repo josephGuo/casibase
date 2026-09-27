@@ -20,6 +20,16 @@ import (
 	"github.com/the-open-agent/openagent/object"
 )
 
+// requireTreeFileStoreAccess keeps store-level admins inside the knowledge bases of their own stores.
+func (c *ApiController) requireTreeFileStoreAccess(storeId string) bool {
+	store, err := object.GetStore(storeId)
+	if err != nil {
+		c.ResponseError(err.Error())
+		return false
+	}
+	return store == nil || c.requireStoreAdminOwnership(store.Owner)
+}
+
 // AddTreeFile
 // @Title AddTreeFile
 // @Tag Tree File API
@@ -40,6 +50,9 @@ func (c *ApiController) AddTreeFile() {
 	key := c.Input().Get("key")
 	isLeaf := c.Input().Get("isLeaf") == "1"
 	filename := c.Input().Get("filename")
+	if !c.requireTreeFileStoreAccess(storeId) {
+		return
+	}
 	var file multipart.File
 
 	if isLeaf {
@@ -87,6 +100,9 @@ func (c *ApiController) DeleteTreeFile() {
 	storeId := c.Input().Get("store")
 	key := c.Input().Get("key")
 	isLeaf := c.Input().Get("isLeaf") == "1"
+	if !c.requireTreeFileStoreAccess(storeId) {
+		return
+	}
 
 	res, err := object.DeleteTreeFile(storeId, key, isLeaf, c.GetAcceptLanguage())
 	if err != nil {

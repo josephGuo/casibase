@@ -156,6 +156,11 @@ func GetResourceCount(owner, user, field, value string) (int64, error) {
 	return session.Count(&Resource{})
 }
 
+func GetUserResourceSize(user string) (int64, error) {
+	total, err := adapter.engine.Where("user = ?", user).SumInt(&Resource{}, "file_size")
+	return total, err
+}
+
 func GetPaginationResources(owner, user string, offset, limit int, field, value, sortField, sortOrder string) ([]*Resource, error) {
 	resources := []*Resource{}
 	session := GetDbSession(owner, offset, limit, field, value, sortField, sortOrder)

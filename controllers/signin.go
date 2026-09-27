@@ -145,7 +145,7 @@ func (c *ApiController) UpdateAccount() {
 
 	user := accountUser.ToCasdoorUser()
 	c.SetSessionUser(&user)
-	c.ResponseOk(user)
+	c.ResponseOk(getSanitizedUser(user))
 }
 
 func (c *ApiController) signinWithPassword() {
@@ -192,7 +192,10 @@ func (c *ApiController) signinWithPassword() {
 		return
 	}
 
-	c.SetSessionClaims(claims)
+	if err = c.startUserSession(claims); err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
 	userId := util.GetIdFromOwnerAndName(claims.User.Owner, claims.User.Name)
 	c.Ctx.Input.SetParam("recordUserId", userId)
 
@@ -207,5 +210,5 @@ func (c *ApiController) signinWithPassword() {
 		object.AddSession(session)
 	}
 
-	c.ResponseOk(claims)
+	c.ResponseOk(getSanitizedClaims(claims))
 }

@@ -4,7 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATIC_REPO_URL="${STATIC_REPO_URL:-https://github.com/the-open-agent/static.git}"
 STATIC_REPO_DIR="${STATIC_REPO_DIR:-}"
-ICONFONT_URL="${ICONFONT_URL:-https://cdn.open-ct.com/icon/iconfont.js}"
+ICONFONT_FILE="${ICONFONT_FILE:-${ROOT_DIR}/scripts/assets/iconfont.js}"
+ICONFONT_URL="${ICONFONT_URL:-}"
 
 if [[ -z "${STATIC_REPO_DIR}" ]]; then
   TMP_DIR="$(mktemp -d)"
@@ -33,7 +34,12 @@ cp -R "${STATIC_REPO_DIR}/img" "${PUBLIC_DIR}/img"
 cp -R "${STATIC_REPO_DIR}/flag-icons" "${PUBLIC_DIR}/flag-icons"
 cp -R "${STATIC_REPO_DIR}/gravatar" "${PUBLIC_DIR}/gravatar"
 mkdir -p "${PUBLIC_DIR}/icon"
-curl -fsSL "${ICONFONT_URL}" -o "${PUBLIC_DIR}/icon/iconfont.js"
+if [[ -n "${ICONFONT_URL}" ]]; then
+  curl -fsSL --connect-timeout 30 --max-time 120 "${ICONFONT_URL}" -o "${PUBLIC_DIR}/icon/iconfont.js"
+else
+  require_path "${ICONFONT_FILE}"
+  cp "${ICONFONT_FILE}" "${PUBLIC_DIR}/icon/iconfont.js"
+fi
 
 sed -i \
   -e 's#https://cdn.openagentai.org/img/openagent.png#/img/openagent.png#g' \

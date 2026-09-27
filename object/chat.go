@@ -72,6 +72,12 @@ func GetChats(owner string, storeName string, user string) ([]*Chat, error) {
 	return chats, nil
 }
 
+func GetLatestChats(owner string, storeName string, user string, limit int) ([]*Chat, error) {
+	chats := []*Chat{}
+	err := adapter.engine.Desc("updated_time").Limit(limit).Find(&chats, &Chat{Owner: owner, User: user, Store: storeName})
+	return chats, err
+}
+
 func getChat(owner, name string) (*Chat, error) {
 	chat := Chat{Owner: owner, Name: name}
 	existed, err := adapter.engine.Get(&chat)
@@ -241,7 +247,7 @@ func getPaginationChatsByMessages(owner string, offset, limit int, value, sortFi
 		Where("message.text LIKE ?", fmt.Sprintf("%%%s%%", value))
 
 	// Handle sorting
-	if sortField == "" || sortOrder == "" {
+	if sortField == "" || sortOrder == "" || !util.FilterSortField(sortField) {
 		sortField = "created_time"
 	}
 	if sortOrder == "ascend" {

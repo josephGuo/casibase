@@ -94,6 +94,20 @@ func GetPublishedStoresFromAllDbs() ([]*Store, error) {
 	return stores, nil
 }
 
+func isConfiguredHubDbName(hubDbName string) (bool, error) {
+	site, err := GetBuiltInSiteWithSecret()
+	if err != nil || site == nil {
+		return false, err
+	}
+
+	for _, dbName := range strings.Split(getEffectiveHubDbNames(site), ",") {
+		if strings.TrimSpace(dbName) == hubDbName {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // withHubEngine runs fn against the engine for hubDbName: the local engine if
 // hubDbName is empty or matches the local DB, otherwise a short-lived adapter
 // opened against that external hub DB. Stores fetched via
@@ -102,6 +116,16 @@ func GetPublishedStoresFromAllDbs() ([]*Store, error) {
 func withHubEngine(hubDbName string, fn func(engine *xorm.Engine) error) error {
 	if hubDbName == "" || hubDbName == adapter.DbName {
 		return fn(adapter.engine)
+	}
+
+	// hubDbName comes from request parameters, so only the hub DBs configured on the site may be
+	// opened; anything else would let callers query arbitrary databases on the same server.
+	isHubDb, err := isConfiguredHubDbName(hubDbName)
+	if err != nil {
+		return err
+	}
+	if !isHubDb {
+		return fmt.Errorf("the hub database: %s is not configured", hubDbName)
 	}
 
 	extraAdapter := NewAdapterWithDbName(adapter.driverName, adapter.dataSourceName, hubDbName)

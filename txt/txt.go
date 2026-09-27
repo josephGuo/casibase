@@ -21,6 +21,7 @@ import (
 
 	"github.com/beego/beego/logs"
 	"github.com/the-open-agent/openagent/i18n"
+	"github.com/the-open-agent/openagent/util"
 )
 
 func GetSupportedFileTypes() []string {
@@ -41,13 +42,33 @@ func GetParsedTextFromUrl(url string, ext string, lang string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		defer func() {
-			err = os.Remove(path)
-			if err != nil {
-				logs.Error("%v", err.Error())
-			}
-		}()
+		defer removeTempFile(path)
 	}
+
+	return getParsedTextFromPath(path, ext, lang)
+}
+
+// GetParsedTextFromUntrustedUrl parses a document at a URL chosen by a user. Unlike
+// GetParsedTextFromUrl it never reads local paths and refuses internal network addresses.
+func GetParsedTextFromUntrustedUrl(url string, ext string, lang string) (string, error) {
+	path, err := downloadToTempFile(url, util.DownloadUntrustedFile)
+	if err != nil {
+		return "", err
+	}
+	defer removeTempFile(path)
+
+	return getParsedTextFromPath(path, ext, lang)
+}
+
+func removeTempFile(path string) {
+	err := os.Remove(path)
+	if err != nil {
+		logs.Error("%v", err.Error())
+	}
+}
+
+func getParsedTextFromPath(path string, ext string, lang string) (string, error) {
+	var err error
 
 	var res string
 	if ext == "" || ext == ".txt" || ext == ".md" || ext == ".yaml" {

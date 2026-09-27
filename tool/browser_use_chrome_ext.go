@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -31,6 +30,7 @@ import (
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	"github.com/chromedp/cdproto/target"
 	"github.com/gorilla/websocket"
+	"github.com/the-open-agent/openagent/util"
 )
 
 const (
@@ -334,16 +334,11 @@ func (b *browserUseChromeExtBridge) connectionInfo() (bool, string, string) {
 	return b.conn != nil, b.name, b.version
 }
 
+// browserUseIsLocalRequest only accepts connections made directly from this machine. A loopback
+// RemoteAddr alone is not enough: behind a reverse proxy every remote visitor arrives from loopback
+// and could otherwise take over the extension bridge.
 func browserUseIsLocalRequest(r *http.Request) bool {
-	host, _, err := net.SplitHostPort(r.RemoteAddr)
-	if err != nil {
-		host = r.RemoteAddr
-	}
-	ip := net.ParseIP(host)
-	if ip == nil {
-		return host == "localhost"
-	}
-	return ip.IsLoopback()
+	return util.IsLoopbackRequest(r)
 }
 
 func browserUseIsChromeExtensionOrigin(origin string) bool {

@@ -48,7 +48,9 @@ type User struct {
 }
 
 func IsSigninEnabled() bool {
-	return conf.GetConfigString("casdoorEndpoint") == ""
+	// Local password sign-in (with its default admin account) must be off whenever Casdoor is
+	// configured, whichever of "issuer" or the legacy "casdoorEndpoint" keys was used.
+	return conf.GetIssuer() == ""
 }
 
 func GetRuntimeName(name string) string {

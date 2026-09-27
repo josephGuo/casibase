@@ -66,6 +66,9 @@ func (message *Message) SendEmail(lang string) error {
 	if err != nil {
 		return err
 	}
+	if questionMessage == nil || questionMessage.Chat != message.Chat {
+		return fmt.Errorf(i18n.Translate(lang, "object:Question message: [%s] doesn't exist"), message.ReplyTo)
+	}
 	question := questionMessage.Text
 
 	content := fmt.Sprintf(`<!DOCTYPE html>

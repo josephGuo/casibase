@@ -78,6 +78,18 @@ func GetRecordCount(owner, field, value string) (int64, error) {
 	return session.Count(&Record{Owner: owner})
 }
 
+// RedactRecordSecrets masks credentials in records, including ones stored before request bodies
+// were redacted on write.
+func RedactRecordSecrets(records ...*Record) {
+	for _, record := range records {
+		if record == nil {
+			continue
+		}
+		record.Object = util.RedactSensitiveJson(record.Object)
+		record.RequestUri = util.RedactSensitiveUrl(record.RequestUri)
+	}
+}
+
 func GetRecords(owner string) ([]*Record, error) {
 	records := []*Record{}
 	err := adapter.engine.Desc("id").Find(&records, &Record{Owner: owner})
@@ -262,14 +274,16 @@ func UpdateRecordFields(id string, fields map[string]interface{}, lang string) (
 func NewRecord(ctx *context.Context) (*Record, error) {
 	ip := strings.Replace(util.GetIPFromRequest(ctx.Request), ": ", "", -1)
 	action := strings.Replace(ctx.Request.URL.Path, "/api/", "", -1)
-	requestUri := util.FilterQuery(ctx.Request.RequestURI, []string{"accessToken"})
+	requestUri := util.FilterQuery(util.RedactSensitiveUrl(ctx.Request.RequestURI), []string{"accessToken"})
 	if len(requestUri) > 1000 {
 		requestUri = requestUri[0:1000]
 	}
 
 	object := ""
 	if len(ctx.Input.RequestBody) != 0 {
-		object = string(ctx.Input.RequestBody)
+		// Bodies of provider, site and account updates carry credentials, which must not be kept in
+		// the audit log where every admin can read them.
+		object = util.RedactSensitiveJson(string(ctx.Input.RequestBody))
 	}
 
 	respBytes, err := json.Marshal(ctx.Input.Data()["json"])

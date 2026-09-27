@@ -283,6 +283,7 @@
     "Forms": "表单",
     "General Settings": "基础设置",
     "General Settings desc": "基础配置，包括名称、所有者及展示设置",
+    "Generate a new key, copy it and save, it will not be shown again": "生成新密钥，请复制后保存，保存后将不再显示",
     "HTML title": "HTML标题",
     "HTML title - Tooltip": "浏览器标签页显示的HTML页面标题",
     "Home": "首页",

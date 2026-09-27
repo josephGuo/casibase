@@ -257,6 +257,9 @@ func (c *ApiController) UploadFile() {
 
 	filename := c.Input().Get("filename")
 	store := c.Input().Get("store")
+	if !c.requireStoreNameOwnership(store) {
+		return
+	}
 
 	fileData, header, err := c.GetFile("file")
 	if err != nil {

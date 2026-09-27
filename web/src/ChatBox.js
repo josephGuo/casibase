@@ -239,9 +239,9 @@ class ChatBox extends React.Component {
       });
     }
 
-    const tempElement = document.createElement("div");
-    tempElement.innerHTML = message.correctedText || message.text || message;
-    const text = tempElement.innerText;
+    // Parse in an inert document: assigning to a detached element's innerHTML still runs handlers like <img onerror>.
+    const parsedDoc = new DOMParser().parseFromString(message.correctedText || message.text || message, "text/html");
+    const text = parsedDoc.body.innerText;
     if (text) {
       parts.push(text);
     }

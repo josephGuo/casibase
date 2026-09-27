@@ -26,6 +26,43 @@ import (
 	"github.com/the-open-agent/openagent/util"
 )
 
+// requireStoreAdminOwnership limits store-level admins to the stores they own.
+func (c *ApiController) requireStoreAdminOwnership(storeOwner string) bool {
+	if c.IsGlobalAdmin() || !c.IsStoreAdmin() {
+		return true
+	}
+	if storeOwner != c.GetSessionUsername() {
+		c.ResponseError(c.T("auth:Unauthorized operation"))
+		return false
+	}
+	return true
+}
+
+// requireStoreNameOwnership is requireStoreAdminOwnership for callers that only know the store name.
+func (c *ApiController) requireStoreNameOwnership(storeName string) bool {
+	if c.IsGlobalAdmin() || !c.IsStoreAdmin() || storeName == "" {
+		return true
+	}
+	storeNames, err := getStoreNamesForUser(c.GetSessionUsername())
+	if err != nil {
+		c.ResponseError(err.Error())
+		return false
+	}
+	if !util.InSlice(storeNames, storeName) {
+		c.ResponseError(c.T("auth:Unauthorized operation"))
+		return false
+	}
+	return true
+}
+
+func (c *ApiController) canViewStoreFiles(store *object.Store) bool {
+	if c.IsGlobalAdmin() || store.PublishState == "Published" {
+		return true
+	}
+	username := c.GetSessionUsername()
+	return username != "" && username == store.Owner && store.Owner != "admin"
+}
+
 // GetHubStores
 // @Title GetHubStores
 // @Tag Store API
@@ -183,12 +220,16 @@ func (c *ApiController) GetStore() {
 			return
 		}
 
-		host := c.Ctx.Request.Host
-		origin := getOriginFromHost(host)
-		err = store.Populate(origin, c.GetAcceptLanguage())
-		if err != nil {
-			c.ResponseOk(object.GetMaskedStore(store, c.GetSessionUser()), err.Error())
-			return
+		// The file tree lists the store's knowledge files with their download URLs, so only the
+		// owner, the global admin and visitors of a published store may see it.
+		if c.canViewStoreFiles(store) {
+			host := c.Ctx.Request.Host
+			origin := getOriginFromHost(host)
+			err = store.Populate(origin, c.GetAcceptLanguage())
+			if err != nil {
+				c.ResponseOk(object.GetMaskedStore(store, c.GetSessionUser()), err.Error())
+				return
+			}
 		}
 	}
 
@@ -227,6 +268,9 @@ func (c *ApiController) UpdateStore() {
 	}
 	if oldStore == nil {
 		c.ResponseError(fmt.Sprintf("store: %s not found", id))
+		return
+	}
+	if !c.requireStoreAdminOwnership(oldStore.Owner) {
 		return
 	}
 
@@ -349,6 +393,10 @@ func (c *ApiController) AddStore() {
 		return
 	}
 
+	if !c.IsGlobalAdmin() && c.IsStoreAdmin() {
+		store.Owner = c.GetSessionUsername()
+	}
+
 	err = object.SyncDefaultProvidersToStore(&store)
 	if err != nil {
 		c.ResponseError(err.Error())
@@ -402,6 +450,10 @@ func (c *ApiController) DeleteStore() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &store)
 	if err != nil {
 		c.ResponseError(err.Error())
+		return
+	}
+
+	if !c.requireStoreAdminOwnership(store.Owner) {
 		return
 	}
 
@@ -476,14 +528,30 @@ func (c *ApiController) ClaimStore() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /refresh-store-vectors [post]
 func (c *ApiController) RefreshStoreVectors() {
-	var store object.Store
-	err := json.Unmarshal(c.Ctx.Input.RequestBody, &store)
+	var form object.Store
+	err := json.Unmarshal(c.Ctx.Input.RequestBody, &form)
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
 	}
 
-	ok, err := object.RefreshStoreVectors(&store, c.GetAcceptLanguage())
+	// Use the stored configuration: the request body could otherwise point the refresh at another
+	// store's storage provider and pull its files into this store's knowledge base.
+	store, err := object.GetStore(form.GetId())
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	if store == nil {
+		c.ResponseError(fmt.Sprintf("store: %s not found", form.GetId()))
+		return
+	}
+
+	if !c.requireStoreAdminOwnership(store.Owner) {
+		return
+	}
+
+	ok, err := object.RefreshStoreVectors(store, c.GetAcceptLanguage())
 	if err != nil {
 		c.ResponseError(err.Error())
 		return

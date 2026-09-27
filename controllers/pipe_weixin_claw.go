@@ -149,7 +149,7 @@ func handleWeixinClawMessage(pipeObj *object.Pipe, msg *pipepkg.WeixinClawMessag
 		},
 	}
 	host := strings.TrimPrefix(strings.TrimPrefix(pipeObj.Domain, "https://"), "http://")
-	sendPipeAnswer(provider, pipeObj, incoming, host, "")
+	sendPipeAnswer(provider, pipeObj, incoming, host, "", true)
 }
 
 func setWeixinClawLastError(pipeObj *object.Pipe, err error) {

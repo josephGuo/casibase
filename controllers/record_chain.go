@@ -28,6 +28,10 @@ import (
 // @Success 200 {object} controllers.Response The Response object
 // @router /commit-record [post]
 func (c *ApiController) CommitRecord() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	var record object.Record
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &record)
 	if err != nil {
@@ -47,6 +51,10 @@ func (c *ApiController) CommitRecord() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /commit-record-second [post]
 func (c *ApiController) CommitRecordSecond() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	var record object.Record
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &record)
 	if err != nil {
@@ -66,6 +74,10 @@ func (c *ApiController) CommitRecordSecond() {
 // @Success 200 {object} object.Record The Response object
 // @router /query-record [get]
 func (c *ApiController) QueryRecord() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	id := c.Input().Get("id")
 
 	res, err := object.QueryRecord(id, c.GetAcceptLanguage())
@@ -85,6 +97,10 @@ func (c *ApiController) QueryRecord() {
 // @Success 200 {object} object.Record The Response object
 // @router /query-record-second [get]
 func (c *ApiController) QueryRecordSecond() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	id := c.Input().Get("id")
 
 	res, err := object.QueryRecordSecond(id, c.GetAcceptLanguage())

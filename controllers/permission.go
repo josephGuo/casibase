@@ -80,6 +80,12 @@ func (c *ApiController) GetPermission() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /update-permission [post]
 func (c *ApiController) UpdatePermission() {
+	// Permissions are written to Casdoor with the application's credentials, so store-level
+	// admins must not manage them.
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	if !conf.IsCasdoorAvailable() {
 		c.ResponseOk(true)
 		return
@@ -88,8 +94,10 @@ func (c *ApiController) UpdatePermission() {
 	var permission auth.Permission
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &permission)
 	if err != nil {
-		panic(err)
+		c.ResponseError(err.Error())
+		return
 	}
+	permission.Owner = conf.GetConfigString("casdoorOrganization")
 
 	success, err := auth.UpdatePermission(&permission)
 	if err != nil {
@@ -108,6 +116,12 @@ func (c *ApiController) UpdatePermission() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /add-permission [post]
 func (c *ApiController) AddPermission() {
+	// Permissions are written to Casdoor with the application's credentials, so store-level
+	// admins must not manage them.
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	if !conf.IsCasdoorAvailable() {
 		c.ResponseOk(true)
 		return
@@ -119,6 +133,8 @@ func (c *ApiController) AddPermission() {
 		c.ResponseError(err.Error())
 		return
 	}
+	// The application credentials reach every organization in Casdoor, so keep writes in our own.
+	permission.Owner = conf.GetConfigString("casdoorOrganization")
 
 	success, err := auth.AddPermission(&permission)
 	if err != nil {
@@ -137,6 +153,12 @@ func (c *ApiController) AddPermission() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /delete-permission [post]
 func (c *ApiController) DeletePermission() {
+	// Permissions are written to Casdoor with the application's credentials, so store-level
+	// admins must not manage them.
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	if !conf.IsCasdoorAvailable() {
 		c.ResponseOk(true)
 		return
@@ -148,6 +170,8 @@ func (c *ApiController) DeletePermission() {
 		c.ResponseError(err.Error())
 		return
 	}
+	// The application credentials reach every organization in Casdoor, so keep writes in our own.
+	permission.Owner = conf.GetConfigString("casdoorOrganization")
 
 	success, err := auth.DeletePermission(&permission)
 	if err != nil {

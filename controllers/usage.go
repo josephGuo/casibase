@@ -28,6 +28,10 @@ import (
 // @Success 200 {array} object.Usage The Response object
 // @router /get-usages [get]
 func (c *ApiController) GetUsages() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	days := util.ParseInt(c.Input().Get("days"))
 	user := c.Input().Get("selectedUser")
 	storeName := c.Input().Get("store")
@@ -60,6 +64,10 @@ func (c *ApiController) GetUsages() {
 // @Success 200 {array} object.Usage The Response object
 // @router /get-range-usages [get]
 func (c *ApiController) GetRangeUsages() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	rangeType := c.Input().Get("rangeType")
 	count := util.ParseInt(c.Input().Get("count"))
 	user := c.Input().Get("user")
@@ -92,6 +100,10 @@ func (c *ApiController) GetRangeUsages() {
 // @Success 200 {array} string The Response object
 // @router /get-users [get]
 func (c *ApiController) GetUsers() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	user := c.Input().Get("user")
 	storeName := c.Input().Get("store")
 	if c.IsAdmin() {
@@ -113,6 +125,10 @@ func (c *ApiController) GetUsers() {
 // @Success 200 {array} object.Usage The Response object
 // @router /get-usages [get]
 func (c *ApiController) GetUserTableInfos() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	user := c.Input().Get("user")
 	storeName := c.Input().Get("store")
 	if c.IsAdmin() {
@@ -133,6 +149,10 @@ func (c *ApiController) GetUserTableInfos() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /get-usage-providers [get]
 func (c *ApiController) GetUsageProviders() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	owner := c.Input().Get("owner")
 
 	data, err := object.GetUsageProviderDistribution(owner)
@@ -151,6 +171,10 @@ func (c *ApiController) GetUsageProviders() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /get-usage-heatmap [get]
 func (c *ApiController) GetUsageHeatmap() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	owner := c.Input().Get("owner")
 
 	data, err := object.GetUsageMessageHeatmap(owner)

@@ -35,12 +35,16 @@ const (
 	headerExposeHeaders    = "Access-Control-Expose-Headers"
 )
 
-func setCorsHeaders(ctx *context.Context, origin string) {
+// setCorsHeaders lets origin read the response. Credentials (the session cookie) are only
+// allowed for trusted origins, otherwise any website could act with the visitor's session.
+func setCorsHeaders(ctx *context.Context, origin string, allowCredentials bool) {
 	ctx.Output.Header(headerAllowOrigin, origin)
 	ctx.Output.Header(headerAllowMethods, "GET, POST, DELETE, PUT, PATCH, OPTIONS")
 	ctx.Output.Header(headerAllowHeaders, "Origin, X-Requested-With, Content-Type, Accept, Authorization")
 	ctx.Output.Header(headerExposeHeaders, "Content-Length")
-	ctx.Output.Header(headerAllowCredentials, "true")
+	if allowCredentials {
+		ctx.Output.Header(headerAllowCredentials, "true")
+	}
 
 	if ctx.Input.Method() == "OPTIONS" {
 		ctx.ResponseWriter.WriteHeader(http.StatusOK)
@@ -64,33 +68,54 @@ func CorsFilter(ctx *context.Context) {
 		return
 	}
 
+	// The server's own origin (browsers send Origin on same-origin POSTs too) is always trusted.
+	if isSameHostOrigin(origin, ctx.Request.Host) {
+		setCorsHeaders(ctx, origin, true)
+		if object.OpenAgentHost == "" {
+			object.OpenAgentHost = origin
+		}
+		return
+	}
+
 	// Check if origin is allowed based on Casdoor application's RedirectUris
-	setCorsHeaders(ctx, origin)
 	ok, err := isOriginAllowed(origin)
 	if err != nil {
-		// If Casdoor is not configured, allow the origin for backwards compatibility
-		casdoorEndpoint := conf.GetConfigString("casdoorEndpoint")
-		if casdoorEndpoint == "" {
+		// Without a Casdoor application there is no list of trusted origins: allow the origin for
+		// backwards compatibility, but without credentials so it cannot act with the visitor's session.
+		if conf.GetIssuer() == "" || conf.GetConfigString("casdoorApplication") == "" {
+			setCorsHeaders(ctx, origin, false)
 			return
 		}
 		// Otherwise, reject the request
+		setCorsHeaders(ctx, origin, false)
 		ctx.ResponseWriter.WriteHeader(http.StatusForbidden)
 		responseError(ctx, fmt.Sprintf("CORS error: %s, path: %s", err.Error(), ctx.Request.URL.Path))
 		return
 	}
 
 	if !ok {
+		setCorsHeaders(ctx, origin, false)
 		ctx.ResponseWriter.WriteHeader(http.StatusForbidden)
 		responseError(ctx, fmt.Sprintf("CORS error: origin [%s] is not allowed, path: %s", origin, ctx.Request.URL.Path))
+		return
 	}
 
+	setCorsHeaders(ctx, origin, true)
 	if object.OpenAgentHost == "" {
 		object.OpenAgentHost = origin
 	}
 }
 
+func isSameHostOrigin(origin string, host string) bool {
+	parsedOrigin, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	return host != "" && strings.EqualFold(parsedOrigin.Host, host)
+}
+
 func isOriginAllowed(origin string) (bool, error) {
-	casdoorEndpoint := conf.GetConfigString("casdoorEndpoint")
+	casdoorEndpoint := conf.GetIssuer()
 	casdoorApplication := conf.GetConfigString("casdoorApplication")
 
 	// If Casdoor is not configured, return error to trigger backwards compatibility
@@ -113,7 +138,8 @@ func isOriginAllowed(origin string) (bool, error) {
 			continue
 		}
 		allowedOrigin := parsedUrl.Scheme + "://" + parsedUrl.Host
-		if origin == allowedOrigin || strings.Contains(origin, allowedOrigin) {
+		// Exact match only: a substring check would accept e.g. "https://app.com.evil.com".
+		if strings.EqualFold(origin, allowedOrigin) {
 			return true, nil
 		}
 	}

@@ -131,6 +131,12 @@ func (c *ApiController) ChatWebhook() {
 		c.Ctx.ResponseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	// A 4xx/5xx immediate response means the request was rejected (e.g. a bad signature),
+	// so the update must not be processed.
+	if immediateResponse != nil && immediateResponse.StatusCode >= http.StatusBadRequest {
+		writePipeWebhookResponse(c, immediateResponse)
+		return
+	}
 
 	incoming, err := provider.ParseWebhookRequest(body)
 	if err != nil {
@@ -145,11 +151,11 @@ func (c *ApiController) ChatWebhook() {
 
 	if immediateResponse != nil {
 		writePipeWebhookResponse(c, immediateResponse)
-		go sendPipeAnswer(provider, pipeObj, incoming, host, lang)
+		go sendPipeAnswer(provider, pipeObj, incoming, host, lang, false)
 		return
 	}
 
-	sendPipeAnswer(provider, pipeObj, incoming, host, lang)
+	sendPipeAnswer(provider, pipeObj, incoming, host, lang, false)
 	c.Ctx.ResponseWriter.WriteHeader(http.StatusOK)
 }
 
@@ -278,6 +284,11 @@ func ensurePipeChat(pipeObj *object.Pipe, incoming *pipepkg.IncomingMessage) (*o
 	if err != nil {
 		return nil, err
 	}
+	// Users choose their own chat names, so a chat with this name that the pipe did not create
+	// (its user is the chat name) must not receive the pipe's messages.
+	if chat != nil && chat.User != chatName {
+		return nil, fmt.Errorf("the chat: %s is not a pipe chat", chatId)
+	}
 	if chat != nil {
 		if pipeObj.Store != "" && chat.Store != pipeObj.Store {
 			chat.Store = pipeObj.Store
@@ -374,7 +385,9 @@ func addPipeQuestionAndAnswerMessages(chat *object.Chat, incoming *pipepkg.Incom
 	return questionMessage, answerMessage, nil
 }
 
-func sendPipeAnswer(provider pipepkg.Pipe, pipeObj *object.Pipe, incoming *pipepkg.IncomingMessage, host string, lang string) {
+// sendPipeAnswer answers an incoming pipe message. allowHighRiskTools must only be true when the
+// sender is authenticated by the transport; public webhooks can be called by anyone who knows the URL.
+func sendPipeAnswer(provider pipepkg.Pipe, pipeObj *object.Pipe, incoming *pipepkg.IncomingMessage, host string, lang string, allowHighRiskTools bool) {
 	chat, err := ensurePipeChat(pipeObj, incoming)
 	if err != nil {
 		_ = provider.SendMessage(incoming.ChatId, fmt.Sprintf("Error: %v", err))
@@ -395,7 +408,7 @@ func sendPipeAnswer(provider pipepkg.Pipe, pipeObj *object.Pipe, incoming *pipep
 	}
 
 	recorder := newPipeSSERecorder(sender)
-	generateMessageAnswer(answerMessage.GetId(), recorder, host, lang, false, true, nil)
+	generateMessageAnswer(answerMessage.GetId(), recorder, host, lang, false, allowHighRiskTools, nil)
 
 	answer, err := object.GetMessage(answerMessage.GetId())
 	if err == nil && answer != nil && answer.Text != "" {

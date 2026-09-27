@@ -168,7 +168,7 @@ func GetStores(owner string) ([]*Store, error) {
 }
 
 func generateStoreApiKey() string {
-	return fmt.Sprintf("sk-%s", util.GetRandomString(24))
+	return fmt.Sprintf("sk-%s", util.GetSecureRandomString(24))
 }
 
 // EnsureStoreApiKey generates and persists an External API key for the store when it is missing.
@@ -189,7 +189,7 @@ func GetMaskedStore(store *Store, user *auth.User) *Store {
 
 	NormalizeEmbeddedStoreAssets(store)
 
-	if store.ExternalApiKey != "" && !util.IsGlobalAdmin(user) && (user == nil || user.Name != store.Owner) {
+	if store.ExternalApiKey != "" {
 		store.ExternalApiKey = "***"
 	}
 

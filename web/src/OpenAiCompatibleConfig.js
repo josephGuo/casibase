@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import React from "react";
-import {Col, Input, Row, Space} from "antd";
-import {LinkOutlined} from "@ant-design/icons";
+import {Button, Col, Input, Row, Space, Tooltip} from "antd";
+import {LinkOutlined, ReloadOutlined} from "@ant-design/icons";
 import i18next from "i18next";
 import * as Setting from "./Setting";
 import CopyButton from "./common/CopyButton";
@@ -27,6 +27,13 @@ function ReadOnlyCopyInput({value}) {
       <CopyButton value={value} />
     </Space.Compact>
   );
+}
+
+function generateApiKey() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  const bytes = new Uint8Array(24);
+  window.crypto.getRandomValues(bytes);
+  return `sk-${Array.from(bytes, b => chars[b % chars.length]).join("")}`;
 }
 
 function OpenAiCompatibleConfig({apiKey, apiKeyDisabled = false, onApiKeyChange}) {
@@ -48,7 +55,10 @@ function OpenAiCompatibleConfig({apiKey, apiKeyDisabled = false, onApiKeyChange}
               disabled={apiKeyDisabled}
               onChange={onApiKeyChange}
             />
-            <CopyButton value={apiKey} disabled={apiKeyDisabled} />
+            <CopyButton value={apiKey} disabled={apiKeyDisabled || apiKey === "***"} />
+            <Tooltip title={i18next.t("general:Generate a new key, copy it and save, it will not be shown again")}>
+              <Button icon={<ReloadOutlined />} disabled={apiKeyDisabled} onClick={() => onApiKeyChange({target: {value: generateApiKey()}})} />
+            </Tooltip>
           </Space.Compact>
         </Col>
         <Col style={{marginTop: "12px"}} span={Setting.isMobile() ? 22 : 6}>

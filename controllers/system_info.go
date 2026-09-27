@@ -15,8 +15,36 @@
 package controllers
 
 import (
+	"sync"
+	"time"
+
 	"github.com/the-open-agent/openagent/util"
 )
+
+const systemInfoCacheDuration = 5 * time.Second
+
+var (
+	systemInfoMutex     sync.Mutex
+	systemInfoCache     *util.SystemInfo
+	systemInfoCacheTime time.Time
+)
+
+func getCachedSystemInfo() (*util.SystemInfo, error) {
+	systemInfoMutex.Lock()
+	defer systemInfoMutex.Unlock()
+
+	if systemInfoCache != nil && time.Since(systemInfoCacheTime) < systemInfoCacheDuration {
+		return systemInfoCache, nil
+	}
+
+	systemInfo, err := util.GetSystemInfo()
+	if err != nil {
+		return nil, err
+	}
+	systemInfoCache = systemInfo
+	systemInfoCacheTime = time.Now()
+	return systemInfo, nil
+}
 
 // GetSystemInfo
 // @Title GetSystemInfo
@@ -25,7 +53,11 @@ import (
 // @Success 200 {object} util.SystemInfo The Response object
 // @router /get-system-info [get]
 func (c *ApiController) GetSystemInfo() {
-	systemInfo, err := util.GetSystemInfo()
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
+	systemInfo, err := getCachedSystemInfo()
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
@@ -41,6 +73,10 @@ func (c *ApiController) GetSystemInfo() {
 // @Success 200 {object} util.VersionInfo The Response object
 // @router /get-version-info [get]
 func (c *ApiController) GetVersionInfo() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	errInfo := ""
 	versionInfo, err := util.GetVersionInfo()
 	if err != nil {

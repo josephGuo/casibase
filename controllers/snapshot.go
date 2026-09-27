@@ -29,7 +29,9 @@ import (
 // @Success 200 {array} object.Snapshot The Response object
 // @router /get-snapshots [get]
 func (c *ApiController) GetSnapshots() {
-	if !c.RequireAdmin() {
+	// Snapshots hold the contents of host files changed by local tools, and rolling one back
+	// writes to the host, so they belong to the global admin only.
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -79,7 +81,7 @@ func (c *ApiController) GetSnapshots() {
 // @Success 200 {object} object.Snapshot The Response object
 // @router /get-snapshot [get]
 func (c *ApiController) GetSnapshot() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -100,7 +102,7 @@ func (c *ApiController) GetSnapshot() {
 // @Success 200 {object} controllers.Response The Response object
 // @router /rollback-snapshot [post]
 func (c *ApiController) RollbackSnapshot() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 

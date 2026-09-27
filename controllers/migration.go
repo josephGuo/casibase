@@ -48,7 +48,7 @@ type MigrationPreview struct {
 // @Success 200 {array} migration.Source The Response object
 // @router /get-migration-sources [get]
 func (c *ApiController) GetMigrationSources() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -65,7 +65,7 @@ func (c *ApiController) GetMigrationSources() {
 // @Success 200 {object} controllers.MigrationPreview The Response object
 // @router /upload-migration-file [post]
 func (c *ApiController) UploadMigrationFile() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -104,7 +104,7 @@ func (c *ApiController) UploadMigrationFile() {
 // @Success 200 {object} controllers.MigrationPreview The Response object
 // @router /preview-migration [post]
 func (c *ApiController) PreviewMigration() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -138,7 +138,7 @@ func (c *ApiController) PreviewMigration() {
 // @Success 200 {object} migration.Progress The Response object
 // @router /start-migration [post]
 func (c *ApiController) StartMigration() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -180,7 +180,7 @@ func (c *ApiController) StartMigration() {
 // @Success 200 {object} migration.Progress The Response object
 // @router /get-migration-progress [get]
 func (c *ApiController) GetMigrationProgress() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -201,7 +201,7 @@ func (c *ApiController) GetMigrationProgress() {
 // @Success 200 {array} object.Migration The Response object
 // @router /get-migrations [get]
 func (c *ApiController) GetMigrations() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -222,7 +222,7 @@ func (c *ApiController) GetMigrations() {
 // @Success 200 {object} object.Migration The Response object
 // @router /get-migration [get]
 func (c *ApiController) GetMigration() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 
@@ -244,7 +244,7 @@ func (c *ApiController) GetMigration() {
 // @Success 200 {array} string The Response object, notes about what could not be undone
 // @router /rollback-migration [post]
 func (c *ApiController) RollbackMigration() {
-	if !c.RequireAdmin() {
+	if !c.RequireGlobalAdmin() {
 		return
 	}
 

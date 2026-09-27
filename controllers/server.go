@@ -27,6 +27,21 @@ import (
 	"github.com/the-open-agent/openagent/util"
 )
 
+// requireHostCommandPermission blocks store-level admins from stdio MCP servers, whose command
+// runs directly on this host.
+func (c *ApiController) requireHostCommandPermission(servers ...*object.Server) bool {
+	if c.IsGlobalAdmin() {
+		return true
+	}
+	for _, server := range servers {
+		if server.IsStdio() {
+			c.ResponseError(c.T("controllers:Only the global admin can configure tools or MCP servers that run commands on the host"))
+			return false
+		}
+	}
+	return true
+}
+
 // GetServers
 // @Title GetServers
 // @Tag Server API
@@ -108,6 +123,18 @@ func (c *ApiController) UpdateServer() {
 		return
 	}
 
+	oldServer, err := object.GetServer(id)
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	if !c.requireHostCommandPermission(&server, oldServer) {
+		return
+	}
+	if !c.requireSecretNotRedirected(server.KeepsMaskedSecretWithNewEndpoint(oldServer)) {
+		return
+	}
+
 	success, err := object.UpdateServer(id, &server)
 	if err != nil {
 		c.ResponseError(err.Error())
@@ -129,6 +156,10 @@ func (c *ApiController) AddServer() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &server)
 	if err != nil {
 		c.ResponseError(err.Error())
+		return
+	}
+
+	if !c.requireHostCommandPermission(&server) {
 		return
 	}
 
@@ -181,6 +212,18 @@ func (c *ApiController) TestMcpServer() {
 		return
 	}
 
+	if !c.requireHostCommandPermission(&server) {
+		return
+	}
+	oldServer, err := object.GetServer(server.GetId())
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	if !c.requireSecretNotRedirected(server.KeepsMaskedSecretWithNewEndpoint(oldServer)) {
+		return
+	}
+
 	result, err := object.TestMcpServer(&server, c.GetAcceptLanguage())
 	if err != nil {
 		c.ResponseError(err.Error())
@@ -206,6 +249,18 @@ func (c *ApiController) SyncMcpTool() {
 	var server object.Server
 	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &server); err != nil {
 		c.ResponseError(err.Error())
+		return
+	}
+
+	if !c.requireHostCommandPermission(&server) {
+		return
+	}
+	oldServer, err := object.GetServer(id)
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	if !c.requireSecretNotRedirected(server.KeepsMaskedSecretWithNewEndpoint(oldServer)) {
 		return
 	}
 

@@ -19,12 +19,15 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	"github.com/the-open-agent/openagent/proxy"
+	"github.com/the-open-agent/openagent/util"
 	"golang.org/x/net/html"
 )
 
@@ -45,14 +48,49 @@ type WebFetchTool struct {
 func NewWebFetchTool(config Config) (*WebFetchTool, error) {
 	var httpClient *http.Client
 	if config.EnableProxy {
+		// The proxy dials the target itself, so each redirect hop is checked before it is followed.
 		httpClient = &http.Client{
 			Transport: proxy.ProxyHttpClient.Transport,
 			Timeout:   webFetchDefaultTimeout,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				if len(via) >= 10 {
+					return fmt.Errorf("stopped after %d redirects", len(via))
+				}
+				return checkWebFetchTarget(req.Context(), req.URL.String())
+			},
 		}
 	} else {
-		httpClient = &http.Client{Timeout: webFetchDefaultTimeout}
+		httpClient = util.NewUntrustedHttpClient(webFetchDefaultTimeout)
 	}
 	return &WebFetchTool{httpClient: httpClient, enableProxy: config.EnableProxy}, nil
+}
+
+// checkWebFetchTarget rejects URLs whose host resolves to a non-public address. The model picks
+// the URL, and anyone chatting with the agent can steer the model, so internal services must
+// stay unreachable.
+func checkWebFetchTarget(ctx context.Context, rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return err
+	}
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("unsupported URL scheme: %s", u.Scheme)
+	}
+	host := u.Hostname()
+	if host == "" {
+		return fmt.Errorf("the URL has no host")
+	}
+
+	ips, err := net.DefaultResolver.LookupIPAddr(ctx, host)
+	if err != nil {
+		return err
+	}
+	for _, ip := range ips {
+		if !util.IsPublicIp(ip.IP) {
+			return fmt.Errorf("access to the non-public address %s is not allowed", ip.IP.String())
+		}
+	}
+	return nil
 }
 
 func (p *WebFetchTool) BuiltinTools() []BuiltinTool {
@@ -140,6 +178,10 @@ func (b *webFetchBuiltin) Execute(ctx context.Context, arguments map[string]inte
 
 	fetchCtx, cancel := context.WithTimeout(ctx, time.Duration(timeoutSecs)*time.Second)
 	defer cancel()
+
+	if err := checkWebFetchTarget(fetchCtx, rawURL); err != nil {
+		return webFetchToolError(fmt.Sprintf("failed to fetch URL %s: %s", rawURL, err.Error())), nil
+	}
 
 	content, title, err := fetchWebPageContent(fetchCtx, rawURL, b.httpClient)
 	if err != nil {

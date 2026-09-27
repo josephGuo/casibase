@@ -29,6 +29,10 @@ import (
 // @Success 200 {array} object.Visitor The Response object
 // @router /get-visitors [get]
 func (c *ApiController) GetVisitors() {
+	if !c.RequireGlobalAdmin() {
+		return
+	}
+
 	days := util.ParseInt(c.Input().Get("days"))
 	user := c.Input().Get("selectedUser")
 	fieldParam := c.Input().Get("field")

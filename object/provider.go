@@ -97,11 +97,12 @@ func GetMaskedProvider(provider *Provider, isMaskEnabled bool, user *auth.User) 
 	if provider.ClientSecret != "" {
 		provider.ClientSecret = "***"
 	}
+	if provider.ExternalApiKey != "" {
+		provider.ExternalApiKey = "***"
+	}
 
-	if !util.IsAdmin(user) {
-		if provider.ExternalApiKey != "" {
-			provider.ExternalApiKey = "***"
-		}
+	// Store-level admins manage only their own stores, so they do not get the global providers' keys.
+	if !util.IsGlobalAdmin(user) {
 		if provider.UserKey != "" {
 			provider.UserKey = "***"
 		}
@@ -323,25 +324,34 @@ func (provider *Provider) GetId() string {
 	return fmt.Sprintf("%s/%s", provider.Owner, provider.Name)
 }
 
-// IsLocalStorageFile reports whether path points inside the folder of a configured
-// "Local File System" storage provider. Only such files may be served by the /storage route.
-func IsLocalStorageFile(path string) (bool, error) {
+func isFileSystemRoot(path string) bool {
+	clean := filepath.Clean(path)
+	return clean == "." || clean == string(filepath.Separator) || clean == filepath.VolumeName(clean)+string(filepath.Separator)
+}
+
+type localStorageRoot struct {
+	name string
+	root string
+}
+
+func getLocalStorageRoots() ([]*localStorageRoot, error) {
 	condition := &Provider{Category: "Storage", Type: "Local File System"}
 	providers := []*Provider{}
 	err := adapter.engine.Find(&providers, condition)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
 	if providerAdapter != nil {
 		remoteProviders := []*Provider{}
 		err = providerAdapter.engine.Find(&remoteProviders, condition)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		providers = append(providers, remoteProviders...)
 	}
 
+	res := []*localStorageRoot{}
 	for _, provider := range providers {
 		root := provider.ClientId
 		if root == "" {
@@ -350,11 +360,78 @@ func IsLocalStorageFile(path string) (bool, error) {
 		if realRoot, err := filepath.EvalSymlinks(root); err == nil {
 			root = realRoot
 		}
-		if storage.IsPathWithinRoot(root, path) {
+		if isFileSystemRoot(root) {
+			continue
+		}
+		res = append(res, &localStorageRoot{name: provider.Name, root: root})
+	}
+	return res, nil
+}
+
+// IsLocalStorageFile reports whether path points inside the folder of a configured
+// "Local File System" storage provider. Only such files may be served by the /storage route.
+func IsLocalStorageFile(path string) (bool, error) {
+	roots, err := getLocalStorageRoots()
+	if err != nil {
+		return false, err
+	}
+
+	for _, root := range roots {
+		if storage.IsPathWithinRoot(root.root, path) {
 			return true, nil
 		}
 	}
 	return false, nil
+}
+
+// GetLocalStorageObjectPath returns the file path of the object key in the named local storage provider.
+func GetLocalStorageObjectPath(providerName string, key string) (string, error) {
+	roots, err := getLocalStorageRoots()
+	if err != nil {
+		return "", err
+	}
+
+	for _, root := range roots {
+		if root.name != providerName {
+			continue
+		}
+		path := filepath.Join(root.root, filepath.FromSlash(key))
+		if !storage.IsPathWithinRoot(root.root, path) {
+			return "", nil
+		}
+		return path, nil
+	}
+	return "", nil
+}
+
+func getLocalStorageObjectKey(path string) (string, string, error) {
+	roots, err := getLocalStorageRoots()
+	if err != nil {
+		return "", "", err
+	}
+
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return "", "", err
+	}
+	if realPath, err := filepath.EvalSymlinks(absPath); err == nil {
+		absPath = realPath
+	}
+	for _, root := range roots {
+		if !storage.IsPathWithinRoot(root.root, absPath) {
+			continue
+		}
+		absRoot, err := filepath.Abs(root.root)
+		if err != nil {
+			continue
+		}
+		key, err := filepath.Rel(absRoot, absPath)
+		if err != nil || key == "." {
+			continue
+		}
+		return root.name, filepath.ToSlash(key), nil
+	}
+	return "", "", nil
 }
 
 func (p *Provider) GetStorageProviderObj(vectorStoreId string, lang string) (storage.StorageProvider, error) {
@@ -597,7 +674,7 @@ func GetPaginationProviders(owner, storeName string, offset, limit int, field, v
 		}
 		// Apply same sort order to remote providers
 		sortFieldToUse := sortField
-		if sortFieldToUse == "" {
+		if sortFieldToUse == "" || !util.FilterSortField(sortFieldToUse) {
 			sortFieldToUse = "created_time"
 		}
 		if sortOrder == "ascend" {
@@ -636,6 +713,19 @@ func GetPaginationProviders(owner, storeName string, offset, limit int, field, v
 	return providers, nil
 }
 
+// KeepsMaskedSecretWithNewEndpoint reports whether p reuses a masked ("***") secret of providerDb
+// while changing where requests are sent, which would disclose that secret to the new endpoint.
+func (p *Provider) KeepsMaskedSecretWithNewEndpoint(providerDb *Provider) bool {
+	if providerDb == nil {
+		return false
+	}
+	if p.ClientSecret != "***" && p.UserKey != "***" && p.SignKey != "***" && p.ConfigText != "***" {
+		return false
+	}
+	return p.Type != providerDb.Type || p.ProviderUrl != providerDb.ProviderUrl || p.Domain != providerDb.Domain ||
+		p.Region != providerDb.Region || p.CompatibleProvider != providerDb.CompatibleProvider
+}
+
 func (p *Provider) processProviderParams(providerDb *Provider) {
 	if p.ClientSecret == "***" {
 		p.ClientSecret = providerDb.ClientSecret
@@ -645,6 +735,12 @@ func (p *Provider) processProviderParams(providerDb *Provider) {
 	}
 	if p.SignKey == "***" {
 		p.SignKey = providerDb.SignKey
+	}
+	if p.ConfigText == "***" {
+		p.ConfigText = providerDb.ConfigText
+	}
+	if p.ExternalApiKey == "***" {
+		p.ExternalApiKey = providerDb.ExternalApiKey
 	}
 	if p.ExternalApiKey == "" && p.Category == "Model" {
 		p.ExternalApiKey = generateProviderKey()

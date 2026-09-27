@@ -45,6 +45,11 @@ func (c *ApiController) GetGlobalChats() {
 			c.ResponseError(err.Error())
 			return
 		}
+		chats, err = c.filterStoreAdminChats(chats)
+		if err != nil {
+			c.ResponseError(err.Error())
+			return
+		}
 
 		c.ResponseOk(chats)
 	} else {
@@ -139,6 +144,17 @@ func (c *ApiController) GetChats() {
 		return
 	}
 
+	if !c.IsAdmin() {
+		// Non-admins may only list their own chats. An empty user would match every chat,
+		// so anonymous callers get nothing.
+		user = c.GetSessionUsername()
+		if user == "" {
+			c.ResponseOk([]*object.Chat{})
+			return
+		}
+		field = ""
+	}
+
 	// Apply store isolation based on user's Homepage field
 	var ok bool
 	storeName, ok = c.EnforceStoreIsolation(storeName)
@@ -149,10 +165,16 @@ func (c *ApiController) GetChats() {
 	var chats []*object.Chat
 	var err error
 	if field == "user" {
-		chats, err = object.GetChats("admin", storeName, value)
+		chats, err = object.GetLatestChats("admin", storeName, value, maxListSize)
 	} else {
-		chats, err = object.GetChats("admin", storeName, user)
+		chats, err = object.GetLatestChats("admin", storeName, user, maxListSize)
 	}
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+
+	chats, err = c.filterStoreAdminChats(chats)
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
@@ -186,12 +208,8 @@ func (c *ApiController) GetChatStatus() {
 		return
 	}
 
-	if !c.IsAdmin() {
-		username := c.GetSessionUsername()
-		if username != chat.User {
-			c.ResponseError(c.T("auth:Unauthorized operation"))
-			return
-		}
+	if !c.requireUserDataAccess(chat.User, chat.Store) {
+		return
 	}
 
 	c.ResponseOk(map[string]bool{
@@ -222,12 +240,8 @@ func (c *ApiController) GetChat() {
 	}
 
 	// Check if user has permission to view this chat
-	if !c.IsAdmin() {
-		username := c.GetSessionUsername()
-		if username != chat.User {
-			c.ResponseError(c.T("auth:Unauthorized operation"))
-			return
-		}
+	if !c.requireUserDataAccess(chat.User, chat.Store) {
+		return
 	}
 
 	c.ResponseOk(chat)
@@ -265,7 +279,7 @@ func (c *ApiController) UpdateChat() {
 		return
 	}
 
-	ok := c.IsCurrentUser(originalChat.User)
+	ok := c.requireUserDataAccess(originalChat.User, originalChat.Store)
 	if !ok {
 		return
 	}
@@ -273,6 +287,12 @@ func (c *ApiController) UpdateChat() {
 	if !c.IsAdmin() {
 		// Binding a chat to a tool grants the agent that tool's capabilities, so only admins may change it.
 		chat.Tool = originalChat.Tool
+		// A user must not hand the chat to someone else (or to nobody) or rename its key.
+		chat.Owner = originalChat.Owner
+		chat.Name = originalChat.Name
+		chat.User = originalChat.User
+		chat.Organization = originalChat.Organization
+		chat.CreatedTime = originalChat.CreatedTime
 	}
 
 	if conf.IsDemoMode() {
@@ -304,13 +324,14 @@ func (c *ApiController) AddChat() {
 		return
 	}
 
-	ok := c.IsCurrentUser(chat.User)
+	ok := c.requireUserDataAccess(chat.User, chat.Store)
 	if !ok {
 		return
 	}
 	if !c.IsAdmin() {
 		// Binding a chat to a tool grants the agent that tool's capabilities, so only admins may set it.
 		chat.Tool = ""
+		chat.Owner = "admin"
 	}
 
 	currentTime := util.GetCurrentTime()
@@ -370,15 +391,11 @@ func (c *ApiController) DeleteChat() {
 		c.ResponseError(fmt.Sprintf("The chat: %s is not found", chat.GetId()))
 		return
 	}
-	if persistedChat.IsApiLog() {
-		if !c.RequireAdmin() {
-			return
-		}
-	} else {
-		ok := c.IsCurrentUser(persistedChat.User)
-		if !ok {
-			return
-		}
+	if persistedChat.IsApiLog() && !c.RequireAdmin() {
+		return
+	}
+	if !c.requireUserDataAccess(persistedChat.User, persistedChat.Store) {
+		return
 	}
 
 	success, err := object.DeleteChat(persistedChat)

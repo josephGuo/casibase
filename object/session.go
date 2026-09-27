@@ -30,6 +30,33 @@ type Session struct {
 	SessionId []string `json:"sessionId"`
 }
 
+func maskSessionId(sessionId string) string {
+	if len(sessionId) <= 6 {
+		return "***"
+	}
+	return sessionId[:6] + "***"
+}
+
+func GetMaskedSession(session *Session) *Session {
+	if session == nil {
+		return nil
+	}
+
+	maskedIds := make([]string, 0, len(session.SessionId))
+	for _, sessionId := range session.SessionId {
+		maskedIds = append(maskedIds, maskSessionId(sessionId))
+	}
+	session.SessionId = maskedIds
+	return session
+}
+
+func GetMaskedSessions(sessions []*Session) []*Session {
+	for _, session := range sessions {
+		GetMaskedSession(session)
+	}
+	return sessions
+}
+
 func GetSessions(owner string) ([]*Session, error) {
 	sessions := []*Session{}
 	var err error

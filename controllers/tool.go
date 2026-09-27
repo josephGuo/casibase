@@ -16,11 +16,33 @@ package controllers
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"github.com/beego/beego/utils/pagination"
 	"github.com/the-open-agent/openagent/object"
 	"github.com/the-open-agent/openagent/util"
 )
+
+// requireHighRiskToolPermission blocks store-level admins from tools that execute commands,
+// touch the local file system or drive the local desktop/browser.
+func (c *ApiController) requireHighRiskToolPermission(tools ...*object.Tool) bool {
+	for _, t := range tools {
+		if t != nil && object.IsToolTypeDisabled(t.Type) {
+			c.ResponseError(fmt.Sprintf(c.T("controllers:The tool type: %s is disabled on this server"), t.Type))
+			return false
+		}
+	}
+	if c.IsGlobalAdmin() {
+		return true
+	}
+	for _, t := range tools {
+		if t != nil && object.IsHighRiskToolType(t.Type) {
+			c.ResponseError(c.T("controllers:Only the global admin can configure tools or MCP servers that run commands on the host"))
+			return false
+		}
+	}
+	return true
+}
 
 // GetGlobalTools
 // @Title GetGlobalTools
@@ -122,6 +144,18 @@ func (c *ApiController) UpdateTool() {
 		return
 	}
 
+	oldTool, err := object.GetTool(id)
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	if !c.requireHighRiskToolPermission(&t, oldTool) {
+		return
+	}
+	if !c.requireSecretNotRedirected(t.KeepsMaskedSecretWithNewEndpoint(oldTool)) {
+		return
+	}
+
 	success, err := object.UpdateTool(id, &t)
 	if err != nil {
 		c.ResponseError(err.Error())
@@ -143,6 +177,10 @@ func (c *ApiController) AddTool() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &t)
 	if err != nil {
 		c.ResponseError(err.Error())
+		return
+	}
+
+	if !c.requireHighRiskToolPermission(&t) {
 		return
 	}
 
@@ -195,7 +233,19 @@ func (c *ApiController) TestTool() {
 		return
 	}
 
-	result, err := object.TestTool(&t, c.GetAcceptLanguage())
+	if !c.requireHighRiskToolPermission(&t) {
+		return
+	}
+	oldTool, err := object.GetTool(t.GetId())
+	if err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
+	if !c.requireSecretNotRedirected(t.KeepsMaskedSecretWithNewEndpoint(oldTool)) {
+		return
+	}
+
+	result, err := object.TestTool(&t, c.GetSessionUsername(), c.GetAcceptLanguage())
 	if err != nil {
 		c.ResponseError(err.Error())
 		return

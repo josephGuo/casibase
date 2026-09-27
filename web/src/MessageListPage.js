@@ -25,6 +25,7 @@ import moment from "moment";
 import i18next from "i18next";
 import {DeleteOutlined, EditOutlined, EyeOutlined} from "@ant-design/icons";
 import VectorTooltip from "./VectorTooltip";
+import DOMPurify from "dompurify";
 
 class MessageListPage extends BaseListPage {
   constructor(props) {
@@ -231,13 +232,13 @@ class MessageListPage extends BaseListPage {
     const plainText = text.replace(/<[^>]*>/g, "");
     if (plainText.length <= maxLength) {
       return (
-        <div dangerouslySetInnerHTML={{__html: text}} />
+        <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(text)}} />
       );
     }
 
     const popoverContent = (
       <div style={{width: "900px", maxWidth: "calc(100vw - 80px)", maxHeight: "500px", overflow: "auto", whiteSpace: "pre-wrap", wordBreak: "break-word"}}>
-        <div dangerouslySetInnerHTML={{__html: text}} />
+        <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(text)}} />
       </div>
     );
 
@@ -421,7 +422,7 @@ class MessageListPage extends BaseListPage {
         ...this.getColumnSearchProps("reasonText"),
         render: (text, record, index) => {
           return (
-            <div dangerouslySetInnerHTML={{__html: text}} />
+            <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(text)}} />
           );
         },
       },
@@ -498,7 +499,7 @@ class MessageListPage extends BaseListPage {
         ...this.getColumnSearchProps("errorText"),
         render: (text, record, index) => {
           return (
-            <div dangerouslySetInnerHTML={{__html: text}} />
+            <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(text)}} />
           );
         },
       },
@@ -511,7 +512,7 @@ class MessageListPage extends BaseListPage {
         ...this.getColumnSearchProps("comment"),
         render: (text, record, index) => {
           return (
-            <div dangerouslySetInnerHTML={{__html: text}} />
+            <div dangerouslySetInnerHTML={{__html: DOMPurify.sanitize(text)}} />
           );
         },
       },

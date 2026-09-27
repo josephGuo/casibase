@@ -166,5 +166,5 @@ func GetTwoActiveBlockchainProvider(owner string) (*Provider, *Provider, error) 
 }
 
 func generateProviderKey() string {
-	return fmt.Sprintf("sk-%s", util.GetRandomString(24))
+	return fmt.Sprintf("sk-%s", util.GetSecureRandomString(24))
 }

@@ -32,10 +32,7 @@ func init() {
 }
 
 func tryInitAuthConfig() error {
-	issuer := conf.GetConfigString("issuer")
-	if issuer == "" {
-		issuer = conf.GetConfigString("casdoorEndpoint") // backward compat
-	}
+	issuer := conf.GetIssuer()
 	clientId := conf.GetConfigString("clientId")
 	clientSecret := conf.GetConfigString("clientSecret")
 	casdoorOrganization := conf.GetConfigString("casdoorOrganization") // casdoor backward compat
@@ -65,10 +62,7 @@ func tryInitAuthConfig() error {
 }
 
 func InitAuthConfig() {
-	issuer := conf.GetConfigString("issuer")
-	if issuer == "" {
-		issuer = conf.GetConfigString("casdoorEndpoint") // backward compat
-	}
+	issuer := conf.GetIssuer()
 	if issuer == "" {
 		conf.SetCasdoorAvailable(false)
 		return
@@ -133,7 +127,10 @@ func (c *ApiController) Signin() {
 	}
 
 	claims.AccessToken = token.AccessToken
-	c.SetSessionClaims(claims)
+	if err = c.startUserSession(claims); err != nil {
+		c.ResponseError(err.Error())
+		return
+	}
 	userId := claims.User.Owner + "/" + claims.User.Name
 	c.Ctx.Input.SetParam("recordUserId", userId)
 
@@ -149,7 +146,7 @@ func (c *ApiController) Signin() {
 		object.AddSession(session)
 	}
 
-	c.ResponseOk(claims)
+	c.ResponseOk(getSanitizedClaims(claims))
 }
 
 // Signout
@@ -336,7 +333,10 @@ func (c *ApiController) autoLoginAdmin() bool {
 		return false
 	}
 
-	c.SetSessionClaims(claims)
+	if err = c.startUserSession(claims); err != nil {
+		c.ResponseError(err.Error())
+		return false
+	}
 	userId := util.GetIdFromOwnerAndName(claims.User.Owner, claims.User.Name)
 
 	sessionId := c.Ctx.Input.CruSession.SessionID()
@@ -408,9 +408,42 @@ func (c *ApiController) GetAccount() {
 		return
 	}
 
+	res := getSanitizedClaims(claims)
 	if !isSafePassword {
-		claims.User.Password = "#NeedToModify#"
+		res.User.Password = "#NeedToModify#"
 	}
 
-	c.ResponseOk(claims)
+	c.ResponseOk(res)
+}
+
+func getSanitizedClaims(claims *auth.Claims) *auth.Claims {
+	if claims == nil {
+		return nil
+	}
+
+	res := *claims
+	res.AccessToken = ""
+	res.User = getSanitizedUser(claims.User)
+	return &res
+}
+
+func getSanitizedUser(user auth.User) auth.User {
+	if user.Password != "#NeedToModify#" {
+		user.Password = ""
+	}
+	user.PasswordSalt = ""
+	user.PasswordType = ""
+	user.Hash = ""
+	user.PreHash = ""
+	user.AccessKey = ""
+	user.AccessSecret = ""
+	user.AccessToken = ""
+	user.OriginalToken = ""
+	user.OriginalRefreshToken = ""
+	user.TotpSecret = ""
+	user.RecoveryCodes = nil
+	user.MfaAccounts = nil
+	user.Phone = util.MaskPhone(user.Phone)
+	user.IdCard = util.MaskIdCard(user.IdCard)
+	return user
 }

@@ -18,9 +18,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
 	"strings"
 
 	"github.com/the-open-agent/openagent/proxy"
+	"github.com/the-open-agent/openagent/util"
 )
 
 // ---------------------------------------------------------------------------
@@ -103,6 +105,26 @@ func fetchURL(url string) ([]byte, error) {
 		return nil, fmt.Errorf("fetch %s: HTTP %d", url, resp.StatusCode)
 	}
 	return io.ReadAll(resp.Body)
+}
+
+// fetchUntrustedURL downloads a URL supplied by the client. GitHub content keeps using the
+// (possibly proxied) GitHub client; every other host may only be reached on a public address,
+// so the request cannot be aimed at internal services or cloud metadata endpoints.
+func fetchUntrustedURL(rawUrl string) ([]byte, error) {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		return nil, fmt.Errorf("fetch %s: %w", rawUrl, err)
+	}
+	host := strings.ToLower(u.Hostname())
+	if u.Scheme == "https" && (host == "github.com" || host == "raw.githubusercontent.com" || strings.HasSuffix(host, ".githubusercontent.com")) {
+		return fetchURL(rawUrl)
+	}
+
+	buffer, err := util.DownloadUntrustedFile(rawUrl)
+	if err != nil {
+		return nil, fmt.Errorf("fetch %s: %w", rawUrl, err)
+	}
+	return buffer.Bytes(), nil
 }
 
 // ---------------------------------------------------------------------------
@@ -285,7 +307,7 @@ func InstallMarketplaceSkill(item MarketplaceSkillItem) (*Skill, error) {
 		return nil, fmt.Errorf("skillMdUrl is required")
 	}
 
-	mdBytes, err := fetchURL(item.SkillMdUrl)
+	mdBytes, err := fetchUntrustedURL(item.SkillMdUrl)
 	if err != nil {
 		return nil, fmt.Errorf("download SKILL.md: %w", err)
 	}
@@ -300,7 +322,7 @@ func InstallMarketplaceSkill(item MarketplaceSkillItem) (*Skill, error) {
 	if item.RefsBaseUrl != "" {
 		for _, refName := range item.RefNames {
 			refURL := fmt.Sprintf("%s/%s", strings.TrimRight(item.RefsBaseUrl, "/"), refName)
-			refBytes, err := fetchURL(refURL)
+			refBytes, err := fetchUntrustedURL(refURL)
 			if err != nil {
 				continue
 			}

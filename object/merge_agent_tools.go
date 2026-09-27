@@ -47,7 +47,7 @@ func buildMergedBuiltinRegistry(store *Store, user, origin, lang string) *tool.T
 	for _, tname := range toolNames {
 		id := util.GetIdFromOwnerAndName(store.Owner, tname)
 		t, err := GetTool(id)
-		if err != nil || t == nil {
+		if err != nil || t == nil || IsToolTypeDisabled(t.Type) {
 			continue
 		}
 		tp, err := tool.New(getToolConfig(t), lang)
@@ -55,7 +55,7 @@ func buildMergedBuiltinRegistry(store *Store, user, origin, lang string) *tool.T
 			continue
 		}
 		for _, bt := range tp.BuiltinTools() {
-			wrapped := wrapSnapshotBuiltin(store.Owner, bt)
+			wrapped := wrapSnapshotBuiltin(store.Owner, wrapAuditedBuiltin(t.Type, user, bt))
 			wrapped = wrapGeneratedResourceBuiltin(wrapped, store.Owner, user, origin)
 			reg.RegisterTool(wrapped)
 		}

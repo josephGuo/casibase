@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/beego/beego/context"
+	"github.com/beego/beego/logs"
 	"github.com/the-open-agent/openagent/authz"
 	"github.com/the-open-agent/openagent/conf"
 	"github.com/the-open-agent/openagent/controllers"
@@ -27,6 +28,8 @@ import (
 func AuthzFilter(ctx *context.Context) {
 	method := ctx.Request.Method
 	urlPath := ctx.Request.URL.Path
+
+	checkSessionBinding(ctx)
 
 	if conf.IsDemoMode() {
 		if !isAllowedInDemoMode(method, urlPath) {
@@ -67,8 +70,10 @@ func permissionFilter(ctx *context.Context) {
 
 	var role string
 	switch {
-	case util.IsAdmin(user):
+	case util.IsGlobalAdmin(user):
 		role = "admin"
+	case util.IsStoreAdmin(user):
+		role = "store-admin"
 	case user != nil:
 		role = "user"
 	default:
@@ -77,5 +82,20 @@ func permissionFilter(ctx *context.Context) {
 
 	if !authz.IsAllowed(role, method, urlPath) {
 		responseError(ctx, "auth:this operation requires admin privilege")
+	}
+}
+
+func checkSessionBinding(ctx *context.Context) {
+	if ctx.Input.CruSession == nil {
+		return
+	}
+	userAgent, ok := ctx.Input.Session("userAgent").(string)
+	if !ok || userAgent == ctx.Request.UserAgent() {
+		return
+	}
+
+	err := ctx.Input.CruSession.Delete("user")
+	if err != nil {
+		logs.Error("checkSessionBinding() error: %s", err.Error())
 	}
 }

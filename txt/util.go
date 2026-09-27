@@ -15,6 +15,7 @@
 package txt
 
 import (
+	"bytes"
 	"io"
 	"io/ioutil"
 	"path/filepath"
@@ -23,7 +24,11 @@ import (
 )
 
 func getTempFilePathFromUrl(url string) (string, error) {
-	buffer, err := util.DownloadFile(url)
+	return downloadToTempFile(url, util.DownloadFile)
+}
+
+func downloadToTempFile(url string, download func(url string) (*bytes.Buffer, error)) (string, error) {
+	buffer, err := download(url)
 	if err != nil {
 		return "", err
 	}

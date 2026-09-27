@@ -29,6 +29,9 @@ import (
 	"github.com/the-open-agent/openagent/util"
 )
 
+// maxListSize caps the rows returned by list APIs that are called without pagination.
+const maxListSize = 1000
+
 type Response struct {
 	Status string      `json:"status"`
 	Msg    string      `json:"msg"`
@@ -122,6 +125,27 @@ func (c *ApiController) RequireAdmin() bool {
 		return false
 	}
 
+	return true
+}
+
+// RequireGlobalAdmin rejects store-level admins, which the authz filter otherwise lets through
+// as admins. Use it for operations that affect the whole server or can run code on the host.
+func (c *ApiController) RequireGlobalAdmin() bool {
+	if !c.IsGlobalAdmin() {
+		c.ResponseError(c.T("auth:this operation requires admin privilege"))
+		return false
+	}
+
+	return true
+}
+
+// requireSecretNotRedirected rejects a non-global admin's request that reuses a masked secret while
+// changing where it is sent, since that would hand them a secret they are not allowed to read.
+func (c *ApiController) requireSecretNotRedirected(redirected bool) bool {
+	if redirected && !c.IsGlobalAdmin() {
+		c.ResponseError(c.T("controllers:Please re-enter the secret when changing where it is sent"))
+		return false
+	}
 	return true
 }
 

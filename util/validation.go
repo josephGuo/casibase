@@ -18,12 +18,22 @@ import (
 	"regexp"
 )
 
-var ReFieldWhiteList *regexp.Regexp
+var (
+	ReFieldWhiteList     *regexp.Regexp
+	ReSortFieldWhiteList *regexp.Regexp
+)
 
 func init() {
 	ReFieldWhiteList, _ = regexp.Compile(`^[A-Za-z0-9]+$`)
+	ReSortFieldWhiteList, _ = regexp.Compile(`^[A-Za-z0-9_]+$`)
 }
 
 func FilterField(field string) bool {
 	return ReFieldWhiteList.MatchString(field)
+}
+
+// FilterSortField reports whether sortField is a plain column name that is safe to put into an
+// ORDER BY clause. The ORM does not escape identifiers, so anything else could inject SQL.
+func FilterSortField(sortField string) bool {
+	return ReSortFieldWhiteList.MatchString(sortField)
 }

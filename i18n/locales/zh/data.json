@@ -18,6 +18,7 @@
     "Invalid username or password": "用户名或密码错误",
     "Please sign in first": "请先登录",
     "Sign in is unavailable": "登录不可用",
+    "Too many uploads, please try again later": "上传过于频繁，请稍后再试",
     "Unauthorized operation": "未授权的操作",
     "this operation requires admin privilege": "此操作需要管理员权限"
   },
@@ -68,6 +69,10 @@
     "No permission": "无权限",
     "No records to add": "没有要添加的记录",
     "No sessions to delete": "没有要删除的会话",
+    "Only the global admin can configure local file system storage": "只有全局管理员可以配置本地文件系统存储",
+    "Only the global admin can configure tools or MCP servers that run commands on the host": "只有全局管理员可以配置会在服务器上执行命令的工具或MCP服务器",
+    "Please re-enter the secret when changing where it is sent": "修改发送地址时请重新输入密钥",
+    "The tool type: %s is disabled on this server": "本服务器已禁用该工具类型：%s",
     "You can only access data from your assigned store": "您只能访问分配给您的存储中的数据",
     "You can only view your own chats": "您只能查看自己的聊天",
     "You can only view your own messages": "您只能查看自己的消息"
@@ -191,6 +196,7 @@
     "the record: %s has already been committed, blockId = %s": "记录：%s 已提交，blockId = %s",
     "the record: %s's block ID should not be empty": "记录：%s 的区块 ID 不能为空",
     "the storage provider type: %s is not supported": "不支持的存储提供商类型：%s",
+    "the tool type: %s is disabled on this server": "本服务器已禁用该工具类型：%s",
     "the video provider type: %s is not supported": "the video provider type: %s is not supported",
     "there is no active blockchain provider": "没有活跃的区块链提供商",
     "tool test JSON must include non-empty \"tool\"": "工具测试JSON必须包含非空的\"tool\"字段",
@@ -201,7 +207,12 @@
   },
   "resource": {
     "Invalid file data format": "无效的文件数据格式",
-    "Only docx and pdf files are allowed": "仅允许 docx 和 pdf 文件"
+    "Only docx and pdf files are allowed": "仅允许 docx 和 pdf 文件",
+    "Only image files (PNG, JPEG, GIF, WebP, BMP, ICO) can be uploaded": "仅允许上传图片文件（PNG、JPEG、GIF、WebP、BMP、ICO）",
+    "The file is too large, the maximum size is %d MB": "文件过大，最大允许 %d MB",
+    "The resource: %s is not found": "未找到资源：%s",
+    "Unsupported resource category: %s": "不支持的资源类别：%s",
+    "Your uploaded files exceed the quota of %d MB, please delete some files first": "已上传文件超出 %d MB 配额，请先删除部分文件"
   },
   "storage": {
     "Casdoor is not configured or not reachable": "Casdoor 未配置或无法连接",

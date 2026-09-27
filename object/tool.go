@@ -22,6 +22,7 @@ import (
 
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
 	"github.com/the-open-agent/openagent/auth"
+	"github.com/the-open-agent/openagent/conf"
 	"github.com/the-open-agent/openagent/i18n"
 	"github.com/the-open-agent/openagent/tool"
 	"github.com/the-open-agent/openagent/util"
@@ -102,6 +103,15 @@ var highRiskToolTypes = map[string]bool{
 
 func IsHighRiskToolType(toolType string) bool {
 	return highRiskToolTypes[toolType]
+}
+
+func IsToolTypeDisabled(toolType string) bool {
+	for _, disabledType := range conf.GetStringArray("disabledToolTypes") {
+		if strings.TrimSpace(disabledType) == toolType {
+			return true
+		}
+	}
+	return false
 }
 
 // FilterOutHighRiskTools expands the "All" selection and drops every tool whose
@@ -228,6 +238,15 @@ func DeleteTool(t *Tool) (bool, error) {
 	return affected != 0, nil
 }
 
+// KeepsMaskedSecretWithNewEndpoint reports whether t reuses the masked ("***") client secret of
+// oldTool while changing where the tool sends it.
+func (t *Tool) KeepsMaskedSecretWithNewEndpoint(oldTool *Tool) bool {
+	if oldTool == nil || t.ClientSecret != "***" {
+		return false
+	}
+	return t.Type != oldTool.Type || t.ProviderUrl != oldTool.ProviderUrl
+}
+
 func getToolConfig(t *Tool) tool.Config {
 	return tool.Config{
 		Type:         t.Type,
@@ -240,11 +259,14 @@ func getToolConfig(t *Tool) tool.Config {
 	}
 }
 
-func TestTool(t *Tool, lang string) (string, error) {
-	return testToolWithLoader(t, lang, getTool)
+func TestTool(t *Tool, user string, lang string) (string, error) {
+	if IsToolTypeDisabled(t.Type) {
+		return "", fmt.Errorf(i18n.Translate(lang, "object:the tool type: %s is disabled on this server"), t.Type)
+	}
+	return testToolWithLoader(t, user, lang, getTool)
 }
 
-func testToolWithLoader(t *Tool, lang string, loadTool func(owner string, name string) (*Tool, error)) (string, error) {
+func testToolWithLoader(t *Tool, user string, lang string, loadTool func(owner string, name string) (*Tool, error)) (string, error) {
 	if t.ClientSecret == "***" {
 		if strings.TrimSpace(t.Owner) == "" || strings.TrimSpace(t.Name) == "" {
 			return "", fmt.Errorf("cannot restore masked tool secret without owner and name")
@@ -291,7 +313,7 @@ func testToolWithLoader(t *Tool, lang string, loadTool func(owner string, name s
 	}
 	for _, bt := range tp.BuiltinTools() {
 		if bt.GetName() == payload.Tool {
-			foundTool = wrapSnapshotBuiltin(owner, bt)
+			foundTool = wrapSnapshotBuiltin(owner, wrapAuditedBuiltin(t.Type, user, bt))
 			break
 		}
 	}
