@@ -233,8 +233,6 @@ func (p *LocalModelProvider) QueryText(question string, writer io.Writer, histor
 		client = getLocalClientFromUrl(p.secretKey, p.providerUrl)
 	} else if p.typ == "Azure" {
 		client = getAzureClientFromToken(p.deploymentName, p.secretKey, p.providerUrl, p.apiVersion)
-	} else if p.typ == "GitHub" {
-		client = getGitHubClientFromToken(p.secretKey, p.providerUrl)
 	} else if p.typ == "Ollama" {
 		client = getLocalClientFromUrl(p.secretKey, normalizeOllamaBaseURL(p.providerUrl))
 	} else if p.typ == "Custom" || p.typ == "Custom-think" {

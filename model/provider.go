@@ -171,8 +171,6 @@ func GetModelProvider(typ string, subType string, clientId string, clientSecret 
 		p, err = NewSiliconFlowProvider(subType, clientSecret, temperature, topP)
 	} else if typ == "APIMart" {
 		p, err = NewApiMartProvider(subType, clientSecret, temperature, topP)
-	} else if typ == "GitHub" {
-		p, err = NewGitHubModelProvider(typ, subType, clientSecret, temperature, topP, frequencyPenalty, presencePenalty)
 	} else if typ == "Writer" {
 		p, err = NewWriterModelProvider(subType, clientSecret, temperature, topP)
 	} else if typ == "OpenCode" {

@@ -50,63 +50,83 @@ func NewOpenRouterModelProvider(subType string, secretKey string, temperature fl
 
 func (p *OpenRouterModelProvider) GetPricing() string {
 	return `URL:
-https://openrouter.ai/docs#models
+https://openrouter.ai/models
 
-| Model Name                   | Prompt cost ($ per 1k tokens) | Completion cost ($ per 1k tokens) | Context (tokens) | Moderation |
-|------------------------------|-------------------------------|-----------------------------------|------------------|------------|
-| google/palm-2-codechat-bison | $0.00025                      | $0.0005                           | 28,672           | None       |
-| google/palm-2-chat-bison     | $0.00025                      | $0.0005                           | 36,864           | None       |
-| openai/gpt-3.5-turbo         | $0.001                        | $0.002                            | 4,095            | Moderated  |
-| openai/gpt-3.5-turbo-16k     | $0.0005                       | $0.0015                           | 16,385           | Moderated  |
-| openai/gpt-4                 | $0.03                         | $0.06                             | 8,191            | Moderated  |
-| openai/gpt-4-32k             | $0.06                         | $0.12                             | 32,767           | Moderated  |
-| anthropic/claude-2           | $0.008                        | $0.024                            | 200,000          | Moderated  |
-| anthropic/claude-instant-v1  | $0.0008                       | $0.0024                           | 100,000          | Moderated  |
-| meta-llama/llama-2-13b-chat  | $0.0007                       | $0.0009                           | 4,096            | None       |
-| meta-llama/llama-2-70b-chat  | $0.0007                       | $0.0009                           | 4,096            | None       |
-| palm-2-codechat-bison        | $0.00025                      | $0.0005                           | 28,672           | None       |
-| palm-2-chat-bison            | $0.00025                      | $0.0005                           | 36,864           | None       |
-| gpt-3.5-turbo                | $0.001                        | $0.002                            | 4,095            | Moderated  |
-| gpt-3.5-turbo-16k            | $0.0005                       | $0.0015                           | 16,385           | Moderated  |
-| gpt-4                        | $0.03                         | $0.06                             | 8,191            | Moderated  |
-| gpt-4-32k                    | $0.06                         | $0.12                             | 32,767           | Moderated  |
-| claude-2                     | $0.008                        | $0.024                            | 200,000          | Moderated  |
-| claude-instant-v1            | $0.0008                       | $0.0024                           | 100,000          | Moderated  |
-| llama-2-13b-chat             | $0.0007                       | $0.0009                           | 4,096            | None       |
-| llama-2-70b-chat             | $0.0007                       | $0.0009                           | 4,096            | None       |
+| Model Name                        | Prompt cost ($ per 1k tokens) | Completion cost ($ per 1k tokens) | Context (tokens) |
+|-----------------------------------|-------------------------------|-----------------------------------|------------------|
+| anthropic/claude-fable-5.1        | $0.01                         | $0.05                             | 1,000,000        |
+| anthropic/claude-opus-5           | $0.005                        | $0.025                            | 1,000,000        |
+| anthropic/claude-sonnet-5         | $0.002                        | $0.01                             | 1,000,000        |
+| anthropic/claude-opus-4.8         | $0.005                        | $0.025                            | 1,000,000        |
+| anthropic/claude-haiku-4.5        | $0.001                        | $0.005                            | 200,000          |
+| openai/gpt-6-astra                | $0.01                         | $0.05                             | 1,050,000        |
+| openai/gpt-5.6-sol                | $0.002                        | $0.01                             | 1,050,000        |
+| openai/gpt-5.6-terra              | $0.002                        | $0.012                            | 1,050,000        |
+| openai/gpt-5.6-luna               | $0.0002                       | $0.0012                           | 1,050,000        |
+| openai/gpt-5.3-codex              | $0.00175                      | $0.014                            | 400,000          |
+| google/gemini-3.8-flash           | $0.00075                      | $0.00375                          | 1,048,576        |
+| google/gemini-3.1-pro-preview     | $0.002                        | $0.012                            | 1,048,576        |
+| google/gemini-3.5-flash           | $0.0015                       | $0.009                            | 1,048,576        |
+| deepseek/deepseek-v4-pro          | $0.0016                       | $0.0032                           | 1,048,576        |
+| deepseek/deepseek-v4-flash        | $0.000089                     | $0.000177                         | 1,048,576        |
+| deepseek/deepseek-v4.1-flash      | $0.00015                      | $0.0006                           | 1,048,576        |
+| x-ai/grok-4.6                     | $0.002                        | $0.006                            | 500,000          |
+| x-ai/grok-4.5                     | $0.002                        | $0.006                            | 500,000          |
+| x-ai/grok-4.3                     | $0.00125                      | $0.0025                           | 1,000,000        |
+| qwen/qwen3.8-max-0902             | $0.002                        | $0.006                            | 1,000,000        |
+| qwen/qwen3.8-flash                | $0.00015                      | $0.00047                          | 1,000,000        |
+| moonshotai/kimi-k3                | $0.003                        | $0.015                            | 1,048,576        |
+| moonshotai/kimi-k2.7-code         | $0.00071                      | $0.00321                          | 262,144          |
+| z-ai/glm-5.3                      | $0.0014                       | $0.0044                           | 1,310,720        |
+| z-ai/glm-5.2                      | $0.0014                       | $0.0044                           | 1,048,576        |
+| minimax/minimax-m3                | $0.0003                       | $0.0012                           | 1,048,576        |
+| mistralai/mistral-medium-3-5      | $0.0015                       | $0.0075                           | 262,144          |
+| mistralai/mistral-large-2512      | $0.0005                       | $0.0015                           | 262,144          |
+| meta-llama/llama-4-maverick       | $0.00019                      | $0.00065                          | 1,048,576        |
+| meta-llama/llama-3.3-70b-instruct | $0.0001                       | $0.00032                          | 131,072          |
 `
 }
 
 func (p *OpenRouterModelProvider) calculatePrice(modelResult *ModelResult, lang string) error {
-	var inputPricePerThousandTokens, outputPricePerThousandTokens float64
+	// OpenRouter routes to hundreds of upstream models and reprices them independently, so a
+	// model that is not in the table below reports price = 0 rather than failing the request.
 	priceTable := map[string][]float64{
-		"google/palm-2-codechat-bison": {0.00025, 0.0005},
-		"google/palm-2-chat-bison":     {0.00025, 0.0005},
-		"openai/gpt-3.5-turbo":         {0.001, 0.002},
-		"openai/gpt-3.5-turbo-16k":     {0.0005, 0.0015},
-		"openai/gpt-4":                 {0.03, 0.06},
-		"openai/gpt-4-32k":             {0.06, 0.12},
-		"anthropic/claude-2":           {0.008, 0.024},
-		"anthropic/claude-instant-v1":  {0.0008, 0.0024},
-		"meta-llama/llama-2-13b-chat":  {0.0007, 0.0009},
-		"meta-llama/llama-2-70b-chat":  {0.0007, 0.0009},
-		"palm-2-codechat-bison":        {0.00025, 0.0005},
-		"palm-2-chat-bison":            {0.00025, 0.0005},
-		"gpt-3.5-turbo":                {0.001, 0.002},
-		"gpt-3.5-turbo-16k":            {0.0005, 0.0015},
-		"gpt-4":                        {0.03, 0.06},
-		"gpt-4-32k":                    {0.06, 0.12},
-		"claude-2":                     {0.008, 0.024},
-		"claude-instant-v1":            {0.0008, 0.0024},
-		"llama-2-13b-chat":             {0.0007, 0.0009},
-		"llama-2-70b-chat":             {0.0007, 0.0009},
+		"anthropic/claude-fable-5.1":        {0.01, 0.05},
+		"anthropic/claude-opus-5":           {0.005, 0.025},
+		"anthropic/claude-sonnet-5":         {0.002, 0.01},
+		"anthropic/claude-opus-4.8":         {0.005, 0.025},
+		"anthropic/claude-haiku-4.5":        {0.001, 0.005},
+		"openai/gpt-6-astra":                {0.01, 0.05},
+		"openai/gpt-5.6-sol":                {0.002, 0.01},
+		"openai/gpt-5.6-terra":              {0.002, 0.012},
+		"openai/gpt-5.6-luna":               {0.0002, 0.0012},
+		"openai/gpt-5.3-codex":              {0.00175, 0.014},
+		"google/gemini-3.8-flash":           {0.00075, 0.00375},
+		"google/gemini-3.1-pro-preview":     {0.002, 0.012},
+		"google/gemini-3.5-flash":           {0.0015, 0.009},
+		"deepseek/deepseek-v4-pro":          {0.0016, 0.0032},
+		"deepseek/deepseek-v4-flash":        {0.000089, 0.000177},
+		"deepseek/deepseek-v4.1-flash":      {0.00015, 0.0006},
+		"x-ai/grok-4.6":                     {0.002, 0.006},
+		"x-ai/grok-4.5":                     {0.002, 0.006},
+		"x-ai/grok-4.3":                     {0.00125, 0.0025},
+		"qwen/qwen3.8-max-0902":             {0.002, 0.006},
+		"qwen/qwen3.8-flash":                {0.00015, 0.00047},
+		"moonshotai/kimi-k3":                {0.003, 0.015},
+		"moonshotai/kimi-k2.7-code":         {0.00071, 0.00321},
+		"z-ai/glm-5.3":                      {0.0014, 0.0044},
+		"z-ai/glm-5.2":                      {0.0014, 0.0044},
+		"minimax/minimax-m3":                {0.0003, 0.0012},
+		"mistralai/mistral-medium-3-5":      {0.0015, 0.0075},
+		"mistralai/mistral-large-2512":      {0.0005, 0.0015},
+		"meta-llama/llama-4-maverick":       {0.00019, 0.00065},
+		"meta-llama/llama-3.3-70b-instruct": {0.0001, 0.00032},
 	}
 
+	var inputPricePerThousandTokens, outputPricePerThousandTokens float64
 	if priceItem, ok := priceTable[p.subType]; ok {
 		inputPricePerThousandTokens = priceItem[0]
 		outputPricePerThousandTokens = priceItem[1]
-	} else {
-		return fmt.Errorf(i18n.Translate(lang, "embedding:calculatePrice() error: unknown model type: %s"), p.subType)
 	}
 
 	inputPrice := getPrice(modelResult.PromptTokenCount, inputPricePerThousandTokens)

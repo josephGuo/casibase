@@ -40,53 +40,57 @@ func NewGrokModelProvider(subType string, secretKey string, temperature float32,
 
 func (p *GrokModelProvider) GetPricing() string {
 	return `URL:
-https://x.ai/pricing
+https://docs.x.ai/docs/models
 
-| Models              | Context | Input (Per 1,000 tokens) | Output (Per 1,000 tokens)|
-|---------------------|---------|--------------------------|--------------------------|
-| grok-3              | 131K    | $0.003                   | $0.015                   |
-| grok-3-fast         | 131K    | $0.005                   | $0.025                   |
-| grok-3-mini         | 131K    | $0.0003                  | $0.0005                  |
-| grok-3-mini-fast    | 131K    | $0.0006                  | $0.004                  |
-| grok-2-vision       | 32K     | $0.002                   | $0.01                    |
-| grok-2              | 131K    | $0.002                   | $0.01                    |
+Text models (the higher rate applies to prompts of 200K tokens or more):
+
+| Models                       | Context | Input (Per 1,000 tokens) | Output (Per 1,000 tokens) |
+|------------------------------|---------|--------------------------|---------------------------|
+| grok-4.6                     | 500K    | $0.002 / $0.004          | $0.006 / $0.012           |
+| grok-4.5                     | 500K    | $0.002 / $0.004          | $0.006 / $0.012           |
+| grok-4.3                     | 1M      | $0.00125 / $0.0025       | $0.0025 / $0.005          |
+| grok-4.20-0309-reasoning     | 1M      | $0.00125 / $0.0025       | $0.0025 / $0.005          |
+| grok-4.20-0309-non-reasoning | 1M      | $0.00125 / $0.0025       | $0.0025 / $0.005          |
+| grok-4.20-multi-agent-0309   | 1M      | $0.00125 / $0.0025       | $0.0025 / $0.005          |
+| grok-build-0.1               | 256K    | $0.001 / $0.002          | $0.002 / $0.004           |
 
 Image models:
 
-| Models               | Price (per image) |
-|----------------------|-------------------|
-| grok-2-image         | $0.07             |
+| Models                      | Price (per image) |
+|-----------------------------|-------------------|
+| grok-imagine-image-quality  | $0.05             |
+| grok-imagine-image-2.0      | $0.04             |
+| grok-imagine-image          | $0.02             |
 `
 }
 
 func (p *GrokModelProvider) calculatePrice(modelResult *ModelResult, lang string) error {
 	var inputPricePerThousandTokens, outputPricePerThousandTokens float64
 
-	if strings.Contains(p.subType, "grok-3") {
-		if !strings.Contains(p.subType, "fast") && !strings.Contains(p.subType, "mini") {
-			inputPricePerThousandTokens = 0.003  // $0.003 per 1,000 tokens
-			outputPricePerThousandTokens = 0.015 // $0.015 per 1,000 tokens
-		} else if strings.Contains(p.subType, "mini-fast") {
-			inputPricePerThousandTokens = 0.0006 // $0.0006 per 1,000 tokens
-			outputPricePerThousandTokens = 0.004 // $0.004 per 1,000 tokens
-		} else if strings.Contains(p.subType, "fast") {
-			inputPricePerThousandTokens = 0.005  // $0.005 per 1,000 tokens
-			outputPricePerThousandTokens = 0.025 // $0.025 per 1,000 tokens
-		} else if strings.Contains(p.subType, "mini") {
-			inputPricePerThousandTokens = 0.0003  // $0.0003 per 1,000 tokens
-			outputPricePerThousandTokens = 0.0005 // $0.0005 per 1,000 tokens
+	// Image generation models are billed per image
+	if strings.HasPrefix(p.subType, "grok-imagine-image") {
+		pricePerImage := 0.02
+		if strings.Contains(p.subType, "quality") {
+			pricePerImage = 0.05
+		} else if strings.Contains(p.subType, "2.0") {
+			pricePerImage = 0.04
 		}
-	} else if strings.Contains(p.subType, "grok-2-vision") {
-		inputPricePerThousandTokens = 0.002 // $0.002 per 1,000 tokens
-		outputPricePerThousandTokens = 0.01 // $0.01 per 1,000 tokens
-	} else if strings.Contains(p.subType, "grok-2-image") {
-		// For image generation, we need special handling
-		modelResult.TotalPrice = float64(modelResult.ImageCount) * 0.07 // $0.07 per image
+		modelResult.TotalPrice = float64(modelResult.ImageCount) * pricePerImage
 		modelResult.Currency = "USD"
 		return nil
-	} else if strings.Contains(p.subType, "grok-2") {
-		inputPricePerThousandTokens = 0.002 // $0.002 per 1,000 tokens
-		outputPricePerThousandTokens = 0.01 // $0.01 per 1,000 tokens
+	}
+
+	// Text models are billed at the short-context rate below 200K prompt tokens, which is
+	// the rate shown here
+	if strings.Contains(p.subType, "grok-4.6") || strings.Contains(p.subType, "grok-4.5") {
+		inputPricePerThousandTokens = 0.002  // $2.00 per 1M tokens
+		outputPricePerThousandTokens = 0.006 // $6.00 per 1M tokens
+	} else if strings.Contains(p.subType, "grok-4.3") || strings.Contains(p.subType, "grok-4.20") {
+		inputPricePerThousandTokens = 0.00125 // $1.25 per 1M tokens
+		outputPricePerThousandTokens = 0.0025 // $2.50 per 1M tokens
+	} else if strings.Contains(p.subType, "grok-build") {
+		inputPricePerThousandTokens = 0.001  // $1.00 per 1M tokens
+		outputPricePerThousandTokens = 0.002 // $2.00 per 1M tokens
 	} else {
 		return fmt.Errorf(i18n.Translate(lang, "embedding:calculatePrice() error: unknown model type: %s"), p.subType)
 	}

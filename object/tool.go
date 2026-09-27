@@ -87,6 +87,52 @@ func GetTools(owner string) ([]*Tool, error) {
 	return tools, err
 }
 
+// highRiskToolTypes are tool types that can execute commands, touch the local
+// file system or drive the local desktop/browser. They must never be exposed to
+// unauthenticated callers.
+var highRiskToolTypes = map[string]bool{
+	"shell":          true,
+	"local_file":     true,
+	"office":         true,
+	"gui":            true,
+	"web_browser":    true,
+	"browser_use":    true,
+	"video_download": true,
+}
+
+func IsHighRiskToolType(toolType string) bool {
+	return highRiskToolTypes[toolType]
+}
+
+// FilterOutHighRiskTools expands the "All" selection and drops every tool whose
+// type is high risk, returning only the tool names that are safe to expose to
+// unauthenticated callers.
+func FilterOutHighRiskTools(owner string, toolNames []string) ([]string, error) {
+	if len(toolNames) == 1 && toolNames[0] == allToolsSelection {
+		allTools, err := GetTools(owner)
+		if err != nil {
+			return nil, err
+		}
+		toolNames = make([]string, 0, len(allTools))
+		for _, t := range allTools {
+			toolNames = append(toolNames, t.Name)
+		}
+	}
+
+	res := []string{}
+	for _, name := range toolNames {
+		t, err := getTool(owner, name)
+		if err != nil {
+			return nil, err
+		}
+		if t == nil || IsHighRiskToolType(t.Type) {
+			continue
+		}
+		res = append(res, name)
+	}
+	return res, nil
+}
+
 func getTool(owner string, name string) (*Tool, error) {
 	t := Tool{Owner: owner, Name: name}
 	existed, err := adapter.engine.Get(&t)

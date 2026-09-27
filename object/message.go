@@ -337,7 +337,7 @@ func RefineMessageFiles(message *Message, origin string, lang string) error {
 				return err
 			}
 
-			filePath := fmt.Sprintf("%s/%s/%s/%s", message.Organization, message.User, message.Chat, message.FileName)
+			filePath := fmt.Sprintf("%s/%s/%s/%s", util.SanitizePathSegment(message.Organization), util.SanitizePathSegment(message.User), util.SanitizePathSegment(message.Chat), util.SanitizePathSegment(message.FileName))
 
 			var fileUrl string
 			fileUrl, err = obj.PutObject(message.User, message.Chat, filePath, bytes.NewBuffer(content))

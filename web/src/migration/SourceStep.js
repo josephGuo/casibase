@@ -28,7 +28,7 @@ const bundleExample = `{
      "modelProvider": "openai", "skills": ["pdf"]}
   ],
   "providers": [
-    {"name": "openai", "type": "OpenAI", "subType": "gpt-4o", "clientSecret": "sk-..."}
+    {"name": "openai", "type": "OpenAI", "subType": "gpt-6-astra", "clientSecret": "sk-..."}
   ],
   "skills": [
     {"name": "pdf", "skillMd": "---\\nname: pdf\\n---\\nRead PDFs."}

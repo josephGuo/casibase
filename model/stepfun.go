@@ -38,28 +38,26 @@ func NewStepFunModelProvider(subType string, apiKey string, temperature float32,
 
 func (p *StepFunModelProvider) GetPricing() string {
 	return `URL:
-https://platform.stepfun.com/docs/pricing/details
+https://platform.stepfun.com/docs/zh/pricing/details
 
-| Model        | Input Price per 1K characters    | Output Price per 1K characters |
-|--------------|----------------------------------|--------------------------------|
-| step-1-8k    | 0.005yuan/1,000 tokens           | 0.02yuan/1,000 tokens          |
-| step-1-32k   | 0.015yuan/1,000 tokens           | 0.07yuan/1,000 tokens          |
-| step-1-256k  | 0.095yuan/1,000 tokens           | 0.3yuan/1,000 tokens           |
-| step-2-mini  | 0.001yuan/1,000 tokens           | 0.002yuan/1,000 tokens         |
-| step-2-16k   | 0.038yuan/1,000 tokens           | 0.12yuan/1,000 tokens          |
-| step-2-16k-exp   | 0.038yuan/1,000 tokens       | 0.12yuan/1,000 tokens          |
+Prices below are the cache-miss input rate; cache hits are billed at roughly 20% of it.
+
+| Model                 | Context | Input Price per 1K tokens | Output Price per 1K tokens |
+|-----------------------|---------|---------------------------|----------------------------|
+| step-3.7-flash        | 256K    | 0.00135 yuan/1,000 tokens | 0.0081 yuan/1,000 tokens   |
+| step-3.5-flash        | 256K    | 0.0007 yuan/1,000 tokens  | 0.0021 yuan/1,000 tokens   |
+| step-3.5-flash-2603   | 256K    | 0.0007 yuan/1,000 tokens  | 0.0021 yuan/1,000 tokens   |
+| step-1o-turbo-vision  | 32K     | 0.0025 yuan/1,000 tokens  | 0.008 yuan/1,000 tokens    |
 `
 }
 
 func (p *StepFunModelProvider) calculatePrice(modelResult *ModelResult, lang string) error {
 	price := 0.0
 	priceTable := map[string][2]float64{
-		"step-1-8k":      {0.005, 0.02},
-		"step-1-32k":     {0.015, 0.07},
-		"step-1-256k":    {0.095, 0.3},
-		"step-2-mini":    {0.001, 0.002},
-		"step-2-16k":     {0.038, 0.12},
-		"step-2-16k-exp": {0.038, 0.12},
+		"step-3.7-flash":       {0.00135, 0.0081},
+		"step-3.5-flash":       {0.0007, 0.0021},
+		"step-3.5-flash-2603":  {0.0007, 0.0021},
+		"step-1o-turbo-vision": {0.0025, 0.008},
 	}
 
 	if priceItem, ok := priceTable[p.subType]; ok {

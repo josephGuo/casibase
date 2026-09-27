@@ -39,15 +39,15 @@ func NewWriterModelProvider(subType string, apiKey string, temperature float32, 
 
 func (p *WriterModelProvider) GetPricing() string {
 	return `URL:
-https://writer.com/pricing/
+https://dev.writer.com/home/models
 
-| Model                    | Input Price per 1M tokens | Output Price per 1M tokens |
-|--------------------------|---------------------------|----------------------------|
-| Palmyra X5               | $0.60                     | $6.00                      |
-| Palmyra X4               | $2.50                     | $10.00                     |
-| Palmyra Med              | $2.50                     | $10.00                     |
-| Palmyra Fin              | $2.50                     | $10.00                     |
-| Palmyra Creative         | $2.50                     | $10.00                     |
+| Model                    | Context | Input Price per 1M tokens | Output Price per 1M tokens |
+|--------------------------|---------|---------------------------|----------------------------|
+| Palmyra X6               | 1M      | $2.00                     | $8.00                      |
+| Palmyra X5               | 1M      | $0.60                     | $6.00                      |
+| Palmyra X4               | 128K    | $2.50                     | $10.00                     |
+
+Palmyra X5 and X4 are deprecated with a shutdown date of December 14, 2026.
 `
 }
 
@@ -55,11 +55,9 @@ func (p *WriterModelProvider) calculatePrice(modelResult *ModelResult, lang stri
 	var inputPricePerThousandTokens, outputPricePerThousandTokens float64
 
 	priceTable := map[string][2]float64{
-		"palmyra-x5":       {0.0006, 0.006}, // $0.60/$6.00 per 1M tokens
-		"palmyra-x4":       {0.0025, 0.010}, // $2.50/$10.00 per 1M tokens
-		"palmyra-med":      {0.0025, 0.010}, // $2.50/$10.00 per 1M tokens
-		"palmyra-fin":      {0.0025, 0.010}, // $2.50/$10.00 per 1M tokens
-		"palmyra-creative": {0.0025, 0.010}, // $2.50/$10.00 per 1M tokens
+		"palmyra-x6": {0.002, 0.008},  // $2.00/$8.00 per 1M tokens
+		"palmyra-x5": {0.0006, 0.006}, // $0.60/$6.00 per 1M tokens
+		"palmyra-x4": {0.0025, 0.010}, // $2.50/$10.00 per 1M tokens
 	}
 
 	if priceItem, ok := priceTable[p.subType]; ok {

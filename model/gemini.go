@@ -50,8 +50,13 @@ func (p *GeminiModelProvider) GetPricing() string {
 	return `URL: https://ai.google.dev/gemini-api/docs/pricing
 | Model                                          | Input Price (per 1M tokens)              | Output Price (per 1M tokens)              |
 |------------------------------------------------|------------------------------------------|-------------------------------------------|
+| Gemini 3.8 Flash                               | $0.75 (text/image/video)                | $3.75                                     |
+| Gemini 3.7 Flash                               | $0.75 (text/image/video)                | $3.75                                     |
+| Gemini 3.6 Flash                               | $0.75 (text/image/video)                | $3.75                                     |
+| Gemini 3.5 Flash                               | $1.50 (text/image/video)                | $9.00                                     |
+| Gemini 3.5 Flash-Lite                          | $0.30 (text/image/video)                | $2.50                                     |
 | Gemini 3.1 Pro Preview                         | $2.00 (≤200k), $4.00 (>200k)           | $12.00 (≤200k), $18.00 (>200k)           |
-| Gemini 3.1 Flash-Lite Preview                  | $0.25 (text/image/video)                | $1.50                                     |
+| Gemini 3.1 Flash-Lite                          | $0.25 (text/image/video)                | $1.50                                     |
 | Gemini 3.1 Flash Live Preview                  | $0.75 (text), $3.00 (audio/image/video) | $4.50 (text), $12.00 (audio)              |
 | Gemini 3.1 Flash Image Preview                 | $0.25 (text input)                      | $0.067 per image                          |
 | Gemini 3 Flash Preview                         | $0.50 (text/image/video), $1.00 (audio) | $3.00                                     |
@@ -64,20 +69,14 @@ func (p *GeminiModelProvider) GetPricing() string {
 | Gemini 2.5 Flash Preview TTS                   | $0.50 (text)                            | $10.00 (audio)                            |
 | Gemini 2.5 Pro Preview TTS                     | $1.00 (text)                            | $20.00 (audio)                            |
 | Gemini 2.5 Computer Use Preview                | $1.25 (≤200k), $2.50 (>200k)           | $10.00 (≤200k), $15.00 (>200k)           |
-| Gemini 2.0 Flash (deprecated)                  | $0.10 (text/image/video), $0.70 (audio) | $0.40                                     |
-| Gemini 2.0 Flash-Lite (deprecated)             | $0.075                                  | $0.30                                     |
 | Gemini Embedding 2 Preview                     | $0.20 (text)                            | -                                         |
 | Gemini Embedding                               | $0.15 (text)                            | -                                         |
-| Gemini Robotics-ER 1.5 Preview                 | $0.30 (text/image/video), $1.00 (audio) | $2.50                                     |
-| Imagen 4 Fast                                  | $0.02 per image                         | -                                         |
-| Imagen 4 Standard                              | $0.04 per image                         | -                                         |
-| Imagen 4 Ultra                                 | $0.06 per image                         | -                                         |
+| Gemini Robotics-ER 2 Preview                   | $0.30 (text/image/video), $1.00 (audio) | $2.50                                     |
 | Veo 3.1 Standard                               | $0.40 per second                        | -                                         |
-| Veo 3.1 Fast                                   | $0.10 per second (720p)                 | -                                         |
-| Veo 3.0 Standard                               | $0.40 per second                        | -                                         |
-| Veo 3.0 Fast                                   | $0.10 per second (720p)                 | -                                         |
-| Veo 2                                          | $0.35 per second                        | -                                         |
-| Gemma 4                                        | Free                                    | Free                                      |
+| Veo 3.1 Lite                                   | $0.10 per second (720p)                 | -                                         |
+
+Note: the Gemini 2.0, 1.5 and 1.0 families and the Imagen 4 / Veo 3.0 / Veo 2 models have
+been shut down or deprecated and are no longer offered by the Gemini API.
 `
 }
 
@@ -89,11 +88,34 @@ func (p *GeminiModelProvider) calculatePrice(modelResult *ModelResult, lang stri
 	var inputPricePerMillionTokens, outputPricePerMillionTokens float64
 
 	switch {
-	// Gemini 3.1 series (Preview)
+	// Gemini 3.x Flash series (Stable)
+	case strings.Contains(p.subType, "gemini-3.8-flash"),
+		strings.Contains(p.subType, "gemini-3.8-live"),
+		strings.Contains(p.subType, "gemini-3.7-flash"),
+		strings.Contains(p.subType, "gemini-3.6-flash"):
+		// promotional rate through Dec 31, 2026; $1.50/$7.50 after
+		inputPricePerMillionTokens = 0.75
+		outputPricePerMillionTokens = 3.75
+
+	case strings.Contains(p.subType, "gemini-3.5-flash-lite"):
+		inputPricePerMillionTokens = 0.30
+		outputPricePerMillionTokens = 2.50
+
+	case strings.Contains(p.subType, "gemini-3.5-flash"),
+		strings.Contains(p.subType, "gemini-3.5-transcribe"),
+		strings.Contains(p.subType, "gemini-3.5-live"):
+		inputPricePerMillionTokens = 1.50
+		outputPricePerMillionTokens = 9.00
+
+	// Gemini 3.1 series
 	case strings.Contains(p.subType, "gemini-3.1-pro"):
 		// $2.00/≤200k, $4.00/>200k; using ≤200k as default
 		inputPricePerMillionTokens = 2.00
 		outputPricePerMillionTokens = 12.00
+
+	case strings.Contains(p.subType, "gemini-3.1-flash-lite-image"):
+		inputPricePerMillionTokens = 0.25
+		outputPricePerMillionTokens = 1.50 // image output is per-image; token price used for text output
 
 	case strings.Contains(p.subType, "gemini-3.1-flash-lite"):
 		inputPricePerMillionTokens = 0.25
@@ -156,42 +178,6 @@ func (p *GeminiModelProvider) calculatePrice(modelResult *ModelResult, lang stri
 		inputPricePerMillionTokens = 1.25
 		outputPricePerMillionTokens = 10.00
 
-	// Gemini 2.0 Flash models (deprecated)
-	case strings.Contains(p.subType, "gemini-2.0-flash"):
-		if strings.Contains(p.subType, "lite") {
-			inputPricePerMillionTokens = 0.075
-			outputPricePerMillionTokens = 0.30
-		} else {
-			inputPricePerMillionTokens = 0.10
-			outputPricePerMillionTokens = 0.40
-		}
-
-	// Gemini 2.0 Pro models
-	case strings.Contains(p.subType, "gemini-2.0-pro"):
-		inputPricePerMillionTokens = 1.25
-		outputPricePerMillionTokens = 10.00
-
-	// Gemini 1.5 Flash models
-	case strings.Contains(p.subType, "gemini-1.5-flash"):
-		if strings.Contains(p.subType, "8b") {
-			inputPricePerMillionTokens = 0.0375
-			outputPricePerMillionTokens = 0.15
-		} else {
-			inputPricePerMillionTokens = 0.075
-			outputPricePerMillionTokens = 0.30
-		}
-
-	// Gemini 1.5 Pro models
-	case strings.Contains(p.subType, "gemini-1.5-pro"):
-		inputPricePerMillionTokens = 1.25
-		outputPricePerMillionTokens = 5.00
-
-	// Gemini 1.0 Pro Vision models
-	case strings.Contains(p.subType, "gemini-1.0-pro-vision"),
-		strings.Contains(p.subType, "gemini-pro-vision"):
-		inputPricePerMillionTokens = 0.125
-		outputPricePerMillionTokens = 0.375
-
 	// Gemini Embedding models
 	case strings.Contains(p.subType, "gemini-embedding-2"):
 		inputPricePerMillionTokens = 0.20
@@ -216,31 +202,8 @@ func (p *GeminiModelProvider) calculatePrice(modelResult *ModelResult, lang stri
 		inputPricePerMillionTokens = 0.10
 		outputPricePerMillionTokens = 0.40
 
-	// Imagen 4 image generation models
-	case strings.Contains(p.subType, "imagen-4.0-ultra"):
-		modelResult.TotalPrice = 0.06
-		modelResult.Currency = "USD"
-		return nil
-
-	case strings.Contains(p.subType, "imagen-4.0-fast"):
-		modelResult.TotalPrice = 0.02
-		modelResult.Currency = "USD"
-		return nil
-
-	case strings.Contains(p.subType, "imagen-4"):
-		modelResult.TotalPrice = 0.04
-		modelResult.Currency = "USD"
-		return nil
-
-	// Veo 3.1 video generation models
-	case strings.Contains(p.subType, "veo-3.1-fast") || strings.Contains(p.subType, "veo-3.0-fast"):
-		return fmt.Errorf(i18n.Translate(lang, "model:calculatePrice() error: video generation pricing requires duration information"))
-
-	case strings.Contains(p.subType, "veo-3"):
-		return fmt.Errorf(i18n.Translate(lang, "model:calculatePrice() error: video generation pricing requires duration information"))
-
-	// Veo 2 video generation models
-	case strings.Contains(p.subType, "veo-2"):
+	// Veo video generation and Lyria music models are billed per second of output
+	case strings.Contains(p.subType, "veo-3"), strings.Contains(p.subType, "lyria"):
 		return fmt.Errorf(i18n.Translate(lang, "model:calculatePrice() error: video generation pricing requires duration information"))
 
 	// Experimental models (using default Flash pricing)

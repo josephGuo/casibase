@@ -23,6 +23,7 @@ import (
 	"github.com/beego/beego/logs"
 	"github.com/the-open-agent/openagent/object"
 	"github.com/the-open-agent/openagent/txt"
+	"github.com/the-open-agent/openagent/util"
 )
 
 // UploadTaskDocument
@@ -100,8 +101,8 @@ func (c *ApiController) UploadTaskDocument() {
 
 	// Upload file to storage
 	// Replace '+' with '_' to avoid '+'-as-space ambiguity in CDN URLs
-	safeFileName := strings.ReplaceAll(fileName, "+", "_")
-	filePath := fmt.Sprintf("openagent/task-documents/%s/%s", userName, safeFileName)
+	safeFileName := util.SanitizePathSegment(strings.ReplaceAll(fileName, "+", "_"))
+	filePath := fmt.Sprintf("openagent/task-documents/%s/%s", util.SanitizePathSegment(userName), safeFileName)
 	host := c.Ctx.Request.Host
 	origin := getOriginFromHost(host)
 	fileUrl, err := object.UploadFileToStorageSafe(filePath, fileBytes, origin, c.GetAcceptLanguage())

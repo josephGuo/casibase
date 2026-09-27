@@ -46,8 +46,11 @@ func NewAlibabacloudModelProvider(subType string, apiKey string, temperature flo
 	}, nil
 }
 
+// Wan (formerly Wanxiang) and Qwen-Image are the image / video generation model families.
 func isWanxModel(subType string) bool {
-	return strings.HasPrefix(subType, "wanx")
+	return strings.HasPrefix(subType, "wan2.") ||
+		strings.HasPrefix(subType, "wan3.") ||
+		strings.HasPrefix(subType, "qwen-image")
 }
 
 // Models with native image and video input are only served by the OpenAI-compatible
@@ -59,6 +62,7 @@ func isQwenMultimodalModel(subType string) bool {
 		strings.HasPrefix(subType, "qwen3.7-plus") ||
 		strings.HasPrefix(subType, "qwen3.7-flash") ||
 		strings.HasPrefix(subType, "qwen3.6-") ||
+		strings.HasPrefix(subType, "qwen3.5-omni") ||
 		strings.HasPrefix(subType, "qwen3-vl-")
 }
 
@@ -81,6 +85,7 @@ https://help.aliyun.com/zh/model-studio/billing-for-model-studio
 | Qwen-Long           | qwen-long                       | 0.0005yuan/1,000 tokens          | 0.002yuan/1,000 tokens         |
 | Qwen3-VL Plus       | qwen3-vl-plus                   | tiered, from 0.001yuan/1,000 tokens | tiered, from 0.010yuan/1,000 tokens |
 | Qwen3-VL Flash      | qwen3-vl-flash                  | tiered, from 0.00015yuan/1,000 tokens | tiered, from 0.0015yuan/1,000 tokens |
+| Qwen3.5 Omni Plus   | qwen3.5-omni-plus               | see Model Studio pricing page    | see Model Studio pricing page  |
 | Qwen3.8-2.4T-A95B   | qwen3.8-2.4t-a95b               | 0.012yuan/1,000 tokens           | 0.036yuan/1,000 tokens         |
 | Qwen3.8-27B         | qwen3.8-27b                     | 0.003yuan/1,000 tokens           | 0.012yuan/1,000 tokens         |
 | Qwen3.6-27B         | qwen3.6-27b                     | 0.003yuan/1,000 tokens           | 0.018yuan/1,000 tokens         |
@@ -98,12 +103,12 @@ https://help.aliyun.com/zh/model-studio/billing-for-model-studio
 | DeepSeek-R1-Distill | deepseek-r1-distill-llama-8b    | 0.000yuan/1,000 tokens           | 0.000yuan/1,000 tokens         |
 | DeepSeek-R1-Distill | deepseek-r1-distill-llama-70b   | 0.000yuan/1,000 tokens           | 0.000yuan/1,000 tokens         |
 
-Image Generation Models:
+Image and video generation models:
 | Model                 | sub-type                  | Price per image |
 |-----------------------|---------------------------|-----------------|
-| Wanx2.1 T2I Turbo     | wanx2.1-t2i-turbo         | 0.04yuan/image  |
-| Wanx2.1 T2I Plus      | wanx2.1-t2i-plus          | 0.12yuan/image  |
-| Wanx V1               | wanx-v1                   | 0.04yuan/image  |
+| Qwen-Image 3.0 Pro    | qwen-image-3.0-pro        | see Model Studio pricing page |
+| Wan2.7 Image Pro      | wan2.7-image-pro          | see Model Studio pricing page |
+| Wan3.0 Video          | wan3.0-video              | see Model Studio pricing page |
 `
 }
 
@@ -111,11 +116,9 @@ func (p *AlibabacloudModelProvider) calculatePrice(modelResult *ModelResult, lan
 	price := 0.0
 
 	if isWanxModel(p.subType) {
-		imagePriceTable := map[string]float64{
-			"wanx2.1-t2i-turbo": 0.04,
-			"wanx2.1-t2i-plus":  0.12,
-			"wanx-v1":           0.04,
-		}
+		// Alibaba Cloud prices the Wan / Qwen-Image models per image and per resolution tier;
+		// 0.04 yuan/image is used as the baseline when a model has no entry here.
+		imagePriceTable := map[string]float64{}
 		unitPrice, ok := imagePriceTable[p.subType]
 		if !ok {
 			unitPrice = 0.04
@@ -159,12 +162,13 @@ func (p *AlibabacloudModelProvider) calculatePrice(modelResult *ModelResult, lan
 		"deepseek-r1-distill-llama-8b":  {0.000, 0.000},
 	}
 
+	// Model Studio adds models faster than this table can track (and prices some, such as the
+	// omni models, per modality), so a model without an entry reports price = 0 instead of
+	// failing the request.
 	if priceItem, ok := priceTable[p.subType]; ok {
 		inputPrice := getPrice(modelResult.PromptTokenCount, priceItem[0])
 		outputPrice := getPrice(modelResult.ResponseTokenCount, priceItem[1])
 		price = inputPrice + outputPrice
-	} else {
-		return fmt.Errorf(i18n.Translate(lang, "embedding:calculatePrice() error: unknown model type: %s"), p.subType)
 	}
 
 	modelResult.TotalPrice = price

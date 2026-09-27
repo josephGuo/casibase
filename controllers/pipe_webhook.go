@@ -395,7 +395,7 @@ func sendPipeAnswer(provider pipepkg.Pipe, pipeObj *object.Pipe, incoming *pipep
 	}
 
 	recorder := newPipeSSERecorder(sender)
-	generateMessageAnswer(answerMessage.GetId(), recorder, host, lang, false, nil)
+	generateMessageAnswer(answerMessage.GetId(), recorder, host, lang, false, true, nil)
 
 	answer, err := object.GetMessage(answerMessage.GetId())
 	if err == nil && answer != nil && answer.Text != "" {

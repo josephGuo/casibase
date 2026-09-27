@@ -29,6 +29,7 @@ import (
 	"github.com/beego/beego/logs"
 	"github.com/the-open-agent/openagent/conf"
 	"github.com/the-open-agent/openagent/embedsupport"
+	"github.com/the-open-agent/openagent/object"
 	"github.com/the-open-agent/openagent/util"
 )
 
@@ -90,6 +91,10 @@ func StaticFilter(ctx *context.Context) {
 		}
 
 		urlPath = strings.Replace(urlPath, "|", ":", 1)
+		if !isServableStorageFile(urlPath) {
+			http.NotFound(ctx.ResponseWriter, ctx.Request)
+			return
+		}
 		makeGzipResponse(ctx.ResponseWriter, ctx.Request, urlPath)
 		return
 	}
@@ -127,6 +132,26 @@ func StaticFilter(ctx *context.Context) {
 			_, _ = fmt.Fprint(ctx.ResponseWriter, `<!DOCTYPE html><html><head><title>Frontend Not Built</title></head><body><h2>Frontend not built</h2><p>Please run <code>cd web &amp;&amp; yarn install &amp;&amp; yarn build</code> to build the frontend.</p></body></html>`)
 		}
 	}
+}
+
+// isServableStorageFile only allows /storage to serve regular files that live inside a
+// local storage provider's folder, so the route cannot be used to read arbitrary files.
+func isServableStorageFile(path string) bool {
+	realPath, err := filepath.EvalSymlinks(filepath.Clean(path))
+	if err != nil {
+		return false
+	}
+	info, err := os.Stat(realPath)
+	if err != nil || info.IsDir() {
+		return false
+	}
+
+	ok, err := object.IsLocalStorageFile(realPath)
+	if err != nil {
+		logs.Error("IsLocalStorageFile() error: %s", err.Error())
+		return false
+	}
+	return ok
 }
 
 type gzipResponseWriter struct {

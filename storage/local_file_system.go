@@ -16,9 +16,11 @@ package storage
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -34,9 +36,48 @@ func NewLocalFileSystemStorageProvider(path string) (*LocalFileSystemStorageProv
 	return &LocalFileSystemStorageProvider{path: path}, nil
 }
 
+// IsPathWithinRoot reports whether path, after cleaning and resolving to an absolute path,
+// is root itself or lies inside root. It is used to stop "../" sequences in object keys or
+// request URLs from escaping a local storage folder.
+func IsPathWithinRoot(root string, path string) bool {
+	if root == "" || path == "" {
+		return false
+	}
+
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return false
+	}
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return false
+	}
+
+	rel, err := filepath.Rel(absRoot, absPath)
+	if err != nil {
+		return false
+	}
+	if runtime.GOOS == "windows" && !strings.EqualFold(filepath.VolumeName(absRoot), filepath.VolumeName(absPath)) {
+		return false
+	}
+	return rel == "." || (rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) && !filepath.IsAbs(rel))
+}
+
+// resolvePath joins key onto the provider root and rejects keys that would escape the root.
+func (p *LocalFileSystemStorageProvider) resolvePath(key string) (string, error) {
+	fullPath := filepath.Join(p.path, key)
+	if !IsPathWithinRoot(p.path, fullPath) {
+		return "", fmt.Errorf("invalid object key: %s", key)
+	}
+	return fullPath, nil
+}
+
 func (p *LocalFileSystemStorageProvider) ListObjects(prefix string) ([]*Object, error) {
 	objects := []*Object{}
-	fullPath := filepath.Join(p.path, prefix)
+	fullPath, err := p.resolvePath(prefix)
+	if err != nil {
+		return nil, err
+	}
 	fullPath = strings.ReplaceAll(fullPath, "\\", "/")
 	if err := util.EnsureFolderExists(fullPath); err != nil {
 		return nil, err
@@ -72,8 +113,14 @@ func (p *LocalFileSystemStorageProvider) ListObjects(prefix string) ([]*Object, 
 }
 
 func (p *LocalFileSystemStorageProvider) PutObject(user string, parent string, key string, fileBuffer *bytes.Buffer) (string, error) {
-	fullPath := filepath.Join(p.path, key)
-	err := os.MkdirAll(filepath.Dir(fullPath), os.ModePerm)
+	fullPath, err := p.resolvePath(key)
+	if err != nil {
+		return "", err
+	}
+	if IsPathWithinRoot(fullPath, p.path) {
+		return "", fmt.Errorf("invalid object key: %s", key)
+	}
+	err = os.MkdirAll(filepath.Dir(fullPath), os.ModePerm)
 	if err != nil {
 		return "", err
 	}
@@ -89,9 +136,16 @@ func (p *LocalFileSystemStorageProvider) PutObject(user string, parent string, k
 }
 
 func (p *LocalFileSystemStorageProvider) DeleteObject(key string) error {
-	fullPath := filepath.Join(p.path, key)
+	fullPath, err := p.resolvePath(key)
+	if err != nil {
+		return err
+	}
 	if strings.HasSuffix(key, "_hidden.ini") {
 		fullPath = filepath.Dir(fullPath)
+	}
+	// Never allow a key to remove the storage root itself.
+	if IsPathWithinRoot(fullPath, p.path) {
+		return fmt.Errorf("invalid object key: %s", key)
 	}
 	return os.RemoveAll(fullPath)
 }

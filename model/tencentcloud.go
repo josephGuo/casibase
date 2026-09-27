@@ -41,7 +41,19 @@ func NewTencentCloudProvider(secretKey, endpoint, subType string, temperature, t
 }
 
 func (c *TencentCloudClient) GetPricing() string {
-	return `Pricing information for Tencent Cloud models is not yet available.`
+	return `URL:
+https://cloud.tencent.com/document/product/1729/104753
+
+| Model                       | Input context | Output context | Pricing                       |
+|-----------------------------|---------------|----------------|-------------------------------|
+| hunyuan-a13b                | 224K          | 32K            | see Tencent Cloud price page  |
+| hunyuan-vision-1.5-instruct | 24K           | 16K            | see Tencent Cloud price page  |
+| hunyuan-t1-vision-20250916  | 28K           | 20K            | see Tencent Cloud price page  |
+| hunyuan-turbos-vision-video | 24K           | 8K             | see Tencent Cloud price page  |
+| hunyuan-role-latest         | 28K           | 4K             | see Tencent Cloud price page  |
+| hunyuan-translation         | 4K            | 4K             | see Tencent Cloud price page  |
+| hunyuan-translation-lite    | 4K            | 4K             | see Tencent Cloud price page  |
+`
 }
 
 func (c *TencentCloudClient) QueryText(question string, writer io.Writer, history []*RawMessage, prompt string, knowledgeMessages []*RawMessage, toolSession *ToolSession, lang string) (*ModelResult, error) {

@@ -118,30 +118,32 @@ func getImageRefinedText(text string) (string, error) {
 
 func IsVisionModel(subType string) bool {
 	visionModels := []string{
-		// GPT-5.4 series (latest)
+		// GPT-6 series (latest)
+		"gpt-6-astra", "gpt-6-astra-pro",
+		// GPT-5.6 series
+		"gpt-5.6-sol", "gpt-5.6-sol-pro", "gpt-5.6-terra", "gpt-5.6-terra-pro",
+		"gpt-5.6-luna", "gpt-5.6-luna-pro", "gpt-5.6-cyber",
+		// GPT-5.5 series
+		"gpt-5.5", "gpt-5.5-pro", "gpt-5.5-cyber",
+		// GPT-5.4 series
 		"gpt-5.4", "gpt-5.4-pro", "gpt-5.4-mini", "gpt-5.4-nano",
-		// GPT-5.3 series
-		"gpt-5.3-codex", "gpt-5.3-chat",
-		// GPT-5.2 series
-		"gpt-5.2", "gpt-5.2-chat", "gpt-5.2-codex",
-		// GPT-5.1 series
-		"gpt-5.1", "gpt-5.1-chat", "gpt-5.1-codex", "gpt-5.1-codex-mini", "gpt-5.1-codex-max",
+		// GPT-5.3 / 5.2 / 5.1 series
+		"gpt-5.3-codex",
+		"gpt-5.2", "gpt-5.2-pro", "gpt-5.2-chat", "gpt-5.2-codex",
+		"gpt-5.1", "gpt-5.1-codex", "gpt-5.1-codex-mini", "gpt-5.1-codex-max",
 		// GPT-5 series
-		"gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-codex", "gpt-5-pro",
+		"gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-pro",
 		// o-series (latest first)
-		"o4-mini", "codex-mini", "o3-pro", "o3", "o1-pro", "o1",
+		"o4-mini", "o3-pro", "o3", "o1-pro", "o1",
 		// GPT-4.1 series
 		"gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano",
-		// GPT-4.5 / GPT-4o series
-		"gpt-4.5", "gpt-4.5-preview", "gpt-4.5-preview-2025-02-27",
+		// GPT-4o series
 		"gpt-4o", "gpt-4o-2024-08-06", "gpt-4o-mini", "gpt-4o-mini-2024-07-18",
-		// Specialized
-		"computer-use-preview",
 		// OpenAI-compatible Qwen vision models
 		"qwen3.8-max", "qwen3.8-flash", "qwen3.8-27b",
 		"qwen3.7-plus", "qwen3.7-flash",
 		"qwen3.6-plus", "qwen3.6-flash", "qwen3.6-27b", "qwen3.6-35b-a3b",
-		"qwen3-vl-plus", "qwen3-vl-flash",
+		"qwen3-vl-plus", "qwen3-vl-flash", "qwen3.5-omni-plus",
 	}
 
 	for _, visionModel := range visionModels {

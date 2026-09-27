@@ -150,10 +150,6 @@ export function getOtherProviderInfo() {
         logo: `${StaticBaseUrl}/img/social_apimart.svg`,
         url: "https://apimart.ai/",
       },
-      "GitHub": {
-        logo: `${StaticBaseUrl}/img/social_github.png`,
-        url: "https://github.com/",
-      },
       "Writer": {
         logo: `${StaticBaseUrl}/img/social_writer.png`,
         url: "https://writer.com",
@@ -460,26 +456,31 @@ export function getCompatibleProviderOptions(category) {
 }
 
 const openaiModels = [
-  // GPT-5.5 series (latest)
+  // GPT-6 series (latest flagship)
+  {id: "gpt-6-astra", name: "gpt-6-astra"},
+  {id: "gpt-6-astra-pro", name: "gpt-6-astra-pro"},
+  // GPT-5.6 series
+  {id: "gpt-5.6-sol", name: "gpt-5.6-sol"},
+  {id: "gpt-5.6-sol-pro", name: "gpt-5.6-sol-pro"},
+  {id: "gpt-5.6-terra", name: "gpt-5.6-terra"},
+  {id: "gpt-5.6-terra-pro", name: "gpt-5.6-terra-pro"},
+  {id: "gpt-5.6-luna", name: "gpt-5.6-luna"},
+  {id: "gpt-5.6-luna-pro", name: "gpt-5.6-luna-pro"},
+  // GPT-5.5 series
   {id: "gpt-5.5", name: "gpt-5.5"},
   {id: "gpt-5.5-pro", name: "gpt-5.5-pro"},
-  {id: "gpt-5.5-instant", name: "gpt-5.5-instant"},
-  {id: "gpt-5.5-cyber", name: "gpt-5.5-cyber"},
   // GPT-5.4 series
   {id: "gpt-5.4", name: "gpt-5.4"},
   {id: "gpt-5.4-pro", name: "gpt-5.4-pro"},
   {id: "gpt-5.4-mini", name: "gpt-5.4-mini"},
   {id: "gpt-5.4-nano", name: "gpt-5.4-nano"},
-  // GPT-5.3 series
+  // GPT-5.3 / 5.2 / 5.1 codex and chat series
   {id: "gpt-5.3-codex", name: "gpt-5.3-codex"},
-  {id: "gpt-5.3-chat", name: "gpt-5.3-chat"},
-  // GPT-5.2 series
   {id: "gpt-5.2", name: "gpt-5.2"},
+  {id: "gpt-5.2-pro", name: "gpt-5.2-pro"},
   {id: "gpt-5.2-chat", name: "gpt-5.2-chat"},
   {id: "gpt-5.2-codex", name: "gpt-5.2-codex"},
-  // GPT-5.1 series
   {id: "gpt-5.1", name: "gpt-5.1"},
-  {id: "gpt-5.1-chat", name: "gpt-5.1-chat"},
   {id: "gpt-5.1-codex", name: "gpt-5.1-codex"},
   {id: "gpt-5.1-codex-mini", name: "gpt-5.1-codex-mini"},
   {id: "gpt-5.1-codex-max", name: "gpt-5.1-codex-max"},
@@ -487,25 +488,28 @@ const openaiModels = [
   {id: "gpt-5", name: "gpt-5"},
   {id: "gpt-5-mini", name: "gpt-5-mini"},
   {id: "gpt-5-nano", name: "gpt-5-nano"},
-  {id: "gpt-5-chat", name: "gpt-5-chat"},
-  {id: "gpt-5-codex", name: "gpt-5-codex"},
   {id: "gpt-5-pro", name: "gpt-5-pro"},
+  {id: "gpt-5-search-api", name: "gpt-5-search-api"},
+  {id: "chat-latest", name: "chat-latest"},
+  // Cybersecurity models
+  {id: "gpt-5.6-cyber", name: "gpt-5.6-cyber"},
+  {id: "gpt-5.5-cyber", name: "gpt-5.5-cyber"},
+  {id: "gpt-daybreak-red-latest", name: "gpt-daybreak-red-latest"},
+  {id: "gpt-daybreak-blue-latest", name: "gpt-daybreak-blue-latest"},
+  // Life sciences
+  {id: "gpt-rosalind-research", name: "gpt-rosalind-research"},
   // o-series reasoning models (latest first)
   {id: "o4-mini", name: "o4-mini"},
-  {id: "codex-mini", name: "codex-mini"},
   {id: "o3-pro", name: "o3-pro"},
   {id: "o3", name: "o3"},
   {id: "o3-mini", name: "o3-mini"},
   {id: "o1-pro", name: "o1-pro"},
   {id: "o1", name: "o1"},
-  {id: "o1-preview", name: "o1-preview"},
-  {id: "o1-mini", name: "o1-mini"},
   // GPT-4.1 series
   {id: "gpt-4.1", name: "gpt-4.1"},
   {id: "gpt-4.1-mini", name: "gpt-4.1-mini"},
   {id: "gpt-4.1-nano", name: "gpt-4.1-nano"},
-  // GPT-4.5 / GPT-4o series
-  {id: "gpt-4.5", name: "gpt-4.5"},
+  // GPT-4o series
   {id: "gpt-4o", name: "gpt-4o"},
   {id: "gpt-4o-2024-08-06", name: "gpt-4o-2024-08-06"},
   {id: "gpt-4o-mini", name: "gpt-4o-mini"},
@@ -513,21 +517,21 @@ const openaiModels = [
   // GPT-4 series (legacy)
   {id: "gpt-4-turbo", name: "gpt-4-turbo"},
   {id: "gpt-4", name: "gpt-4"},
-  // Specialized / open-weight
-  {id: "computer-use-preview", name: "computer-use-preview"},
+  // Open-weight
   {id: "gpt-oss-120b", name: "gpt-oss-120b"},
   {id: "gpt-oss-20b", name: "gpt-oss-20b"},
+  {id: "gpt-oss-safeguard-120b", name: "gpt-oss-safeguard-120b"},
+  {id: "gpt-oss-safeguard-20b", name: "gpt-oss-safeguard-20b"},
   // GPT-3.5 (legacy)
   {id: "gpt-3.5-turbo", name: "gpt-3.5-turbo"},
   // Image generation models (latest first)
+  {id: "gpt-image-2.5-sunburst", name: "gpt-image-2.5-sunburst"},
+  {id: "gpt-image-2.5-flare", name: "gpt-image-2.5-flare"},
   {id: "gpt-image-2", name: "gpt-image-2"},
   {id: "gpt-image-1.5", name: "gpt-image-1.5"},
   {id: "gpt-image-1", name: "gpt-image-1"},
   {id: "gpt-image-1-mini", name: "gpt-image-1-mini"},
-  {id: "dall-e-3", name: "dall-e-3"},
-  {id: "dall-e-2", name: "dall-e-2"},
-  // Other
-  {id: "deep-research", name: "deep-research"},
+  {id: "chatgpt-image-latest", name: "chatgpt-image-latest"},
 ];
 
 const openaiEmbeddings = [
@@ -559,8 +563,8 @@ export function isProviderSupportWebSearch(provider) {
   }
 
   if (provider.type === "Alibaba Cloud") {
-    // Wanxiang image generation models do not support web search
-    if (provider.subType && provider.subType.startsWith("wanx")) {
+    // Wan / Qwen-Image generation models do not support web search
+    if (provider.subType && isAlibabaImageGenerationModel(provider.subType.toLowerCase())) {
       return false;
     }
 
@@ -600,6 +604,7 @@ export function getProviderTypeOptions(category) {
         {id: "Local", name: "Local"},
         {id: "Azure", name: "Azure"},
         {id: "Cohere", name: "Cohere"},
+        {id: "Mistral", name: "Mistral"},
         {id: "Moonshot", name: "Moonshot"},
         {id: "Amazon Bedrock", name: "Amazon Bedrock"},
         {id: "Alibaba Cloud", name: "Alibaba Cloud"},
@@ -611,7 +616,6 @@ export function getProviderTypeOptions(category) {
         {id: "Yi", name: "Yi"},
         {id: "Silicon Flow", name: "Silicon Flow"},
         {id: "APIMart", name: "APIMart"},
-        {id: "GitHub", name: "GitHub"},
         {id: "Writer", name: "Writer"},
         {id: "OpenCode", name: "OpenCode"},
       ]
@@ -722,109 +726,119 @@ export function getModelSubTypeOptions(type) {
     return openaiModels;
   } else if (type === "Gemini") {
     return [
-      // Gemini 3.1 series (Preview)
+      // Gemini 3.x Flash series (Stable)
+      {id: "gemini-3.8-flash", name: "gemini-3.8-flash"},
+      {id: "gemini-3.8-live", name: "gemini-3.8-live"},
+      {id: "gemini-3.8-live-extended-thinking", name: "gemini-3.8-live-extended-thinking"},
+      {id: "gemini-3.7-flash", name: "gemini-3.7-flash"},
+      {id: "gemini-3.6-flash", name: "gemini-3.6-flash"},
+      {id: "gemini-3.5-flash", name: "gemini-3.5-flash"},
+      {id: "gemini-3.5-flash-lite", name: "gemini-3.5-flash-lite"},
+      {id: "gemini-3.1-flash-lite", name: "gemini-3.1-flash-lite"},
+      // Gemini 3.x series (Preview)
       {id: "gemini-3.1-pro-preview", name: "gemini-3.1-pro-preview"},
       {id: "gemini-3.1-pro-preview-customtools", name: "gemini-3.1-pro-preview-customtools"},
-      {id: "gemini-3.1-flash-lite-preview", name: "gemini-3.1-flash-lite-preview"},
-      {id: "gemini-3.1-flash-live-preview", name: "gemini-3.1-flash-live-preview"},
-      {id: "gemini-3.1-flash-image-preview", name: "gemini-3.1-flash-image-preview"},
-      // Gemini 3 series (Preview)
       {id: "gemini-3-flash-preview", name: "gemini-3-flash-preview"},
-      {id: "gemini-3-pro-image-preview", name: "gemini-3-pro-image-preview"},
+      {id: "gemini-3.5-live-translate-preview", name: "gemini-3.5-live-translate-preview"},
+      {id: "gemini-3.1-flash-live-preview", name: "gemini-3.1-flash-live-preview"},
+      {id: "gemini-3.1-flash-tts-preview", name: "gemini-3.1-flash-tts-preview"},
+      {id: "gemini-omni-1.1-flash", name: "gemini-omni-1.1-flash"},
       // Gemini 2.5 series (Stable)
       {id: "gemini-2.5-pro", name: "gemini-2.5-pro"},
       {id: "gemini-2.5-flash", name: "gemini-2.5-flash"},
       {id: "gemini-2.5-flash-lite", name: "gemini-2.5-flash-lite"},
       // Gemini 2.5 series (Preview)
-      {id: "gemini-2.5-flash-lite-preview-09-2025", name: "gemini-2.5-flash-lite-preview-09-2025"},
       {id: "gemini-2.5-flash-native-audio-preview-12-2025", name: "gemini-2.5-flash-native-audio-preview-12-2025"},
-      {id: "gemini-2.5-flash-image", name: "gemini-2.5-flash-image"},
       {id: "gemini-2.5-flash-preview-tts", name: "gemini-2.5-flash-preview-tts"},
       {id: "gemini-2.5-pro-preview-tts", name: "gemini-2.5-pro-preview-tts"},
       {id: "gemini-2.5-computer-use-preview-10-2025", name: "gemini-2.5-computer-use-preview-10-2025"},
-      // Gemini 2.0 series (Deprecated, shut down June 1, 2026)
-      {id: "gemini-2.0-flash", name: "gemini-2.0-flash"},
-      {id: "gemini-2.0-flash-001", name: "gemini-2.0-flash-001"},
-      {id: "gemini-2.0-flash-lite", name: "gemini-2.0-flash-lite"},
-      {id: "gemini-2.0-flash-lite-001", name: "gemini-2.0-flash-lite-001"},
+      // Image generation models
+      {id: "gemini-3.1-flash-image", name: "gemini-3.1-flash-image"},
+      {id: "gemini-3.1-flash-lite-image", name: "gemini-3.1-flash-lite-image"},
+      {id: "gemini-3-pro-image", name: "gemini-3-pro-image"},
+      {id: "gemini-2.5-flash-image", name: "gemini-2.5-flash-image"},
+      // Transcription models
+      {id: "gemini-3.5-transcribe", name: "gemini-3.5-transcribe"},
+      {id: "gemini-3.5-transcribe-live", name: "gemini-3.5-transcribe-live"},
       // Embedding models
       {id: "gemini-embedding-2-preview", name: "gemini-embedding-2-preview"},
       {id: "gemini-embedding-001", name: "gemini-embedding-001"},
       // Specialized models
-      {id: "gemini-robotics-er-1.5-preview", name: "gemini-robotics-er-1.5-preview"},
-      // Gemma 4
-      {id: "gemma-4", name: "gemma-4"},
-      // Image generation models
-      {id: "imagen-4.0-generate-001", name: "imagen-4.0-generate-001"},
-      {id: "imagen-4.0-ultra-generate-001", name: "imagen-4.0-ultra-generate-001"},
-      {id: "imagen-4.0-fast-generate-001", name: "imagen-4.0-fast-generate-001"},
+      {id: "deep-research-preview-04-2026", name: "deep-research-preview-04-2026"},
+      {id: "deep-research-max-preview-04-2026", name: "deep-research-max-preview-04-2026"},
+      {id: "antigravity-preview-05-2026", name: "antigravity-preview-05-2026"},
+      {id: "gemini-robotics-er-2-preview", name: "gemini-robotics-er-2-preview"},
+      {id: "gemini-robotics-er-1.6-preview", name: "gemini-robotics-er-1.6-preview"},
       // Video generation models
       {id: "veo-3.1-generate-preview", name: "veo-3.1-generate-preview"},
-      {id: "veo-3.1-fast-generate-preview", name: "veo-3.1-fast-generate-preview"},
       {id: "veo-3.1-lite-generate-preview", name: "veo-3.1-lite-generate-preview"},
-      {id: "veo-3.0-generate-001", name: "veo-3.0-generate-001"},
-      {id: "veo-3.0-fast-generate-001", name: "veo-3.0-fast-generate-001"},
-      {id: "veo-2.0-generate-001", name: "veo-2.0-generate-001"},
-    ];
-  } else if (type === "GitHub") {
-    return [
-      {id: "gpt-4o", name: "GPT-4o"},
-      {id: "gpt-4o-mini", name: "GPT-4o-mini"},
-      {id: "Phi-4-multimodal-instruct", name: "Phi-4-multimodal-instruct"},
-      {id: "Phi-4-mini-instruct", name: "Phi-4-mini-instruct"},
-      {id: "Phi-4", name: "Phi-4"},
-      {id: "Mistral-Large-2411", name: "Mistral-Large-2411"},
-      {id: "AI21-Jamba-1.5-Large", name: "AI21-Jamba-1.5-Large"},
-      {id: "AI21-Jamba-1.5-Mini", name: "AI21-Jamba-1.5-Mini"},
-      {id: "Cohere-command-r-08-2024", name: "Cohere-command-r-08-2024"},
-      {id: "Cohere-command-r-plus-08-2024", name: "Cohere-command-r-plus-08-2024"},
-      {id: "Llama-3.3-70B-Instruct", name: "Llama-3.3-70B-Instruct"},
+      // Music generation models
+      {id: "lyria-3.5", name: "lyria-3.5"},
+      {id: "lyria-3-pro-preview", name: "lyria-3-pro-preview"},
+      {id: "lyria-3-clip-preview", name: "lyria-3-clip-preview"},
+      {id: "lyria-realtime-exp", name: "lyria-realtime-exp"},
     ];
   } else if (type === "Hugging Face") {
     return [
-      {id: "meta-llama/Llama-2-7b", name: "meta-llama/Llama-2-7b"},
-      {id: "tiiuae/falcon-180B", name: "tiiuae/falcon-180B"},
-      {id: "bigscience/bloom", name: "bigscience/bloom"},
-      {id: "gpt2", name: "gpt2"},
-      {id: "baichuan-inc/Baichuan2-13B-Chat", name: "baichuan-inc/Baichuan2-13B-Chat"},
-      {id: "THUDM/chatglm2-6b", name: "THUDM/chatglm2-6b"},
+      {id: "meta-llama/Llama-4-Maverick-17B-128E-Instruct", name: "meta-llama/Llama-4-Maverick-17B-128E-Instruct"},
+      {id: "meta-llama/Llama-4-Scout-17B-16E-Instruct", name: "meta-llama/Llama-4-Scout-17B-16E-Instruct"},
+      {id: "meta-llama/Llama-3.3-70B-Instruct", name: "meta-llama/Llama-3.3-70B-Instruct"},
+      {id: "deepseek-ai/DeepSeek-V3.2", name: "deepseek-ai/DeepSeek-V3.2"},
+      {id: "deepseek-ai/DeepSeek-R1", name: "deepseek-ai/DeepSeek-R1"},
+      {id: "Qwen/Qwen3-235B-A22B-Instruct-2507", name: "Qwen/Qwen3-235B-A22B-Instruct-2507"},
+      {id: "Qwen/Qwen3-32B", name: "Qwen/Qwen3-32B"},
+      {id: "zai-org/GLM-4.7", name: "zai-org/GLM-4.7"},
+      {id: "moonshotai/Kimi-K2-Thinking", name: "moonshotai/Kimi-K2-Thinking"},
+      {id: "MiniMaxAI/MiniMax-M2", name: "MiniMaxAI/MiniMax-M2"},
+      {id: "openai/gpt-oss-120b", name: "openai/gpt-oss-120b"},
+      {id: "openai/gpt-oss-20b", name: "openai/gpt-oss-20b"},
+      {id: "google/gemma-4-31b-it", name: "google/gemma-4-31b-it"},
+      {id: "google/gemma-3-27b-it", name: "google/gemma-3-27b-it"},
     ];
   } else if (type === "Claude") {
     return [
+      {id: "claude-fable-5-1", name: "claude-fable-5-1"},
+      {id: "claude-fable-5", name: "claude-fable-5"},
+      {id: "claude-opus-5", name: "claude-opus-5"},
+      {id: "claude-opus-4-8", name: "claude-opus-4-8"},
       {id: "claude-opus-4-7", name: "claude-opus-4-7"},
-      {id: "claude-opus-4-5", name: "claude-opus-4-5"},
-      {id: "claude-opus-4-1", name: "claude-opus-4-1"},
-      {id: "claude-opus-4-0", name: "claude-opus-4-0"},
-      {id: "claude-opus-4-20250514", name: "claude-opus-4-20250514"},
-      {id: "claude-4-opus-20250514", name: "claude-4-opus-20250514"},
-      {id: "claude-sonnet-4-0", name: "claude-sonnet-4-0"},
-      {id: "claude-sonnet-4-20250514", name: "claude-sonnet-4-20250514"},
-      {id: "claude-4-sonnet-20250514", name: "claude-4-sonnet-20250514"},
-      {id: "claude-3-7-sonnet-latest", name: "claude-3-7-sonnet-latest"},
-      {id: "claude-3-7-sonnet-20250219", name: "claude-3-7-sonnet-20250219"},
-      {id: "claude-3-5-haiku-latest", name: "claude-3-5-haiku-latest"},
-      {id: "claude-3-5-haiku-20241022", name: "claude-3-5-haiku-20241022"},
-      {id: "claude-3-5-sonnet-latest", name: "claude-3-5-sonnet-latest"},
-      {id: "claude-3-opus-latest", name: "claude-3-opus-latest"},
-      {id: "claude-3-haiku-20240307", name: "claude-3-haiku-20240307"},
+      {id: "claude-opus-4-6", name: "claude-opus-4-6"},
+      {id: "claude-sonnet-5", name: "claude-sonnet-5"},
+      {id: "claude-sonnet-4-6", name: "claude-sonnet-4-6"},
+      {id: "claude-haiku-4-5", name: "claude-haiku-4-5"},
     ];
   } else if (type === "OpenRouter") {
     return [
-      {id: "anthropic/claude-opus-4-7", name: "anthropic/claude-opus-4-7"},
-      {id: "anthropic/claude-opus-4-5", name: "anthropic/claude-opus-4-5"},
-      {id: "anthropic/claude-sonnet-4-0", name: "anthropic/claude-sonnet-4-0"},
-      {id: "openai/gpt-4.1", name: "openai/gpt-4.1"},
-      {id: "openai/gpt-4o", name: "openai/gpt-4o"},
-      {id: "openai/o3", name: "openai/o3"},
-      {id: "google/gemini-2.5-pro", name: "google/gemini-2.5-pro"},
-      {id: "google/gemini-2.5-flash", name: "google/gemini-2.5-flash"},
-      {id: "deepseek/deepseek-r1", name: "deepseek/deepseek-r1"},
-      {id: "deepseek/deepseek-chat-v3-0324", name: "deepseek/deepseek-chat-v3-0324"},
-      {id: "x-ai/grok-3", name: "x-ai/grok-3"},
+      {id: "anthropic/claude-fable-5.1", name: "anthropic/claude-fable-5.1"},
+      {id: "anthropic/claude-opus-5", name: "anthropic/claude-opus-5"},
+      {id: "anthropic/claude-sonnet-5", name: "anthropic/claude-sonnet-5"},
+      {id: "anthropic/claude-opus-4.8", name: "anthropic/claude-opus-4.8"},
+      {id: "anthropic/claude-haiku-4.5", name: "anthropic/claude-haiku-4.5"},
+      {id: "openai/gpt-6-astra", name: "openai/gpt-6-astra"},
+      {id: "openai/gpt-5.6-sol", name: "openai/gpt-5.6-sol"},
+      {id: "openai/gpt-5.6-terra", name: "openai/gpt-5.6-terra"},
+      {id: "openai/gpt-5.6-luna", name: "openai/gpt-5.6-luna"},
+      {id: "openai/gpt-5.3-codex", name: "openai/gpt-5.3-codex"},
+      {id: "google/gemini-3.8-flash", name: "google/gemini-3.8-flash"},
+      {id: "google/gemini-3.1-pro-preview", name: "google/gemini-3.1-pro-preview"},
+      {id: "google/gemini-3.5-flash", name: "google/gemini-3.5-flash"},
+      {id: "deepseek/deepseek-v4-pro", name: "deepseek/deepseek-v4-pro"},
+      {id: "deepseek/deepseek-v4-flash", name: "deepseek/deepseek-v4-flash"},
+      {id: "deepseek/deepseek-v4.1-flash", name: "deepseek/deepseek-v4.1-flash"},
+      {id: "x-ai/grok-4.6", name: "x-ai/grok-4.6"},
+      {id: "x-ai/grok-4.5", name: "x-ai/grok-4.5"},
+      {id: "x-ai/grok-4.3", name: "x-ai/grok-4.3"},
+      {id: "qwen/qwen3.8-max-0902", name: "qwen/qwen3.8-max-0902"},
+      {id: "qwen/qwen3.8-flash", name: "qwen/qwen3.8-flash"},
+      {id: "moonshotai/kimi-k3", name: "moonshotai/kimi-k3"},
+      {id: "moonshotai/kimi-k2.7-code", name: "moonshotai/kimi-k2.7-code"},
+      {id: "z-ai/glm-5.3", name: "z-ai/glm-5.3"},
+      {id: "z-ai/glm-5.2", name: "z-ai/glm-5.2"},
+      {id: "minimax/minimax-m3", name: "minimax/minimax-m3"},
+      {id: "mistralai/mistral-medium-3-5", name: "mistralai/mistral-medium-3-5"},
+      {id: "mistralai/mistral-large-2512", name: "mistralai/mistral-large-2512"},
       {id: "meta-llama/llama-4-maverick", name: "meta-llama/llama-4-maverick"},
       {id: "meta-llama/llama-3.3-70b-instruct", name: "meta-llama/llama-3.3-70b-instruct"},
-      {id: "mistralai/mistral-large", name: "mistralai/mistral-large"},
-      {id: "qwen/qwen3-235b-a22b", name: "qwen/qwen3-235b-a22b"},
     ];
   } else if (type === "Baidu Cloud") {
     return [
@@ -934,16 +948,20 @@ export function getModelSubTypeOptions(type) {
     ];
   } else if (type === "Cohere") {
     return [
-      {id: "command-light", name: "command-light"},
-      {id: "command", name: "command"},
+      {id: "command-a-plus-05-2026", name: "command-a-plus-05-2026"},
+      {id: "command-a-03-2025", name: "command-a-03-2025"},
+      {id: "command-a-reasoning-08-2025", name: "command-a-reasoning-08-2025"},
+      {id: "command-a-vision-07-2025", name: "command-a-vision-07-2025"},
+      {id: "command-a-translate-08-2025", name: "command-a-translate-08-2025"},
+      {id: "command-r7b-12-2024", name: "command-r7b-12-2024"},
+      {id: "command-r-plus-08-2024", name: "command-r-plus-08-2024"},
+      {id: "command-r-08-2024", name: "command-r-08-2024"},
     ];
   } else if (type === "iFlytek") {
     return [
       {id: "spark-x2", name: "spark-x2"},
       {id: "spark-x1.5", name: "spark-x1.5"},
       {id: "spark4.0-ultra", name: "spark4.0-ultra"},
-      {id: "spark-max", name: "spark-max"},
-      {id: "spark-max-32k", name: "spark-max-32k"},
       {id: "spark-pro", name: "spark-pro"},
       {id: "spark-pro-128k", name: "spark-pro-128k"},
       {id: "spark-lite", name: "spark-lite"},
@@ -960,11 +978,10 @@ export function getModelSubTypeOptions(type) {
       {id: "glm-4.7", name: "glm-4.7"},
       {id: "glm-4.7-flashx", name: "glm-4.7-flashx"},
       {id: "glm-4.7-flash", name: "glm-4.7-flash"},
+      {id: "glm-4.6", name: "glm-4.6"},
       {id: "glm-4.5-air", name: "glm-4.5-air"},
+      {id: "glm-4.5-airx", name: "glm-4.5-airx"},
       {id: "glm-4.5-flash", name: "glm-4.5-flash"},
-      {id: "glm-4-plus", name: "glm-4-plus"},
-      {id: "glm-4-airx", name: "glm-4-airx"},
-      {id: "glm-4-air", name: "glm-4-air"},
       {id: "glm-4-long", name: "glm-4-long"},
       {id: "glm-4-flashx-250414", name: "glm-4-flashx-250414"},
       {id: "glm-4-flash-250414", name: "glm-4-flash-250414"},
@@ -972,13 +989,11 @@ export function getModelSubTypeOptions(type) {
       {id: "glm-5.3-flash", name: "glm-5.3-flash"},
       {id: "glm-5v-turbo", name: "glm-5v-turbo"},
       {id: "glm-4.6v", name: "glm-4.6v"},
-      {id: "glm-4.6v-flashx", name: "glm-4.6v-flashx"},
       {id: "glm-4.6v-flash", name: "glm-4.6v-flash"},
-      {id: "glm-4.5v", name: "glm-4.5v"},
       {id: "glm-4.1v-thinking-flashx", name: "glm-4.1v-thinking-flashx"},
       {id: "glm-4.1v-thinking-flash", name: "glm-4.1v-thinking-flash"},
-      {id: "glm-4v-plus-0111", name: "glm-4v-plus-0111"},
       {id: "glm-4v-flash", name: "glm-4v-flash"},
+      {id: "autoglm-phone", name: "autoglm-phone"},
     ];
   } else if (type === "MiniMax") {
     return [
@@ -991,26 +1006,39 @@ export function getModelSubTypeOptions(type) {
       {id: "MiniMax-M2.1-highspeed", name: "MiniMax-M2.1-highspeed"},
       {id: "MiniMax-M2", name: "MiniMax-M2"},
       {id: "M2-her", name: "M2-her"},
+      {id: "MiniMax-M1", name: "MiniMax-M1"},
+      {id: "MiniMax-Text-01", name: "MiniMax-Text-01"},
     ];
   } else if (type === "Ollama") {
     return [
       {id: "deepseek-r1:671b", name: "deepseek-r1:671b"},
-      {id: "deepseek-r1:1.5b", name: "deepseek-r1-distill-qwen-1.5b"},
-      {id: "deepseek-r1:7b", name: "deepseek-r1-distill-qwen-7b"},
-      {id: "deepseek-r1:14b", name: "deepseek-r1-distill-qwen-14b"},
-      {id: "deepseek-r1:32b", name: "deepseek-r1-distill-qwen-32b"},
-      {id: "deepseek-r1:8b", name: "deepseek-r1-distill-llama-8b"},
-      {id: "deepseek-r1:70b", name: "deepseek-r1-distill-llama-70b"},
-      {id: "llama3.3:70b", name: "llama3.3:70b"},
+      {id: "deepseek-r1:1.5b", name: "deepseek-r1:1.5b"},
+      {id: "deepseek-r1:7b", name: "deepseek-r1:7b"},
+      {id: "deepseek-r1:8b", name: "deepseek-r1:8b"},
+      {id: "deepseek-r1:14b", name: "deepseek-r1:14b"},
+      {id: "deepseek-r1:32b", name: "deepseek-r1:32b"},
+      {id: "deepseek-r1:70b", name: "deepseek-r1:70b"},
+      {id: "qwen3:0.6b", name: "qwen3:0.6b"},
+      {id: "qwen3:8b", name: "qwen3:8b"},
+      {id: "qwen3:14b", name: "qwen3:14b"},
+      {id: "qwen3:32b", name: "qwen3:32b"},
+      {id: "qwen3:235b", name: "qwen3:235b"},
       {id: "qwen2.5:7b", name: "qwen2.5:7b"},
       {id: "qwen2.5:14b", name: "qwen2.5:14b"},
       {id: "qwen2.5:32b", name: "qwen2.5:32b"},
       {id: "qwen2.5:72b", name: "qwen2.5:72b"},
-      {id: "deepseek-v3:671b", name: "deepseek-v3:671b"},
+      {id: "llama3.3:70b", name: "llama3.3:70b"},
       {id: "llama3.2:1b", name: "llama3.2:1b"},
       {id: "llama3.2:3b", name: "llama3.2:3b"},
-      {id: "llama3:8b", name: "llama3:8b"},
-      {id: "llama3:70b", name: "llama3:70b"},
+      {id: "llama3.1:8b", name: "llama3.1:8b"},
+      {id: "llama3.1:70b", name: "llama3.1:70b"},
+      {id: "llama3.1:405b", name: "llama3.1:405b"},
+      {id: "gemma3:4b", name: "gemma3:4b"},
+      {id: "gemma3:12b", name: "gemma3:12b"},
+      {id: "gemma3:27b", name: "gemma3:27b"},
+      {id: "gemma2:9b", name: "gemma2:9b"},
+      {id: "gemma2:27b", name: "gemma2:27b"},
+      {id: "mistral:7b", name: "mistral:7b"},
     ];
   } else if (type === "Local") {
     return [
@@ -1030,21 +1058,41 @@ export function getModelSubTypeOptions(type) {
       {id: "kimi-for-coding-highspeed", name: "kimi-for-coding-highspeed (Kimi Coding Plan)"},
     ];
   } else if (type === "Amazon Bedrock") {
+    // Bedrock sub-types are the model IDs passed straight to InvokeModel / Converse
     return [
-      {id: "claude", name: "Claude"},
-      {id: "claude-instant", name: "Claude Instant"},
-      {id: "command", name: "Command"},
-      {id: "command-light", name: "Command Light"},
-      {id: "embed-english", name: "Embed - English"},
-      {id: "embed-multilingual", name: "Embed - Multilingual"},
-      {id: "jurassic-2-mid", name: "Jurassic-2 Mid"},
-      {id: "jurassic-2-ultra", name: "Jurassic-2 Ultra"},
-      {id: "llama-2-chat-13b", name: "Llama 2 Chat (13B)"},
-      {id: "llama-2-chat-70b", name: "Llama 2 Chat (70B)"},
-      {id: "titan-text-lite", name: "Titan Text Lite"},
-      {id: "titan-text-express", name: "Titan Text Express"},
-      {id: "titan-embeddings", name: "Titan Embeddings"},
-      {id: "titan-multimodal-embeddings", name: "Titan Multimodal Embeddings"},
+      // Anthropic
+      {id: "global.anthropic.claude-fable-5-1", name: "Claude Fable 5.1"},
+      {id: "global.anthropic.claude-opus-5", name: "Claude Opus 5"},
+      {id: "global.anthropic.claude-sonnet-5", name: "Claude Sonnet 5"},
+      {id: "global.anthropic.claude-fable-5", name: "Claude Fable 5"},
+      {id: "global.anthropic.claude-opus-4-8", name: "Claude Opus 4.8"},
+      {id: "global.anthropic.claude-opus-4-7", name: "Claude Opus 4.7"},
+      {id: "global.anthropic.claude-sonnet-4-6", name: "Claude Sonnet 4.6"},
+      {id: "global.anthropic.claude-haiku-4-5", name: "Claude Haiku 4.5"},
+      // OpenAI
+      {id: "global.openai.gpt-6-astra", name: "GPT-6 Astra"},
+      {id: "global.openai.gpt-5.6-sol", name: "GPT-5.6 Sol"},
+      {id: "global.openai.gpt-5.6-terra", name: "GPT-5.6 Terra"},
+      {id: "global.openai.gpt-5.6-luna", name: "GPT-5.6 Luna"},
+      {id: "openai.gpt-oss-120b", name: "gpt-oss-120b"},
+      {id: "openai.gpt-oss-20b", name: "gpt-oss-20b"},
+      // Amazon
+      {id: "amazon.nova-2-lite-v1:0", name: "Nova 2 Lite"},
+      {id: "amazon.nova-premier-v1:0", name: "Nova Premier"},
+      {id: "amazon.nova-pro-v1:0", name: "Nova Pro"},
+      {id: "amazon.nova-lite-v1:0", name: "Nova Lite"},
+      {id: "amazon.nova-micro-v1:0", name: "Nova Micro"},
+      // DeepSeek
+      {id: "deepseek.v3.2", name: "DeepSeek V3.2"},
+      // Mistral AI
+      {id: "mistral.mistral-large-3-675b-instruct", name: "Mistral Large 3"},
+      // Meta
+      {id: "meta.llama3-3-70b-instruct-v1:0", name: "Llama 3.3 70B Instruct"},
+      {id: "meta.llama4-maverick-17b-instruct-v1:0", name: "Llama 4 Maverick 17B Instruct"},
+      {id: "meta.llama4-scout-17b-instruct-v1:0", name: "Llama 4 Scout 17B Instruct"},
+      // Cohere
+      {id: "cohere.command-r-plus-v1:0", name: "Command R+"},
+      {id: "cohere.command-r-v1:0", name: "Command R"},
     ];
   } else if (type === "Alibaba Cloud") {
     return [
@@ -1060,9 +1108,11 @@ export function getModelSubTypeOptions(type) {
       {id: "qwen-plus", name: "qwen-plus"},
       {id: "qwen-flash", name: "qwen-flash"},
       {id: "qwen-long", name: "qwen-long"},
-      // Qwen vision-language models
+      // Qwen vision-language and omni models
       {id: "qwen3-vl-plus", name: "qwen3-vl-plus"},
       {id: "qwen3-vl-flash", name: "qwen3-vl-flash"},
+      {id: "qwen3.5-omni-plus", name: "qwen3.5-omni-plus"},
+      {id: "qwen3.5-omni-plus-realtime", name: "qwen3.5-omni-plus-realtime"},
       // Qwen open-source models
       {id: "qwen3.8-2.4t-a95b", name: "qwen3.8-2.4t-a95b"},
       {id: "qwen3.8-27b", name: "qwen3.8-27b"},
@@ -1080,20 +1130,20 @@ export function getModelSubTypeOptions(type) {
       {id: "deepseek-r1-distill-qwen-32b", name: "deepseek-r1-distill-qwen-32b"},
       {id: "deepseek-r1-distill-llama-8b", name: "deepseek-r1-distill-llama-8b"},
       {id: "deepseek-r1-distill-llama-70b", name: "deepseek-r1-distill-llama-70b"},
-      // Wanxiang image generation models
-      {id: "wanx2.1-t2i-turbo", name: "wanx2.1-t2i-turbo"},
-      {id: "wanx2.1-t2i-plus", name: "wanx2.1-t2i-plus"},
-      {id: "wanx-v1", name: "wanx-v1"},
+      // Qwen image / Wan image and video generation models
+      {id: "qwen-image-3.0-pro", name: "qwen-image-3.0-pro"},
+      {id: "wan2.7-image-pro", name: "wan2.7-image-pro"},
+      {id: "wan3.0-video", name: "wan3.0-video"},
     ];
   } else if (type === "Baichuan") {
     return [
-      {id: "Baichuan2-Turbo", name: "Baichuan2-Turbo"},
-      {id: "Baichuan2-53B", name: "Baichuan2-53B"},
-      {id: "Baichuan3-Turbo", name: "Baichuan3-Turbo"},
-      {id: "Baichuan3-Turbo-128k", name: "Baichuan3-Turbo-128k"},
-      {id: "Baichuan4", name: "Baichuan4"},
-      {id: "Baichuan4-Air", name: "Baichuan4-Air"},
+      {id: "Baichuan-M4", name: "Baichuan-M4"},
+      {id: "Baichuan-M3", name: "Baichuan-M3"},
       {id: "Baichuan4-Turbo", name: "Baichuan4-Turbo"},
+      {id: "Baichuan4-Air", name: "Baichuan4-Air"},
+      {id: "Baichuan4", name: "Baichuan4"},
+      {id: "Baichuan3-Turbo-128k", name: "Baichuan3-Turbo-128k"},
+      {id: "Baichuan3-Turbo", name: "Baichuan3-Turbo"},
     ];
   } else if (type === "Volcano Engine") {
     return [
@@ -1156,54 +1206,43 @@ export function getModelSubTypeOptions(type) {
   } else if (type === "DeepSeek") {
     return [
       {id: "deepseek-v4-pro", name: "deepseek-v4-pro"},
-      {id: "deepseek-v4-flash", name: "deepseek-v4-flash"},
-      {id: "deepseek-chat", name: "deepseek-chat"},
-      {id: "deepseek-reasoner", name: "deepseek-reasoner"},
+      {id: "deepseek-flash", name: "deepseek-flash"},
     ];
   } else if (type === "StepFun") {
     return [
-      {id: "step-1-8k", name: "step-1-8k"},
-      {id: "step-1-32k", name: "step-1-32k"},
-      {id: "step-1-256k", name: "step-1-256k"},
-      {id: "step-2-mini", name: "step-2-mini"},
-      {id: "step-2-16k", name: "step-2-16k"},
-      {id: "step-2-16k-exp", name: "step-2-16k-exp"},
+      {id: "step-3.7-flash", name: "step-3.7-flash"},
+      {id: "step-3.5-flash", name: "step-3.5-flash"},
+      {id: "step-3.5-flash-2603", name: "step-3.5-flash-2603"},
+      {id: "step-1o-turbo-vision", name: "step-1o-turbo-vision"},
     ];
   } else if (type === "Tencent Cloud") {
     return [
-      {id: "hunyuan-lite", name: "hunyuan-lite"},
-      {id: "hunyuan-standard", name: "hunyuan-standard"},
-      {id: "hunyuan-standard-256K", name: "hunyuan-standard-256K"},
-      {id: "hunyuan-pro", name: "hunyuan-pro"},
-      {id: "hunyuan-code", name: " hunyuan-code"},
-      {id: "hunyuan-role", name: "hunyuan-role"},
-      {id: "hunyuan-turbo", name: "hunyuan-turbo"},
-      {id: "deepseek-r1", name: "deepseek-r1"},
-      {id: "deepseek-v3", name: "deepseek-v3"},
-      {id: "deepseek-r1-distill-qwen-1.5b", name: "deepseek-r1-distill-qwen-1.5b"},
-      {id: "deepseek-r1-distill-qwen-7b", name: "deepseek-r1-distill-qwen-7b"},
-      {id: "deepseek-r1-distill-qwen-14b", name: "deepseek-r1-distill-qwen-14b"},
-      {id: "deepseek-r1-distill-qwen-32b", name: "deepseek-r1-distill-qwen-32b"},
-      {id: "deepseek-r1-distill-llama-8b", name: "deepseek-r1-distill-llama-8b"},
-      {id: "deepseek-r1-distill-llama-70b", name: "deepseek-r1-distill-llama-70b"},
+      {id: "hunyuan-a13b", name: "hunyuan-a13b"},
+      {id: "hunyuan-vision-1.5-instruct", name: "hunyuan-vision-1.5-instruct"},
+      {id: "hunyuan-t1-vision-20250916", name: "hunyuan-t1-vision-20250916"},
+      {id: "hunyuan-turbos-vision-video", name: "hunyuan-turbos-vision-video"},
+      {id: "hunyuan-role-latest", name: "hunyuan-role-latest"},
+      {id: "hunyuan-translation", name: "hunyuan-translation"},
+      {id: "hunyuan-translation-lite", name: "hunyuan-translation-lite"},
     ];
   } else if (type === "Mistral") {
     return [
-      {id: "mistral-large-latest", name: "mistral-large-latest"},
-      {id: "pixtral-large-latest", name: "pixtral-large-latest"},
-      {id: "mistral-small-latest", name: "mistral-small-latest"},
-      {id: "codestral-latest", name: "codestral-latest"},
-      {id: "ministral-8b-latest", name: "ministral-8b-latest"},
-      {id: "ministral-3b-latest", name: "ministral-3b-latest"},
-      {id: "pixtral-12b", name: "pixtral-12b"},
-      {id: "mistral-nemo", name: "mistral-nemo"},
-      {id: "open-mistral-7b", name: "open-mistral-7b"},
-      {id: "open-mixtral-8x7b", name: "open-mixtral-8x7b"},
-      {id: "open-mixtral-8x22b", name: "open-mixtral-8x22b"},
+      {id: "mistral-medium-2604", name: "mistral-medium-2604 (Medium 3.5)"},
+      {id: "mistral-small-2603", name: "mistral-small-2603 (Small 4)"},
+      {id: "mistral-large-2512", name: "mistral-large-2512 (Large 3)"},
+      {id: "ministral-3-14b-2512", name: "ministral-3-14b-2512"},
+      {id: "ministral-3-8b-2512", name: "ministral-3-8b-2512"},
+      {id: "ministral-3-3b-2512", name: "ministral-3-3b-2512"},
+      {id: "codestral-2508", name: "codestral-2508"},
+      {id: "z-ai-glm-5-3", name: "z-ai-glm-5-3"},
+      {id: "z-ai-glm-5-2", name: "z-ai-glm-5-2"},
     ];
   } else if (type === "Yi") {
     return [
       {id: "yi-lightning", name: "yi-lightning"},
+      {id: "yi-large", name: "yi-large"},
+      {id: "yi-large-fc", name: "yi-large-fc"},
+      {id: "yi-medium-200k", name: "yi-medium-200k"},
       {id: "yi-vision-v2", name: "yi-vision-v2"},
     ];
   } else if (type === "Silicon Flow") {
@@ -1228,30 +1267,43 @@ export function getModelSubTypeOptions(type) {
     ];
   } else if (type === "APIMart") {
     return [
-      {id: "gpt-5", name: "gpt-5"},
-      {id: "gpt-4o", name: "gpt-4o"},
-      {id: "gpt-4o-mini", name: "gpt-4o-mini"},
-      {id: "claude-sonnet-4.5", name: "claude-sonnet-4.5"},
+      {id: "gpt-6-astra", name: "gpt-6-astra"},
+      {id: "gpt-5.6-sol", name: "gpt-5.6-sol"},
+      {id: "gpt-5.6-terra", name: "gpt-5.6-terra"},
+      {id: "gpt-5.6-luna", name: "gpt-5.6-luna"},
+      {id: "claude-opus-5", name: "claude-opus-5"},
+      {id: "claude-sonnet-5", name: "claude-sonnet-5"},
       {id: "claude-haiku-4.5", name: "claude-haiku-4.5"},
-      {id: "gemini-2.0-flash", name: "gemini-2.0-flash"},
-      {id: "gemini-2.0-flash-thinking", name: "gemini-2.0-flash-thinking"},
+      {id: "gemini-3.8-flash", name: "gemini-3.8-flash"},
+      {id: "gemini-3.1-pro-preview", name: "gemini-3.1-pro-preview"},
+      {id: "deepseek-v4-pro", name: "deepseek-v4-pro"},
+      {id: "deepseek-flash", name: "deepseek-flash"},
+      {id: "qwen3.8-max", name: "qwen3.8-max"},
+      {id: "glm-5.3", name: "glm-5.3"},
+      {id: "kimi-k3", name: "kimi-k3"},
+      {id: "grok-4.6", name: "grok-4.6"},
+      {id: "MiniMax-M3", name: "MiniMax-M3"},
+      {id: "doubao-seed-2-1-pro-260915", name: "doubao-seed-2-1-pro-260915"},
     ];
   } else if (type === "Grok") {
     return [
-      {id: "grok-3-latest", name: "grok-3-latest"},
-      {id: "grok-3-fast-latest", name: "grok-3-fast-latest"},
-      {id: "grok-3-mini-latest", name: "grok-3-mini-latest"},
-      {id: "grok-2-vision-latest", name: "grok-2-vision-latest"},
-      {id: "grok-2-latest", name: "grok-2-latest"},
-      {id: "grok-2-image-latest", name: "grok-2-image-latest"},
+      {id: "grok-4.6", name: "grok-4.6"},
+      {id: "grok-4.5", name: "grok-4.5"},
+      {id: "grok-4.3", name: "grok-4.3"},
+      {id: "grok-4.20-0309-reasoning", name: "grok-4.20-0309-reasoning"},
+      {id: "grok-4.20-0309-non-reasoning", name: "grok-4.20-0309-non-reasoning"},
+      {id: "grok-4.20-multi-agent-0309", name: "grok-4.20-multi-agent-0309"},
+      {id: "grok-build-0.1", name: "grok-build-0.1"},
+      // Image generation models
+      {id: "grok-imagine-image-2.0", name: "grok-imagine-image-2.0"},
+      {id: "grok-imagine-image-quality", name: "grok-imagine-image-quality"},
+      {id: "grok-imagine-image", name: "grok-imagine-image"},
     ];
   } else if (type === "Writer") {
     return [
+      {id: "palmyra-x6", name: "Palmyra X6"},
       {id: "palmyra-x5", name: "Palmyra X5"},
       {id: "palmyra-x4", name: "Palmyra X4"},
-      {id: "palmyra-med", name: "Palmyra Med"},
-      {id: "palmyra-fin", name: "Palmyra Fin"},
-      {id: "palmyra-creative", name: "Palmyra Creative"},
     ];
   } else {
     return [];
@@ -1419,39 +1471,38 @@ export function getProviderAzureApiVersionOptions() {
 }
 
 export function getQuickSetupModelTypes() {
-  return ["OpenAI", "Claude", "Gemini", "DeepSeek", "Grok", "Ollama", "OpenRouter", "Mistral", "MiniMax", "Azure", "OpenAI Compatible", "Alibaba Cloud", "Moonshot", "Silicon Flow", "Volcano Engine", "Baidu Cloud", "Amazon Bedrock", "Hugging Face", "iFlytek", "ChatGLM", "Cohere", "Baichuan", "StepFun", "Tencent Cloud", "Yi", "APIMart", "GitHub", "Writer", "Local", "OpenCode"];
+  return ["OpenAI", "Claude", "Gemini", "DeepSeek", "Grok", "Ollama", "OpenRouter", "Mistral", "MiniMax", "Azure", "OpenAI Compatible", "Alibaba Cloud", "Moonshot", "Silicon Flow", "Volcano Engine", "Baidu Cloud", "Amazon Bedrock", "Hugging Face", "iFlytek", "ChatGLM", "Cohere", "Baichuan", "StepFun", "Tencent Cloud", "Yi", "APIMart", "Writer", "Local", "OpenCode"];
 }
 
 export function getModelProviderMetadata(type) {
   const metadata = {
-    "OpenAI": {desc: "GPT-5.5, GPT-4.1, o3...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "gpt-5.5"},
-    "Claude": {desc: "Claude Opus, Sonnet...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "claude-opus-4-7"},
-    "Gemini": {desc: "Gemini 2.5 Pro, Flash...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "gemini-2.5-pro"},
-    "DeepSeek": {desc: "DeepSeek-V4, R1...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "deepseek-v4-pro"},
-    "Grok": {desc: "Grok-3, Grok-2...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "grok-3-latest"},
+    "OpenAI": {desc: "GPT-6 Astra, GPT-5.6...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "gpt-6-astra"},
+    "Claude": {desc: "Claude Fable, Opus, Sonnet...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "claude-opus-5"},
+    "Gemini": {desc: "Gemini 3.8 Flash, 3.1 Pro...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "gemini-3.8-flash"},
+    "DeepSeek": {desc: "DeepSeek V4 Pro, Flash...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "deepseek-v4-pro"},
+    "Grok": {desc: "Grok 4.6, Grok 4.5...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "grok-4.6"},
     "Ollama": {desc: "Run models locally", needsApiKey: false, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "deepseek-r1:671b", urlPlaceholder: "http://localhost:11434", defaultUrl: "http://localhost:11434"},
-    "OpenRouter": {desc: "100+ models unified", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "anthropic/claude-opus-4-7"},
-    "Mistral": {desc: "Mistral Large, Medium...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "mistral-large-latest"},
+    "OpenRouter": {desc: "100+ models unified", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "anthropic/claude-opus-5"},
+    "Mistral": {desc: "Mistral Medium 3.5, Large 3...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "mistral-medium-2604"},
     "MiniMax": {desc: "MiniMax-M3, M2...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "MiniMax-M3"},
-    "Azure": {desc: "Azure-hosted GPT models", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "gpt-5.5", urlPlaceholder: "https://your-resource.openai.azure.com"},
+    "Azure": {desc: "Azure-hosted GPT models", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "gpt-6-astra", urlPlaceholder: "https://your-resource.openai.azure.com"},
     "OpenAI Compatible": {desc: "Any compatible API", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "", urlPlaceholder: "https://api.example.com/v1"},
     "Alibaba Cloud": {desc: "Qwen3.8 Max, Qwen3.7 Plus...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "qwen3.8-max"},
     "Moonshot": {desc: "Kimi K3, Kimi K2.7 Code...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "kimi-k3"},
     "Silicon Flow": {desc: "DeepSeek, Qwen, and more", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "deepseek-ai/DeepSeek-V3.2"},
     "Volcano Engine": {desc: "ByteDance AI platform", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "doubao-seed-2-1-pro-260915"},
     "Baidu Cloud": {desc: "ERNIE Bot models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "ernie-5.0"},
-    "Amazon Bedrock": {desc: "Claude, Llama on AWS", needsApiKey: true, needsUrl: false, needsClientId: true, needsRegion: true, defaultSubType: "claude"},
-    "Hugging Face": {desc: "Llama, Falcon, open models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "meta-llama/Llama-2-7b"},
-    "iFlytek": {desc: "Spark X2, Spark Max...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "spark-x2"},
+    "Amazon Bedrock": {desc: "Claude, GPT, Nova on AWS", needsApiKey: true, needsUrl: false, needsClientId: true, needsRegion: true, defaultSubType: "global.anthropic.claude-opus-5"},
+    "Hugging Face": {desc: "Llama, Qwen, open models", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "meta-llama/Llama-3.3-70B-Instruct"},
+    "iFlytek": {desc: "Spark X2, Spark X1.5...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "spark-x2"},
     "ChatGLM": {desc: "GLM-5.3, GLM-4.7...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "glm-5.3"},
-    "Cohere": {desc: "Command, Command Light", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "command"},
-    "Baichuan": {desc: "Baichuan4, Baichuan3...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "Baichuan4-Turbo"},
-    "StepFun": {desc: "Step-2, Step-1...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "step-2-16k"},
-    "Tencent Cloud": {desc: "Hunyuan models", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "hunyuan-pro", urlPlaceholder: "https://hunyuan.tencentcloudapi.com"},
-    "Yi": {desc: "Yi Lightning, Yi Vision", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "yi-lightning"},
-    "APIMart": {desc: "500+ models, image & video", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "gpt-4o"},
-    "GitHub": {desc: "GitHub Models catalog", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "gpt-4o"},
-    "Writer": {desc: "Palmyra X5, X4...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "palmyra-x5"},
+    "Cohere": {desc: "Command A, Command R...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "command-a-plus-05-2026"},
+    "Baichuan": {desc: "Baichuan-M4, Baichuan4...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "Baichuan4-Turbo"},
+    "StepFun": {desc: "Step 3.7 Flash, Step 3.5...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "step-3.7-flash"},
+    "Tencent Cloud": {desc: "Hunyuan models", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "hunyuan-a13b", urlPlaceholder: "https://hunyuan.tencentcloudapi.com"},
+    "Yi": {desc: "Yi Lightning, Yi Large...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "yi-lightning"},
+    "APIMart": {desc: "500+ models, image & video", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "gpt-6-astra"},
+    "Writer": {desc: "Palmyra X6, X5...", needsApiKey: true, needsUrl: false, needsClientId: false, needsRegion: false, defaultSubType: "palmyra-x6"},
     "Local": {desc: "Self-hosted model endpoint", needsApiKey: true, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "custom-model", urlPlaceholder: "http://localhost:8000/v1"},
     "OpenCode": {desc: "Delegate coding to OpenCode agent", needsApiKey: false, needsUrl: true, needsClientId: false, needsRegion: false, defaultSubType: "", urlPlaceholder: "http://localhost:4096", defaultUrl: "http://localhost:4096"},
   };
@@ -1489,6 +1540,11 @@ export function getPipePlatformMetadata(type) {
   return metadata[type] || {desc: "", tokenLabel: "Token", tokenPlaceholder: "", helpUrl: ""};
 }
 
+function isAlibabaImageGenerationModel(lower) {
+  // Wan (formerly Wanxiang) image models and the Qwen-Image generation models
+  return lower.startsWith("wan2.") || lower.startsWith("wan3.") || lower.startsWith("qwen-image");
+}
+
 export function isImageGenerationModelProvider(provider) {
   if (!provider || provider.category !== "Model") {
     return false;
@@ -1498,18 +1554,18 @@ export function isImageGenerationModelProvider(provider) {
   const lower = subType.toLowerCase();
 
   if (type === "OpenAI" || type === "Azure") {
-    if (lower.startsWith("gpt-image") || lower.includes("dall-e")) {
+    if (lower.startsWith("gpt-image") || lower === "chatgpt-image-latest") {
       return true;
     }
   }
   if (type === "Gemini") {
-    if (lower.includes("imagen-") || lower === "gemini-2.5-flash-image" ||
-        lower.includes("gemini-3.1-flash-image") || lower.includes("gemini-3-pro-image")) {
+    if (lower === "gemini-2.5-flash-image" || lower.includes("gemini-3.1-flash-image") ||
+        lower.includes("gemini-3.1-flash-lite-image") || lower.includes("gemini-3-pro-image")) {
       return true;
     }
   }
   if (type === "Alibaba Cloud") {
-    if (lower.includes("wanx") && (lower.includes("t2i") || lower.includes("wanx-v"))) {
+    if (isAlibabaImageGenerationModel(lower)) {
       return true;
     }
   }
@@ -1519,20 +1575,17 @@ export function isImageGenerationModelProvider(provider) {
     }
   }
   if (type === "Grok") {
-    if (lower.includes("grok-2-image") || lower === "grok-2-image-latest") {
+    if (lower.startsWith("grok-imagine-image")) {
       return true;
     }
   }
-  if (lower.includes("dall-e") || lower.startsWith("gpt-image")) {
-    return true;
-  }
-  if (lower.includes("imagen-") && lower.includes("generate")) {
+  if (lower.startsWith("gpt-image") || lower === "chatgpt-image-latest") {
     return true;
   }
   if (lower.includes("seedream")) {
     return true;
   }
-  if (lower.includes("wanx") && (lower.includes("t2i") || lower.includes("wanx-v"))) {
+  if (isAlibabaImageGenerationModel(lower)) {
     return true;
   }
   if (/(^|-)image(-|preview)/i.test(subType) && !lower.includes("embedding") && type === "Gemini") {
@@ -1542,16 +1595,11 @@ export function isImageGenerationModelProvider(provider) {
 }
 
 export function getThinkingModelMaxTokens(subType) {
-  if (subType.includes("claude")) {
-    if (subType.includes("4")) {
-      if (subType.includes("sonnet")) {
-        return 64000;
-      } else if (subType.includes("opus")) {
-        return 32000;
-      }
-    } else if (subType.includes("3-7") || subType.includes("sonnet")) {
-      return 64000;
-    }
+  // Only models that still accept a fixed thinking budget expose the budget input.
+  // Claude Fable 5/5.1, Opus 5/4.8/4.7/4.6 and Sonnet 5/4.6 use adaptive thinking and
+  // reject "thinking.budget_tokens" with a 400, so no budget is configurable for them.
+  if (subType.includes("claude-haiku-4-5")) {
+    return 64000;
   }
   return 0;
 }

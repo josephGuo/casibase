@@ -15,10 +15,7 @@
 package model
 
 import (
-	"fmt"
 	"io"
-
-	"github.com/the-open-agent/openagent/i18n"
 )
 
 type MiniMaxModelProvider struct {
@@ -50,6 +47,8 @@ https://platform.minimaxi.com/docs/guides/pricing-paygo
 | MiniMax-M2.1-highspeed   | 1 CNY/1M tokens     | 7 CNY/1M tokens      |
 | MiniMax-M2               | 1 CNY/1M tokens     | 7 CNY/1M tokens      |
 | M2-her                   | 0.1 CNY/1M tokens   | 0.1 CNY/1M tokens    |
+| MiniMax-M1               | see MiniMax pricing | see MiniMax pricing  |
+| MiniMax-Text-01          | see MiniMax pricing | see MiniMax pricing  |
 `
 }
 
@@ -67,12 +66,12 @@ func (p *MiniMaxModelProvider) calculatePrice(modelResult *ModelResult, lang str
 		"M2-her":                 {0.0001, 0.0001},
 	}
 
+	// The older MiniMax-M1 / MiniMax-Text-01 models no longer have a published pay-as-you-go
+	// rate, so they report price = 0 instead of failing the request.
 	if priceItem, ok := priceTable[p.subType]; ok {
 		inputPrice := getPrice(modelResult.PromptTokenCount, priceItem[0])
 		outputPrice := getPrice(modelResult.ResponseTokenCount, priceItem[1])
 		price = inputPrice + outputPrice
-	} else {
-		return fmt.Errorf(i18n.Translate(lang, "embedding:calculatePrice() error: unknown model type: %s"), p.subType)
 	}
 
 	modelResult.TotalPrice = price

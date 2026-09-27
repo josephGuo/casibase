@@ -37,12 +37,6 @@ type CohereModelProvider struct {
 	stop        []string
 }
 
-type ChatMessage struct {
-	Role    string  `json:"role"`
-	Message string  `json:"message"`
-	User    *string `json:"user,omitempty"`
-}
-
 func NewCohereModelProvider(subType string, secretKey string) (*CohereModelProvider, error) {
 	return &CohereModelProvider{
 		secretKey: secretKey,
@@ -56,37 +50,44 @@ func (c *CohereModelProvider) GetPricing() string {
 	return `URL:
 https://cohere.com/pricing
 
-Generate Model:
+Command models:
 
-| Model         | Input Price (Per 1,000,000 tokens) | Output Price (Per 1,000,000 tokens) |
-|---------------|------------------------------------|-------------------------------------|
-| Command Light | $0.30                              | $0.60                               |
-| Command       | $1.00                              | $2.00                               |
+| Model                       | Input Price (Per 1,000,000 tokens) | Output Price (Per 1,000,000 tokens) |
+|-----------------------------|------------------------------------|-------------------------------------|
+| command-a-plus-05-2026      | contact Cohere sales               | contact Cohere sales                |
+| command-a-03-2025           | contact Cohere sales               | contact Cohere sales                |
+| command-a-reasoning-08-2025 | contact Cohere sales               | contact Cohere sales                |
+| command-a-vision-07-2025    | contact Cohere sales               | contact Cohere sales                |
+| command-a-translate-08-2025 | contact Cohere sales               | contact Cohere sales                |
+| command-r7b-12-2024         | $0.0375                            | $0.15                               |
+| command-r-08-2024           | $0.15                              | $0.60                               |
+| command-r-plus-08-2024      | $2.50                              | $10.00                              |
 
 Embed Model:
 
 | Model      | Cost (Per 1,000,000 tokens) |
 |------------|-----------------------------|
-| Default    | $0.10                       |
+| embed-v4.0 | $0.12                       |
 `
 }
 
 func (p *CohereModelProvider) calculatePrice(modelResult *ModelResult, lang string) error {
-	var inputPricePerThousandTokens, outputPricePerThousandTokens float64
-	switch p.subType {
-	case "command-light", "command-light-nightly":
-		inputPricePerThousandTokens = 0.0003
-		outputPricePerThousandTokens = 0.0006
-	case "command", "command-nightly":
-		inputPricePerThousandTokens = 0.001
-		outputPricePerThousandTokens = 0.002
-	default:
-		return fmt.Errorf(i18n.Translate(lang, "embedding:calculatePrice() error: unknown model type: %s"), p.subType)
+	// Cohere no longer publishes per-token rates for the Command A family (they are quoted
+	// per contract), so those models report price = 0 instead of failing the request.
+	priceTable := map[string][2]float64{
+		"command-r7b-12-2024":    {0.0000375, 0.00015},
+		"command-r-08-2024":      {0.00015, 0.0006},
+		"command-r-plus-08-2024": {0.0025, 0.01},
 	}
 
-	inputPrice := getPrice(modelResult.PromptTokenCount, inputPricePerThousandTokens)
-	outputPrice := getPrice(modelResult.ResponseTokenCount, outputPricePerThousandTokens)
-	modelResult.TotalPrice = AddPrices(inputPrice, outputPrice)
+	price := 0.0
+	if priceItem, ok := priceTable[p.subType]; ok {
+		inputPrice := getPrice(modelResult.PromptTokenCount, priceItem[0])
+		outputPrice := getPrice(modelResult.ResponseTokenCount, priceItem[1])
+		price = AddPrices(inputPrice, outputPrice)
+	}
+
+	modelResult.TotalPrice = price
 	modelResult.Currency = "USD"
 	return nil
 }
@@ -110,34 +111,53 @@ func (p *CohereModelProvider) QueryText(message string, writer io.Writer, chat_h
 			return nil, fmt.Errorf(i18n.Translate(lang, "model:exceed max tokens"))
 		}
 	}
-	generation, err := client.Generate(
+	// The legacy Generate endpoint was retired together with the "command" / "command-light"
+	// models, so the current Command models are called through the Chat endpoint.
+	var chatHistory []*cohere.ChatMessage
+	for i := len(chat_history) - 1; i >= 0; i-- {
+		historyMessage := chat_history[i]
+		role := cohere.ChatMessageRoleChatbot
+		if historyMessage.Author == "AI" {
+			role = cohere.ChatMessageRoleChatbot
+		} else {
+			role = cohere.ChatMessageRoleUser
+		}
+		chatHistory = append(chatHistory, &cohere.ChatMessage{
+			Role:    role,
+			Message: historyMessage.Text,
+		})
+	}
+
+	var preamble *string
+	if prompt != "" {
+		preamble = &prompt
+	}
+
+	response, err := client.Chat(
 		ctx,
-		&cohere.GenerateRequest{
-			Prompt:      prompt,
-			Temperature: &CohereDefaultTemperature,
-			MaxTokens:   &maxTokens,
-			Model:       &p.subType,
+		&cohere.ChatRequest{
+			Message:          message,
+			Model:            &p.subType,
+			Temperature:      &CohereDefaultTemperature,
+			MaxTokens:        &maxTokens,
+			ChatHistory:      chatHistory,
+			PreambleOverride: preamble,
 		},
 	)
 	if err != nil {
 		return nil, err
 	}
-	if len(generation.Generations) == 0 {
-		return nil, fmt.Errorf(i18n.Translate(lang, "model:no generations returned"))
-	}
 
-	output := generation.Generations[0].Text
-	resp := strings.Split(output, "\n")[0]
-
-	_, err = fmt.Fprint(writer, resp)
+	output := response.Text
+	_, err = fmt.Fprint(writer, output)
 	if err != nil {
 		return nil, err
 	}
 
-	promptTokenCount := int(*generation.Meta.BilledUnits.InputTokens)
-	responseTokenCount := int(*generation.Meta.BilledUnits.OutputTokens)
-	modelResult := &ModelResult{PromptTokenCount: promptTokenCount, ResponseTokenCount: responseTokenCount}
-	modelResult.TotalTokenCount = modelResult.ResponseTokenCount + modelResult.PromptTokenCount
+	modelResult, err := getDefaultModelResult(p.subType, message, output)
+	if err != nil {
+		return nil, err
+	}
 
 	err = p.calculatePrice(modelResult, lang)
 	if err != nil {

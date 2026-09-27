@@ -52,9 +52,9 @@ representative models. See the URL above for the authoritative price list.
 | seedream-5-0-pro     | Image | $0.036 per 1K                                           |
 | sora-2 / sora-2-pro  | Video | Billed per generated second, see pricing page           |
 | veo-3.1              | Video | Billed per generated second, see pricing page           |
-| gpt-4o / gpt-4o-mini | Chat  | Billed per token, ~20% below the official OpenAI rates  |
-| claude-sonnet-4-5    | Chat  | Billed per token, ~20% below the official Claude rates  |
-| gemini-2.5-pro       | Chat  | Billed per token, ~20% below the official Gemini rates  |
+| gpt-6-astra          | Chat  | Billed per token, ~20% below the official OpenAI rates  |
+| claude-opus-5        | Chat  | Billed per token, ~20% below the official Claude rates  |
+| gemini-3.8-flash     | Chat  | Billed per token, ~20% below the official Gemini rates  |
 `
 }
 

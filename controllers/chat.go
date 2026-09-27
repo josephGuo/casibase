@@ -270,6 +270,10 @@ func (c *ApiController) UpdateChat() {
 		return
 	}
 	chat.Source = originalChat.Source
+	if !c.IsAdmin() {
+		// Binding a chat to a tool grants the agent that tool's capabilities, so only admins may change it.
+		chat.Tool = originalChat.Tool
+	}
 
 	if conf.IsDemoMode() {
 		originalChat.ModelProvider = chat.ModelProvider
@@ -303,6 +307,10 @@ func (c *ApiController) AddChat() {
 	ok := c.IsCurrentUser(chat.User)
 	if !ok {
 		return
+	}
+	if !c.IsAdmin() {
+		// Binding a chat to a tool grants the agent that tool's capabilities, so only admins may set it.
+		chat.Tool = ""
 	}
 
 	currentTime := util.GetCurrentTime()

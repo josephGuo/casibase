@@ -366,7 +366,9 @@ func (c *ApiController) GetAccount() {
 	if object.IsSigninEnabled() {
 		if c.GetSessionUsername() == "" {
 			fromPath := c.GetString("fromPath")
-			if fromPath != "/signin" && object.IsAdminUsingDefaultPassword() {
+			// Auto sign-in with the default admin password is only allowed for requests made
+			// directly from the local machine, never for remote visitors.
+			if fromPath != "/signin" && util.IsLoopbackRequest(c.Ctx.Request) && object.IsAdminUsingDefaultPassword() {
 				if !c.autoLoginAdmin() {
 					return
 				}

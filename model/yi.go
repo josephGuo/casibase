@@ -44,14 +44,20 @@ https://platform.lingyiwanwu.com
 | Model          | Context Window | Input Price (per 1M tokens) | Output Price (per 1M tokens) |
 |----------------|---------------|---------------------------|----------------------------|
 | yi-lightning   | 16K          | ¥0.99                    | ¥0.99                     |
+| yi-large       | 32K          | ¥20.00                   | ¥20.00                    |
+| yi-large-fc    | 32K          | ¥20.00                   | ¥20.00                    |
+| yi-medium-200k | 200K         | ¥12.00                   | ¥12.00                    |
 | yi-vision-v2   | 16K          | ¥6.00                    | ¥6.00                     |`
 }
 
 func (p *YiProvider) calculatePrice(modelResult *ModelResult, lang string) error {
 	// Price table (price per 1000 tokens in CNY)
 	priceTable := map[string][2]float64{
-		"yi-lightning": {0.00099, 0.00099},
-		"yi-vision-v2": {0.006, 0.006},
+		"yi-lightning":   {0.00099, 0.00099},
+		"yi-large":       {0.02, 0.02},
+		"yi-large-fc":    {0.02, 0.02},
+		"yi-medium-200k": {0.012, 0.012},
+		"yi-vision-v2":   {0.006, 0.006},
 	}
 
 	if priceItem, ok := priceTable[p.subType]; ok {

@@ -16,6 +16,7 @@ package object
 
 import (
 	"fmt"
+	"path/filepath"
 	"strings"
 
 	"github.com/the-open-agent/openagent/auth"
@@ -320,6 +321,40 @@ func DeleteProvider(provider *Provider) (bool, error) {
 
 func (provider *Provider) GetId() string {
 	return fmt.Sprintf("%s/%s", provider.Owner, provider.Name)
+}
+
+// IsLocalStorageFile reports whether path points inside the folder of a configured
+// "Local File System" storage provider. Only such files may be served by the /storage route.
+func IsLocalStorageFile(path string) (bool, error) {
+	condition := &Provider{Category: "Storage", Type: "Local File System"}
+	providers := []*Provider{}
+	err := adapter.engine.Find(&providers, condition)
+	if err != nil {
+		return false, err
+	}
+
+	if providerAdapter != nil {
+		remoteProviders := []*Provider{}
+		err = providerAdapter.engine.Find(&remoteProviders, condition)
+		if err != nil {
+			return false, err
+		}
+		providers = append(providers, remoteProviders...)
+	}
+
+	for _, provider := range providers {
+		root := provider.ClientId
+		if root == "" {
+			continue
+		}
+		if realRoot, err := filepath.EvalSymlinks(root); err == nil {
+			root = realRoot
+		}
+		if storage.IsPathWithinRoot(root, path) {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (p *Provider) GetStorageProviderObj(vectorStoreId string, lang string) (storage.StorageProvider, error) {

@@ -39,24 +39,24 @@ func NewDeepSeekProvider(subType string, apiKey string, temperature float32, top
 
 func (p *DeepSeekProvider) GetPricing() string {
 	return `URL:
-https://api-docs.deepseek.com/zh-cn/quick_start/pricing
+https://api-docs.deepseek.com/quick_start/pricing
 
-| Model          | sub-type           | Input Price per 1K tokens | Output Price per 1K tokens |
-|----------------|--------------------|---------------------------|----------------------------|
-| DeepSeek-V4-Pro  | deepseek-v4-pro    | 0.003 yuan/1,000 tokens   | 0.006 yuan/1,000 tokens    |
-| DeepSeek-V4-Flash| deepseek-v4-flash  | 0.001 yuan/1,000 tokens   | 0.002 yuan/1,000 tokens    |
-| DeepSeek-V3.2  | deepseek-chat      | 0.001 yuan/1,000 tokens   | 0.002 yuan/1,000 tokens    |
-| DeepSeek-V3.2  | deepseek-reasoner  | 0.003 yuan/1,000 tokens   | 0.006 yuan/1,000 tokens    |
+Both models have a 1M token context window and a 384K max output. Prices below are the
+off-peak cache-miss rates; peak hours (01:00-04:00 and 06:00-10:00 UTC, Mon-Fri) are
+billed at twice these rates, and cache hits are billed far lower.
+
+| Model           | sub-type        | Input Price per 1K tokens | Output Price per 1K tokens |
+|-----------------|-----------------|---------------------------|----------------------------|
+| DeepSeek-V4-Pro | deepseek-v4-pro | $0.00066                  | $0.00198                   |
+| DeepSeek-Flash  | deepseek-flash  | $0.00015                  | $0.0006                    |
 `
 }
 
 func (p *DeepSeekProvider) calculatePrice(modelResult *ModelResult, lang string) error {
 	price := 0.0
 	priceTable := map[string][2]float64{
-		"deepseek-v4-pro":   {0.003, 0.006},
-		"deepseek-v4-flash": {0.001, 0.002},
-		"deepseek-chat":     {0.001, 0.002},
-		"deepseek-reasoner": {0.003, 0.006},
+		"deepseek-v4-pro": {0.00066, 0.00198},
+		"deepseek-flash":  {0.00015, 0.0006},
 	}
 
 	if priceItem, ok := priceTable[p.subType]; ok {
@@ -68,23 +68,16 @@ func (p *DeepSeekProvider) calculatePrice(modelResult *ModelResult, lang string)
 	}
 
 	modelResult.TotalPrice = price
-	modelResult.Currency = "CNY"
+	modelResult.Currency = "USD"
 	return nil
 }
 
 func (p *DeepSeekProvider) QueryText(question string, writer io.Writer, history []*RawMessage, prompt string, knowledgeMessages []*RawMessage, toolSession *ToolSession, lang string) (*ModelResult, error) {
 	const BaseUrl = "https://api.deepseek.com/v1"
 
-	var localType string
-	switch p.subType {
-	case "deepseek-v4-pro", "deepseek-reasoner":
-		localType = "Custom-think"
-	case "deepseek-v4-flash":
-		localType = "Custom-think"
-	case "deepseek-chat":
-		localType = "Custom"
-	}
-	localProvider, err := NewLocalModelProvider(localType, "custom-model", p.apiKey, p.temperature, p.topP, 0, 0, BaseUrl, p.subType, 0, 0, "CNY")
+	// Both current DeepSeek models are reasoning models
+	localType := "Custom-think"
+	localProvider, err := NewLocalModelProvider(localType, "custom-model", p.apiKey, p.temperature, p.topP, 0, 0, BaseUrl, p.subType, 0, 0, "USD")
 	if err != nil {
 		return nil, err
 	}

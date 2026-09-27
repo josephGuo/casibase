@@ -73,17 +73,16 @@ func (p *iFlytekModelProvider) getAPIModelName() string {
 		return "spark-x"
 	case "spark4.0-ultra":
 		return "4.0Ultra"
-	case "spark-max":
-		return "generalv3.5"
-	case "spark-max-32k":
-		return "max-32k"
 	case "spark-pro":
 		return "generalv3"
 	case "spark-pro-128k":
 		return "pro-128k"
 	case "spark-lite":
 		return "lite"
-	// Legacy model names kept for backward compatibility
+	// Legacy model names kept for backward compatibility. Spark Max and Spark Max-32K were
+	// discontinued in March 2026 and merged into Ultra.
+	case "spark-max", "spark-max-32k":
+		return "4.0Ultra"
 	case "spark-v1.5":
 		return "lite"
 	case "spark-v2.0":
@@ -103,7 +102,8 @@ func (p *iFlytekModelProvider) calculatePrice(modelResult *ModelResult, lang str
 		price = float64(tokenCount) / 10000 * 0.30
 	case "spark-x1.5":
 		price = float64(tokenCount) / 10000 * 0.20
-	case "spark4.0-ultra":
+	// Spark Max and Spark Max-32K were discontinued in March 2026 and now route to Ultra
+	case "spark4.0-ultra", "spark-max", "spark-max-32k":
 		if tokenCount <= 3000000 {
 			price = float64(tokenCount) / 10000 * 0.70
 		} else if tokenCount <= 15000000 {
@@ -116,36 +116,6 @@ func (p *iFlytekModelProvider) calculatePrice(modelResult *ModelResult, lang str
 			price = float64(tokenCount) / 10000 * 0.055
 		} else {
 			price = float64(tokenCount) / 10000 * 0.050
-		}
-	case "spark-max":
-		// Spark Max was discontinued in March 2026, backend upgraded to Ultra pricing
-		if tokenCount <= 3000000 {
-			price = float64(tokenCount) / 10000 * 0.30
-		} else if tokenCount <= 15000000 {
-			price = float64(tokenCount) / 10000 * 0.29
-		} else if tokenCount <= 500000000 {
-			price = float64(tokenCount) / 10000 * 0.027
-		} else if tokenCount <= 1000000000 {
-			price = float64(tokenCount) / 10000 * 0.025
-		} else if int64(tokenCount) <= int64(10000000000) {
-			price = float64(tokenCount) / 10000 * 0.023
-		} else {
-			price = float64(tokenCount) / 10000 * 0.021
-		}
-	case "spark-max-32k":
-		// Spark Max-32K was discontinued in March 2026, backend upgraded to Ultra pricing
-		if tokenCount <= 3000000 {
-			price = float64(tokenCount) / 10000 * 0.32
-		} else if tokenCount <= 15000000 {
-			price = float64(tokenCount) / 10000 * 0.31
-		} else if tokenCount <= 500000000 {
-			price = float64(tokenCount) / 10000 * 0.029
-		} else if tokenCount <= 1000000000 {
-			price = float64(tokenCount) / 10000 * 0.027
-		} else if int64(tokenCount) <= int64(10000000000) {
-			price = float64(tokenCount) / 10000 * 0.025
-		} else {
-			price = float64(tokenCount) / 10000 * 0.023
 		}
 	case "spark-pro":
 		if tokenCount <= 3000000 {

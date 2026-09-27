@@ -15,10 +15,7 @@
 package model
 
 import (
-	"fmt"
 	"io"
-
-	"github.com/the-open-agent/openagent/i18n"
 )
 
 const chatGLMBaseUrl = "https://open.bigmodel.cn/api/paas/v4"
@@ -41,7 +38,7 @@ func NewChatGLMModelProvider(subType string, clientSecret string, temperature fl
 
 func (p *ChatGLMModelProvider) GetPricing() string {
 	return `URL:
-https://open.bigmodel.cn/pricing
+https://docs.bigmodel.cn/cn/guide/start/model-overview
 
 Generate Model:
 
@@ -55,24 +52,21 @@ Generate Model:
 | GLM-4.7                  | glm-4.7                  | 200K           | 0.002 yuan/1,000 tokens   | 0.008 yuan/1,000 tokens    |
 | GLM-4.7-FlashX           | glm-4.7-flashx           | 200K           | 0.0005 yuan/1,000 tokens  | 0.003 yuan/1,000 tokens    |
 | GLM-4.7-Flash            | glm-4.7-flash            | 200K           | Free                      | Free                       |
+| GLM-4.6                  | glm-4.6                  | 200K           | see BigModel pricing page | see BigModel pricing page  |
 | GLM-4.5-Air              | glm-4.5-air              | 128K           | 0.0008 yuan/1,000 tokens  | 0.002 yuan/1,000 tokens    |
+| GLM-4.5-AirX             | glm-4.5-airx             | 128K           | see BigModel pricing page | see BigModel pricing page  |
 | GLM-4.5-Flash            | glm-4.5-flash            | 128K           | Free                      | Free                       |
-| GLM-4-Plus               | glm-4-plus               | 128K           | 0.005 yuan/1,000 tokens   | 0.005 yuan/1,000 tokens    |
-| GLM-4-AirX               | glm-4-airx               | 8K             | 0.01 yuan/1,000 tokens    | 0.01 yuan/1,000 tokens     |
-| GLM-4-Air                | glm-4-air                | 128K           | 0.0005 yuan/1,000 tokens  | 0.0005 yuan/1,000 tokens   |
 | GLM-4-Long               | glm-4-long               | 1M             | 0.001 yuan/1,000 tokens   | 0.001 yuan/1,000 tokens    |
 | GLM-4-FlashX-250414      | glm-4-flashx-250414      | 128K           | 0.0001 yuan/1,000 tokens  | 0.0001 yuan/1,000 tokens   |
 | GLM-4-Flash-250414       | glm-4-flash-250414       | 128K           | Free                      | Free                       |
 | GLM-5.3-Flash            | glm-5.3-flash            | 1M             | 0.0008 yuan/1,000 tokens  | 0.0028 yuan/1,000 tokens   |
 | GLM-5V-Turbo             | glm-5v-turbo             | 200K           | 0.005 yuan/1,000 tokens   | 0.022 yuan/1,000 tokens    |
 | GLM-4.6V                 | glm-4.6v                 | 128K           | 0.001 yuan/1,000 tokens   | 0.003 yuan/1,000 tokens    |
-| GLM-4.6V-FlashX          | glm-4.6v-flashx          | 128K           | 0.00015 yuan/1,000 tokens | 0.0015 yuan/1,000 tokens   |
 | GLM-4.6V-Flash           | glm-4.6v-flash           | 128K           | Free                      | Free                       |
-| GLM-4.5V                 | glm-4.5v                 | 64K            | 0.002 yuan/1,000 tokens   | 0.006 yuan/1,000 tokens    |
 | GLM-4.1V-Thinking-FlashX | glm-4.1v-thinking-flashx | 64K            | 0.002 yuan/1,000 tokens   | 0.002 yuan/1,000 tokens    |
 | GLM-4.1V-Thinking-Flash  | glm-4.1v-thinking-flash  | 64K            | Free                      | Free                       |
-| GLM-4V-Plus-0111         | glm-4v-plus-0111         | 8K             | 0.004 yuan/1,000 tokens   | 0.004 yuan/1,000 tokens    |
 | GLM-4V-Flash             | glm-4v-flash             | 16K            | Free                      | Free                       |
+| AutoGLM-Phone            | autoglm-phone            | 20K            | see BigModel pricing page | see BigModel pricing page  |
 `
 }
 
@@ -90,31 +84,25 @@ func (p *ChatGLMModelProvider) calculatePrice(modelResult *ModelResult, lang str
 		"glm-4.7-flash":            {0, 0},
 		"glm-4.5-air":              {0.0008, 0.002},
 		"glm-4.5-flash":            {0, 0},
-		"glm-4-plus":               {0.005, 0.005},
-		"glm-4-airx":               {0.01, 0.01},
-		"glm-4-air":                {0.0005, 0.0005},
 		"glm-4-long":               {0.001, 0.001},
 		"glm-4-flashx-250414":      {0.0001, 0.0001},
 		"glm-4-flash-250414":       {0, 0},
 		"glm-5.3-flash":            {0.0008, 0.0028},
 		"glm-5v-turbo":             {0.005, 0.022},
 		"glm-4.6v":                 {0.001, 0.003},
-		"glm-4.6v-flashx":          {0.00015, 0.0015},
 		"glm-4.6v-flash":           {0, 0},
-		"glm-4.5v":                 {0.002, 0.006},
 		"glm-4.1v-thinking-flashx": {0.002, 0.002},
 		"glm-4.1v-thinking-flash":  {0, 0},
-		"glm-4v-plus-0111":         {0.004, 0.004},
 		"glm-4v-flash":             {0, 0},
 	}
 
+	// Models whose rate BigModel does not publish per-token (glm-4.6, glm-4.5-airx,
+	// autoglm-phone) report price = 0 instead of failing the request.
 	price := 0.0
 	if priceItem, ok := priceTable[p.subType]; ok {
 		inputPrice := getPrice(modelResult.PromptTokenCount, priceItem[0])
 		outputPrice := getPrice(modelResult.ResponseTokenCount, priceItem[1])
 		price = AddPrices(inputPrice, outputPrice)
-	} else {
-		return fmt.Errorf(i18n.Translate(lang, "embedding:calculatePrice() error: unknown model type: %s"), p.subType)
 	}
 
 	modelResult.TotalPrice = price

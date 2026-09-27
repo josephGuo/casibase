@@ -16,6 +16,7 @@ package routers
 
 import (
 	"crypto/md5"
+	"crypto/subtle"
 	"encoding/hex"
 	"fmt"
 	"strings"
@@ -118,7 +119,14 @@ func getUsernameByClientIdSecret(ctx *context.Context) (string, error) {
 	}
 
 	applicationName := conf.GetConfigString("casdoorApplication")
-	if clientSecret != conf.GetConfigString("clientSecret") {
+	expectedClientId := conf.GetConfigString("clientId")
+	expectedClientSecret := conf.GetConfigString("clientSecret")
+	// App-level credentials are disabled unless both clientId and clientSecret are configured,
+	// otherwise empty credentials would grant admin access to anyone.
+	if expectedClientId == "" || expectedClientSecret == "" {
+		return "", fmt.Errorf("Client credentials are not configured for application: %s", applicationName)
+	}
+	if !secureEquals(clientId, expectedClientId) || !secureEquals(clientSecret, expectedClientSecret) {
 		return "", fmt.Errorf("Incorrect client secret for application: %s", applicationName)
 	}
 
@@ -129,12 +137,21 @@ func getUsernameByAccessToken(accessTokenInput string) (string, error) {
 	applicationName := conf.GetConfigString("casdoorApplication")
 	clientSecret := conf.GetConfigString("clientSecret")
 	clientId := conf.GetConfigString("clientId")
+	// The access token is derived from clientId and clientSecret. When either is empty the token
+	// becomes a publicly computable constant, so token auth must stay disabled.
+	if clientId == "" || clientSecret == "" {
+		return "", fmt.Errorf("Access token is not configured for application: %s", applicationName)
+	}
 	accessToken := getMd5HexDigest(clientId + ":" + clientSecret)
-	if accessTokenInput != accessToken {
+	if !secureEquals(accessTokenInput, accessToken) {
 		return "", fmt.Errorf("Incorrect access token for application: %s", applicationName)
 	}
 
 	return util.GetIdFromOwnerAndName("app", applicationName), nil
+}
+
+func secureEquals(a string, b string) bool {
+	return subtle.ConstantTimeCompare([]byte(a), []byte(b)) == 1
 }
 
 func parseBearerToken(ctx *context.Context) string {

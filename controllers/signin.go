@@ -44,7 +44,7 @@ type accountForm struct {
 // @router /get-signin-options [get]
 func (c *ApiController) GetSigninOptions() {
 	signinEnabled := object.IsSigninEnabled()
-	autoSignin := signinEnabled && object.IsAdminUsingDefaultPassword()
+	autoSignin := signinEnabled && util.IsLoopbackRequest(c.Ctx.Request) && object.IsAdminUsingDefaultPassword()
 	c.ResponseOk(map[string]interface{}{
 		"casdoorAvailable": conf.IsCasdoorAvailable(),
 		"signinAvailable":  signinEnabled,

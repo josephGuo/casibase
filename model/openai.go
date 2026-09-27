@@ -67,13 +67,130 @@ func CalculateOpenAIModelPrice(model string, modelResult *ModelResult, lang stri
 	var inputPricePerThousandTokens, outputPricePerThousandTokens float64
 
 	switch {
-	// gpt 3.5 turbo model Support:
-	case strings.Contains(model, "gpt-3.5"):
-		inputPricePerThousandTokens = 0.0005
-		outputPricePerThousandTokens = 0.0015
+	// Image generation models are billed per token, except gpt-image-1 which is billed per image
+	case strings.Contains(model, "gpt-image-2"):
+		// covers gpt-image-2, gpt-image-2.5-sunburst and gpt-image-2.5-flare
+		inputPricePerThousandTokens = 0.005
+		outputPricePerThousandTokens = 0.030
 		modelResult.Currency = "USD"
 
-	// gpt 4.1 model
+	case strings.Contains(model, "gpt-image-1.5") || model == "chatgpt-image-latest":
+		inputPricePerThousandTokens = 0.005
+		outputPricePerThousandTokens = 0.010
+		modelResult.Currency = "USD"
+
+	case strings.Contains(model, "gpt-image-1-mini"):
+		inputPricePerThousandTokens = 0.002
+		outputPricePerThousandTokens = 0.008
+		modelResult.Currency = "USD"
+
+	case strings.Contains(model, "gpt-image-1"):
+		inputPricePerThousandTokens = 0.005
+		outputPricePerThousandTokens = 0.040
+		modelResult.Currency = "USD"
+
+	// gpt-6 series
+	case strings.Contains(model, "gpt-6"):
+		inputPricePerThousandTokens = 0.010
+		outputPricePerThousandTokens = 0.050
+		modelResult.Currency = "USD"
+
+	// Cybersecurity models (gpt-5.6-cyber / gpt-5.5-cyber)
+	case strings.Contains(model, "-cyber"):
+		inputPricePerThousandTokens = 0.0125
+		outputPricePerThousandTokens = 0.075
+		modelResult.Currency = "USD"
+
+	// Life sciences model
+	case strings.Contains(model, "rosalind"):
+		inputPricePerThousandTokens = 0.005
+		outputPricePerThousandTokens = 0.025
+		modelResult.Currency = "USD"
+
+	// gpt 5.6 series
+	case strings.Contains(model, "gpt-5.6"):
+		if strings.Contains(model, "5.6-luna") {
+			inputPricePerThousandTokens = 0.0002
+			outputPricePerThousandTokens = 0.0012
+		} else if strings.Contains(model, "5.6-terra") {
+			inputPricePerThousandTokens = 0.002
+			outputPricePerThousandTokens = 0.012
+		} else {
+			// gpt-5.6-sol
+			inputPricePerThousandTokens = 0.004
+			outputPricePerThousandTokens = 0.020
+		}
+		modelResult.Currency = "USD"
+
+	// gpt 5.5 series
+	case strings.Contains(model, "gpt-5.5"):
+		if strings.Contains(model, "pro") {
+			inputPricePerThousandTokens = 0.030
+			outputPricePerThousandTokens = 0.180
+		} else {
+			inputPricePerThousandTokens = 0.005
+			outputPricePerThousandTokens = 0.030
+		}
+		modelResult.Currency = "USD"
+
+	// gpt 5.4 series
+	case strings.Contains(model, "gpt-5.4"):
+		if strings.Contains(model, "5.4-mini") {
+			inputPricePerThousandTokens = 0.00075
+			outputPricePerThousandTokens = 0.0045
+		} else if strings.Contains(model, "5.4-nano") {
+			inputPricePerThousandTokens = 0.0002
+			outputPricePerThousandTokens = 0.00125
+		} else if strings.Contains(model, "pro") {
+			inputPricePerThousandTokens = 0.030
+			outputPricePerThousandTokens = 0.180
+		} else {
+			inputPricePerThousandTokens = 0.0025
+			outputPricePerThousandTokens = 0.015
+		}
+		modelResult.Currency = "USD"
+
+	// gpt 5.3 / 5.2 series (gpt-5.3-codex shares the gpt-5.2 rate)
+	case strings.Contains(model, "gpt-5.3") || strings.Contains(model, "gpt-5.2"):
+		if strings.Contains(model, "pro") {
+			inputPricePerThousandTokens = 0.021
+			outputPricePerThousandTokens = 0.168
+		} else {
+			inputPricePerThousandTokens = 0.00175
+			outputPricePerThousandTokens = 0.014
+		}
+		modelResult.Currency = "USD"
+
+	// gpt 5.1 series
+	case strings.Contains(model, "gpt-5.1"):
+		inputPricePerThousandTokens = 0.00125
+		outputPricePerThousandTokens = 0.010
+		modelResult.Currency = "USD"
+
+	// gpt 5 series
+	case strings.Contains(model, "gpt-5"):
+		if strings.Contains(model, "mini") {
+			inputPricePerThousandTokens = 0.00025
+			outputPricePerThousandTokens = 0.002
+		} else if strings.Contains(model, "nano") {
+			inputPricePerThousandTokens = 0.00005
+			outputPricePerThousandTokens = 0.0004
+		} else if strings.Contains(model, "pro") {
+			inputPricePerThousandTokens = 0.015
+			outputPricePerThousandTokens = 0.120
+		} else {
+			inputPricePerThousandTokens = 0.00125
+			outputPricePerThousandTokens = 0.010
+		}
+		modelResult.Currency = "USD"
+
+	// chat-latest
+	case model == "chat-latest":
+		inputPricePerThousandTokens = 0.005
+		outputPricePerThousandTokens = 0.030
+		modelResult.Currency = "USD"
+
+	// gpt 4.1 series
 	case strings.Contains(model, "gpt-4.1"):
 		if strings.Contains(model, "4.1-mini") {
 			inputPricePerThousandTokens = 0.0004
@@ -87,141 +204,60 @@ func CalculateOpenAIModelPrice(model string, modelResult *ModelResult, lang stri
 		}
 		modelResult.Currency = "USD"
 
-	// gpt 4.0 model
+	// gpt 4 series
 	case strings.Contains(model, "gpt-4"):
 		if strings.Contains(model, "turbo") {
-			inputPricePerThousandTokens = 0.01
-			outputPricePerThousandTokens = 0.03
+			inputPricePerThousandTokens = 0.010
+			outputPricePerThousandTokens = 0.030
 		} else if strings.Contains(model, "4o-mini") {
-			inputPricePerThousandTokens = 0.000075
-			outputPricePerThousandTokens = 0.0003
+			inputPricePerThousandTokens = 0.00015
+			outputPricePerThousandTokens = 0.0006
 		} else if strings.Contains(model, "4o") {
 			inputPricePerThousandTokens = 0.0025
-			outputPricePerThousandTokens = 0.0075
+			outputPricePerThousandTokens = 0.010
 		} else {
-			inputPricePerThousandTokens = 0.03
-			outputPricePerThousandTokens = 0.06
+			inputPricePerThousandTokens = 0.030
+			outputPricePerThousandTokens = 0.060
 		}
 		modelResult.Currency = "USD"
 
-	// o1 model
+	// gpt 3.5 turbo
+	case strings.Contains(model, "gpt-3.5"):
+		inputPricePerThousandTokens = 0.0005
+		outputPricePerThousandTokens = 0.0015
+		modelResult.Currency = "USD"
+
+	// o1 reasoning models
 	case strings.Contains(model, "o1"):
 		if strings.Contains(model, "pro") {
-			inputPricePerThousandTokens = 0.15
-			outputPricePerThousandTokens = 0.6
+			inputPricePerThousandTokens = 0.150
+			outputPricePerThousandTokens = 0.600
 		} else {
 			inputPricePerThousandTokens = 0.015
 			outputPricePerThousandTokens = 0.060
 		}
 		modelResult.Currency = "USD"
 
-	// o3 model
+	// o3 reasoning models
 	case strings.Contains(model, "o3"):
 		if strings.Contains(model, "mini") {
 			inputPricePerThousandTokens = 0.0011
 			outputPricePerThousandTokens = 0.0044
+		} else if strings.Contains(model, "pro") {
+			inputPricePerThousandTokens = 0.020
+			outputPricePerThousandTokens = 0.080
 		} else {
 			inputPricePerThousandTokens = 0.002
 			outputPricePerThousandTokens = 0.008
 		}
 		modelResult.Currency = "USD"
 
-	// o4 model
+	// o4 reasoning models
 	case strings.Contains(model, "o4"):
-		if strings.Contains(model, "o4-mini") {
-			inputPricePerThousandTokens = 0.0011
-			outputPricePerThousandTokens = 0.0044
-		} else {
-			inputPricePerThousandTokens = 0.0011
-			outputPricePerThousandTokens = 0.0044
-		}
+		inputPricePerThousandTokens = 0.0011
+		outputPricePerThousandTokens = 0.0044
 		modelResult.Currency = "USD"
 
-	// gpt 5.5 model
-	case strings.Contains(model, "gpt-5.5"):
-		inputPricePerThousandTokens = 0.005
-		outputPricePerThousandTokens = 0.030
-		modelResult.Currency = "USD"
-
-	// gpt 5.2 model (includes gpt-5.2-chat which uses same pricing)
-	case strings.Contains(model, "gpt-5.2"):
-		if strings.Contains(model, "5.2-mini") {
-			inputPricePerThousandTokens = 0.00025
-			outputPricePerThousandTokens = 0.002
-		} else if strings.Contains(model, "5.2-nano") {
-			inputPricePerThousandTokens = 0.00005
-			outputPricePerThousandTokens = 0.0004
-		} else {
-			inputPricePerThousandTokens = 0.00125
-			outputPricePerThousandTokens = 0.01
-		}
-		modelResult.Currency = "USD"
-
-	// gpt 5.1 model
-	case strings.Contains(model, "gpt-5.1"):
-		if strings.Contains(model, "5.1-mini") {
-			inputPricePerThousandTokens = 0.00025
-			outputPricePerThousandTokens = 0.002
-		} else if strings.Contains(model, "5.1-nano") {
-			inputPricePerThousandTokens = 0.00005
-			outputPricePerThousandTokens = 0.0004
-		} else {
-			inputPricePerThousandTokens = 0.00125
-			outputPricePerThousandTokens = 0.01
-		}
-		modelResult.Currency = "USD"
-
-	// gpt 5.0 model
-	case strings.Contains(model, "gpt-5"):
-		if strings.Contains(model, "5-mini") {
-			inputPricePerThousandTokens = 0.00025
-			outputPricePerThousandTokens = 0.002
-		} else if strings.Contains(model, "5-nano") {
-			inputPricePerThousandTokens = 0.00005
-			outputPricePerThousandTokens = 0.0004
-		} else {
-			inputPricePerThousandTokens = 0.00125
-			outputPricePerThousandTokens = 0.01
-		}
-		modelResult.Currency = "USD"
-
-	// gpt 4.5 model
-	case strings.Contains(model, "gpt-4.5"):
-		if strings.Contains(model, "4.5-mini") {
-			inputPricePerThousandTokens = 0.0004
-			outputPricePerThousandTokens = 0.0016
-		} else if strings.Contains(model, "4.5-nano") {
-			inputPricePerThousandTokens = 0.0001
-			outputPricePerThousandTokens = 0.0004
-		} else {
-			inputPricePerThousandTokens = 0.002
-			outputPricePerThousandTokens = 0.008
-		}
-		modelResult.Currency = "USD"
-
-	// deep-research model
-	case strings.Contains(model, "deep-research"):
-		inputPricePerThousandTokens = 0.002
-		outputPricePerThousandTokens = 0.008
-		modelResult.Currency = "USD"
-
-	// gpt-image-2 model (token-based pricing: text $5/1M input, image $8/1M input, $30/1M output)
-	case strings.Contains(model, "gpt-image-2"):
-		inputPricePerThousandTokens = 0.005
-		outputPricePerThousandTokens = 0.030
-		modelResult.Currency = "USD"
-
-	// gpt-image-1 model
-	case strings.Contains(model, "gpt-image-1"):
-		modelResult.TotalPrice = float64(modelResult.ImageCount) * 0.08
-		modelResult.Currency = "USD"
-		return nil
-
-	// dall-e model
-	case strings.Contains(model, "dall-e-3"):
-		modelResult.TotalPrice = float64(modelResult.ImageCount) * 0.08
-		modelResult.Currency = "USD"
-		return nil
 	default:
 		// For unknown models, set price to 0 instead of returning error
 		inputPricePerThousandTokens = 0
@@ -237,66 +273,61 @@ func CalculateOpenAIModelPrice(model string, modelResult *ModelResult, lang stri
 
 func getOpenAIModelPrice() string {
 	return `URL:
-https://azure.microsoft.com/en-us/pricing/details/cognitive-services/openai-service/
+https://developers.openai.com/api/docs/pricing
 
-Language models:
+Language models (per 1,000 tokens):
 
-| Models                | Context | Input (Per 1,000 tokens) | Output (Per 1,000 tokens) |
-|-----------------------|---------|--------------------------|--------------------------|
-| GPT-3.5-Turbo         | 16K     | $0.0005                  | $0.0015                  |
-| GPT-4                 | 8K      | $0.03                    | $0.06                    |
-| GPT-4                 | 32K     | $0.06                    | $0.12                    |
-| GPT-4-Turbo           | 128K    | $0.01                    | $0.03                    |
-| GPT-4o                | 128K    | $0.0025                  | $0.0075                  |
-| GPT-4o-mini           | 128K    | $0.000075                | $0.0003                  |
-| GPT-4.1               | 100K    | $0.002                   | $0.008                   |
-| GPT-4.1-mini          | 100K    | $0.0004	                 | $0.0016                  |
-| GPT-4.1-nano          | 100K    | $0.0001                  | $0.0004                  |
-| GPT-4.5               | 100K    | $0.002                   | $0.008                   |
-| GPT-4.5-mini          | 100K    | $0.0004                  | $0.0016                  |
-| GPT-4.5-nano          | 100K    | $0.0001                  | $0.0004                  |
-| o1                    | 200K    | $0.015                   | $0.060                   |
-| o1-pro                | 200K    | $0.15                    | $0.6                     |
-| o3                    | 200K    | $0.002                   | $0.008                   |
-| o3-mini               | 200K    | $0.0011                  | $0.0044                  |
-| o4-mini               | 200K    | $0.0011                  | $0.0044                  |
-| GPT-5.5               | 1050K   | $0.005                   | $0.030                   |
-| GPT-5.5-Pro           | 1050K   | $0.005                   | $0.030                   |
-| GPT-5.5-Instant       | 1050K   | $0.005                   | $0.030                   |
-| GPT-5.5-Cyber         | 1050K   | $0.005                   | $0.030                   |
-| GPT-5                 | 400K    | $0.00125                 | $0.01                    |
-| GPT-5-mini            | 400K    | $0.00025                 | $0.002                   |
-| GPT-5-nano            | 400K    | $0.00005                 | $0.0004                  |
-| GPT-5.1               | 400K    | $0.00125                 | $0.01                    |
-| GPT-5.1-mini          | 400K    | $0.00025                 | $0.002                   |
-| GPT-5.1-nano          | 400K    | $0.00005                 | $0.0004                  |
-| GPT-5.2               | 400K    | $0.00125                 | $0.01                    |
-| GPT-5.2-mini          | 400K    | $0.00025                 | $0.002                   |
-| GPT-5.2-nano          | 400K    | $0.00005                 | $0.0004                  |
-| GPT-5.2-chat          | 400K    | $0.00125                 | $0.01                    |
-| GPT-5-chat-latest     | 400K    | $0.00125                 | $0.01                    |
-| Deep-Research         | 200K    | $0.002                   | $0.008                   |
-Image generation models (token-based, per 1M tokens):
+| Models                  | Context | Input     | Output    |
+|-------------------------|---------|-----------|-----------|
+| GPT-6-Astra             | 1050K   | $0.010    | $0.050    |
+| GPT-5.6-Sol             | 1050K   | $0.004    | $0.020    |
+| GPT-5.6-Terra           | 1050K   | $0.002    | $0.012    |
+| GPT-5.6-Luna            | 1050K   | $0.0002   | $0.0012   |
+| GPT-5.6-Cyber           | 1050K   | $0.0125   | $0.075    |
+| GPT-5.5-Cyber           | 1050K   | $0.0125   | $0.075    |
+| GPT-Rosalind-Research   | 400K    | $0.005    | $0.025    |
+| GPT-5.5                 | 1050K   | $0.005    | $0.030    |
+| GPT-5.5-Pro             | 1050K   | $0.030    | $0.180    |
+| GPT-5.4                 | 400K    | $0.0025   | $0.015    |
+| GPT-5.4-mini            | 400K    | $0.00075  | $0.0045   |
+| GPT-5.4-nano            | 400K    | $0.0002   | $0.00125  |
+| GPT-5.4-Pro             | 400K    | $0.030    | $0.180    |
+| GPT-5.3-Codex           | 400K    | $0.00175  | $0.014    |
+| GPT-5.2                 | 400K    | $0.00175  | $0.014    |
+| GPT-5.2-Pro             | 400K    | $0.021    | $0.168    |
+| GPT-5.1                 | 400K    | $0.00125  | $0.010    |
+| GPT-5                   | 400K    | $0.00125  | $0.010    |
+| GPT-5-mini              | 400K    | $0.00025  | $0.002    |
+| GPT-5-nano              | 400K    | $0.00005  | $0.0004   |
+| GPT-5-Pro               | 400K    | $0.015    | $0.120    |
+| GPT-5-Search-API        | 400K    | $0.00125  | $0.010    |
+| chat-latest             | 400K    | $0.005    | $0.030    |
+| GPT-4.1                 | 100K    | $0.002    | $0.008    |
+| GPT-4.1-mini            | 100K    | $0.0004   | $0.0016   |
+| GPT-4.1-nano            | 100K    | $0.0001   | $0.0004   |
+| GPT-4o                  | 128K    | $0.0025   | $0.010    |
+| GPT-4o-mini             | 128K    | $0.00015  | $0.0006   |
+| GPT-4-Turbo             | 128K    | $0.010    | $0.030    |
+| GPT-4                   | 8K      | $0.030    | $0.060    |
+| GPT-3.5-Turbo           | 16K     | $0.0005   | $0.0015   |
+| o1                      | 200K    | $0.015    | $0.060    |
+| o1-pro                  | 200K    | $0.150    | $0.600    |
+| o3                      | 200K    | $0.002    | $0.008    |
+| o3-pro                  | 200K    | $0.020    | $0.080    |
+| o3-mini                 | 200K    | $0.0011   | $0.0044   |
+| o4-mini                 | 200K    | $0.0011   | $0.0044   |
 
-| Model             | Modality | Input   | Cached Input | Output  |
-|-------------------|----------|---------|--------------|---------|
-| GPT-Image-2       | Image    | $8.00   | $2.00        | $30.00  |
-|                   | Text     | $5.00   | $1.25        | -       |
-| GPT-Image-1.5     | Image    | $8.00   | $2.00        | $32.00  |
-|                   | Text     | $5.00   | $1.25        | $10.00  |
-| GPT-Image-1-Mini  | Image    | $2.50   | $0.25        | $8.00   |
-|                   | Text     | $2.00   | $0.20        | -       |
+Image generation models (token-based, per 1,000 tokens):
 
-Legacy image models:
-
-| Models       | Quality | Resolution               | Price (per image) |
-|--------------|---------|--------------------------|------------------|
-| Dall-E-3     | Standard| 1024 * 1024              | N/A              |
-|              | Standard| 1024 * 1792, 1792 * 1024 | $0.08            |
-| Dall-E-3     | HD      | 1024 * 1024              | N/A              |
-|              | HD      | 1024 * 1792, 1792 * 1024 | N/A              |
-| Dall-E-2     | Standard| 1024 * 1024              | N/A              |
-| GPT-Image-1  | Standard| 1024 * 1024              | $0.08            |
+| Model                   | Input     | Output    |
+|-------------------------|-----------|-----------|
+| GPT-Image-2.5-Sunburst  | $0.005    | $0.030    |
+| GPT-Image-2.5-Flare     | $0.005    | $0.030    |
+| GPT-Image-2             | $0.005    | $0.030    |
+| GPT-Image-1.5           | $0.005    | $0.010    |
+| GPT-Image-1-Mini        | $0.002    | $0.008    |
+| GPT-Image-1             | $0.005    | $0.040    |
+| ChatGPT-Image-Latest    | $0.005    | $0.010    |
 `
 }
 
@@ -531,11 +562,8 @@ func (p *OpenAiModelProvider) QueryText(question string, writer io.Writer, histo
 			Quality: quality,
 			N:       param.NewOpt[int64](1),
 		}
-		// response_format is only valid for dall-e-2 / dall-e-3. gpt-image models reject it
-		// and return base64-encoded image data by default.
-		if strings.HasPrefix(model, "dall-e") {
-			reqGen.ResponseFormat = openai.ImageGenerateParamsResponseFormatURL
-		}
+		// The gpt-image models reject response_format and return base64-encoded image data
+		// by default. DALL-E, the only family that accepted it, was shut down in May 2026.
 
 		respUrl, err := client.Images.Generate(ctx, reqGen)
 		if err != nil {
@@ -645,11 +673,7 @@ func openaiImageHTMLSrc(resp *openai.ImagesResponse) (string, error) {
 }
 
 func getGenerateImageQuality(model string) openai.ImageGenerateParamsQuality {
-	if strings.HasPrefix(model, "dall-e-3") {
-		return openai.ImageGenerateParamsQualityHD
-	} else if strings.HasPrefix(model, "dall-e-2") {
-		return openai.ImageGenerateParamsQualityStandard
-	} else if strings.HasPrefix(model, "gpt-image-1") {
+	if strings.HasPrefix(model, "gpt-image-1") {
 		return openai.ImageGenerateParamsQualityHigh
 	}
 	return openai.ImageGenerateParamsQualityAuto

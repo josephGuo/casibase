@@ -42,40 +42,36 @@ func (p *ClaudeModelProvider) GetPricing() string {
 	return `URL:
 https://docs.anthropic.com/en/docs/about-claude/pricing
 
-| Model family        | Context window | Input Pricing         | Output Pricing        |
-|---------------------|----------------|-----------------------|-----------------------|
-| Claude Opus 4.7     | 1,000,000 tokens| $5.00/million tokens  | $25.00/million tokens |
-| Claude Opus 4.5     | 200,000 tokens | $5.00/million tokens  | $25.00/million tokens |
-| Claude Opus 4.1     | 200,000 tokens | $15.00/million tokens | $75.00/million tokens |
-| Claude Opus 4       | 200,000 tokens | $15.00/million tokens | $75.00/million tokens |
-| Claude Sonnet 4     | 200,000 tokens | $3.00/million tokens  | $15.00/million tokens |
-| Claude Sonnet 3.7   | 200,000 tokens | $3.00/million tokens  | $15.00/million tokens |
-| Claude Sonnet 3.5   | 200,000 tokens | $3.00/million tokens  | $15.00/million tokens |
-| Claude Haiku 3.5    | 200,000 tokens | $0.80/million tokens  | $4.00/million tokens  |
-| Claude Opus 3       | 200,000 tokens | $15.00/million tokens | $75.00/million tokens |
-| Claude Haiku 3      | 200,000 tokens | $0.25/million tokens  | $1.25/million tokens  |
+| Model family        | Context window   | Input Pricing         | Output Pricing        |
+|---------------------|------------------|-----------------------|-----------------------|
+| Claude Fable 5.1    | 1,000,000 tokens | $10.00/million tokens | $50.00/million tokens |
+| Claude Fable 5      | 1,000,000 tokens | $10.00/million tokens | $50.00/million tokens |
+| Claude Opus 5       | 1,000,000 tokens | $5.00/million tokens  | $25.00/million tokens |
+| Claude Opus 4.8     | 1,000,000 tokens | $5.00/million tokens  | $25.00/million tokens |
+| Claude Opus 4.7     | 1,000,000 tokens | $5.00/million tokens  | $25.00/million tokens |
+| Claude Opus 4.6     | 1,000,000 tokens | $5.00/million tokens  | $25.00/million tokens |
+| Claude Sonnet 5     | 1,000,000 tokens | $2.00/million tokens  | $10.00/million tokens |
+| Claude Sonnet 4.6   | 1,000,000 tokens | $3.00/million tokens  | $15.00/million tokens |
+| Claude Haiku 4.5    | 200,000 tokens   | $1.00/million tokens  | $5.00/million tokens  |
 `
+}
+
+func supportsThinkingBudget(subType string) bool {
+	return strings.Contains(subType, "claude-haiku-4-5")
 }
 
 func (p *ClaudeModelProvider) calculatePrice(modelResult *ModelResult, lang string) error {
 	var inputPricePerThousandTokens, outputPricePerThousandTokens float64
 	priceTable := map[string][]float64{
-		"claude-opus-4-7":            {0.005, 0.025},
-		"claude-opus-4-5":            {0.005, 0.025},
-		"claude-opus-4-1":            {0.015, 0.075},
-		"claude-opus-4-0":            {0.015, 0.075},
-		"claude-opus-4-20250514":     {0.015, 0.075},
-		"claude-4-opus-20250514":     {0.015, 0.075},
-		"claude-sonnet-4-0":          {0.003, 0.015},
-		"claude-sonnet-4-20250514":   {0.003, 0.015},
-		"claude-4-sonnet-20250514":   {0.003, 0.015},
-		"claude-3-7-sonnet-latest":   {0.003, 0.015},
-		"claude-3-7-sonnet-20250219": {0.003, 0.015},
-		"claude-3-5-haiku-latest":    {0.0008, 0.004},
-		"claude-3-5-haiku-20241022":  {0.0008, 0.004},
-		"claude-3-5-sonnet-latest":   {0.003, 0.015},
-		"claude-3-opus-latest":       {0.015, 0.075},
-		"claude-3-haiku-20240307":    {0.00025, 0.00125},
+		"claude-fable-5-1":  {0.010, 0.050},
+		"claude-fable-5":    {0.010, 0.050},
+		"claude-opus-5":     {0.005, 0.025},
+		"claude-opus-4-8":   {0.005, 0.025},
+		"claude-opus-4-7":   {0.005, 0.025},
+		"claude-opus-4-6":   {0.005, 0.025},
+		"claude-sonnet-5":   {0.002, 0.010},
+		"claude-sonnet-4-6": {0.003, 0.015},
+		"claude-haiku-4-5":  {0.001, 0.005},
 	}
 
 	if priceItem, ok := priceTable[p.subType]; ok {
@@ -110,7 +106,9 @@ func (p *ClaudeModelProvider) QueryText(question string, writer io.Writer, histo
 		}
 	}
 
-	maxTokens := getContextLength(p.subType)
+	// "max_tokens" is the output cap, not the context window: the current Claude models take a
+	// 1M token context but only accept up to 128K output tokens (64K on Claude Haiku 4.5).
+	maxTokens := getMaxOutputTokens(p.subType)
 
 	var textBlockList []anthropic.TextBlockParam
 	systemMessages := getSystemMessages(prompt, knowledgeMessages)
@@ -135,7 +133,10 @@ func (p *ClaudeModelProvider) QueryText(question string, writer io.Writer, histo
 		StopSequences: []string{"```\n"},
 		System:        textBlockList,
 	}
-	if p.enableThinking {
+	// Claude Fable 5/5.1, Opus 5/4.8/4.7/4.6 and Sonnet 5/4.6 use adaptive thinking and reject
+	// "thinking.budget_tokens" with a 400, so a fixed budget is only sent for the models that
+	// still accept one (Claude Haiku 4.5 and older).
+	if p.enableThinking && supportsThinkingBudget(p.subType) {
 		messageParams.Thinking = anthropic.ThinkingConfigParamUnion{
 			OfEnabled: &anthropic.ThinkingConfigEnabledParam{
 				BudgetTokens: int64(p.budgetTokens),

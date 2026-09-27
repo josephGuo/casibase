@@ -30,6 +30,20 @@ func FileExist(path string) bool {
 	return true
 }
 
+// SanitizePathSegment turns user-controlled input into a single, safe path segment by
+// replacing path separators and parent-directory references, so it cannot traverse
+// out of the folder it is joined into.
+func SanitizePathSegment(segment string) string {
+	segment = strings.ReplaceAll(segment, "/", "_")
+	segment = strings.ReplaceAll(segment, "\\", "_")
+	segment = strings.ReplaceAll(segment, "..", "_")
+	segment = strings.ReplaceAll(segment, ":", "_")
+	if strings.TrimSpace(segment) == "." {
+		return "_"
+	}
+	return segment
+}
+
 func GetPath(path string) string {
 	return filepath.Dir(path)
 }

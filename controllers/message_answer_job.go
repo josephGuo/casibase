@@ -42,7 +42,7 @@ func newMessageAnswerJobManager() *messageAnswerJobManager {
 	}
 }
 
-func (m *messageAnswerJobManager) getOrStart(id string, host string, lang string, signedIn bool) *messageAnswerJob {
+func (m *messageAnswerJobManager) getOrStart(id string, host string, lang string, signedIn bool, allowHighRiskTools bool) *messageAnswerJob {
 	m.mu.Lock()
 	if job, ok := m.jobs[id]; ok {
 		m.mu.Unlock()
@@ -80,7 +80,7 @@ func (m *messageAnswerJobManager) getOrStart(id string, host string, lang string
 			job.finish()
 			cleanupMessageAnswerJobChatStatus(id)
 		}()
-		generateMessageAnswer(id, job.writer, host, lang, signedIn, nil)
+		generateMessageAnswer(id, job.writer, host, lang, signedIn, allowHighRiskTools, nil)
 	}()
 
 	return job

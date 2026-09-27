@@ -60,7 +60,7 @@ func (c *ApiController) GetMessageAnswer() {
 	c.Ctx.ResponseWriter.Header().Set("Cache-Control", "no-cache")
 	c.Ctx.ResponseWriter.Header().Set("Connection", "keep-alive")
 
-	job := messageAnswerJobs.getOrStart(id, c.Ctx.Request.Host, c.GetAcceptLanguage(), signedIn)
+	job := messageAnswerJobs.getOrStart(id, c.Ctx.Request.Host, c.GetAcceptLanguage(), signedIn, signedIn)
 	streamMessageAnswerJob(c.Ctx.ResponseWriter, c.Ctx.Request, job)
 }
 
@@ -94,7 +94,7 @@ func (c *ApiController) CancelMessageAnswer() {
 
 func (c *ApiController) generateMessageAnswer(id string, responseWriter http.ResponseWriter, host string) {
 	_, signedIn := c.CheckSignedIn()
-	generateMessageAnswer(id, responseWriter, host, c.GetAcceptLanguage(), signedIn, c.ResponseError)
+	generateMessageAnswer(id, responseWriter, host, c.GetAcceptLanguage(), signedIn, signedIn, c.ResponseError)
 }
 
 func streamMessageAnswerJob(responseWriter http.ResponseWriter, request *http.Request, job *messageAnswerJob) {
@@ -137,7 +137,7 @@ func streamMessageAnswerJob(responseWriter http.ResponseWriter, request *http.Re
 	}
 }
 
-func generateMessageAnswer(id string, responseWriter http.ResponseWriter, host string, lang string, signedIn bool, responseError func(string, ...interface{})) {
+func generateMessageAnswer(id string, responseWriter http.ResponseWriter, host string, lang string, signedIn bool, allowHighRiskTools bool, responseError func(string, ...interface{})) {
 	responseErrorStream := func(message *object.Message, errorText string) {
 		if err := writeMessageErrorStream(responseWriter, lang, message, errorText); err != nil {
 			if responseError != nil {
@@ -211,6 +211,14 @@ func generateMessageAnswer(id string, responseWriter http.ResponseWriter, host s
 
 	if chat.Tool != "" {
 		store.Tools = []string{chat.Tool}
+	}
+
+	if !allowHighRiskTools && len(store.Tools) > 0 {
+		store.Tools, err = object.FilterOutHighRiskTools(store.Owner, store.Tools)
+		if err != nil {
+			responseErrorStream(message, err.Error())
+			return
+		}
 	}
 
 	if len(store.Tools) > 0 {
@@ -633,6 +641,10 @@ func (c *ApiController) GetAnswer() {
 	framework := c.Input().Get("framework")
 	video := c.Input().Get("video")
 	tool := c.Input().Get("tool")
+
+	if tool != "" && !c.RequireAdmin() {
+		return
+	}
 
 	if question == "" {
 		c.ResponseError(fmt.Sprintf("The question should not be empty"))

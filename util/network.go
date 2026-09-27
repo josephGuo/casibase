@@ -16,6 +16,7 @@ package util
 
 import (
 	"net"
+	"net/http"
 	"strings"
 )
 
@@ -45,6 +46,37 @@ func IsLocalhostTarget(target string) bool {
 	}
 
 	return false
+}
+
+// IsLoopbackRequest reports whether the request was made directly from the local machine.
+// Requests relayed by a reverse proxy (which would also arrive from a loopback address) and
+// requests whose Host is not a loopback name (DNS rebinding) are not treated as local.
+func IsLoopbackRequest(r *http.Request) bool {
+	if r == nil {
+		return false
+	}
+
+	for _, header := range []string{"X-Forwarded-For", "X-Forwarded-Host", "X-Real-Ip", "Forwarded"} {
+		if r.Header.Get(header) != "" {
+			return false
+		}
+	}
+
+	remoteHost, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		remoteHost = r.RemoteAddr
+	}
+	remoteIP := net.ParseIP(remoteHost)
+	if remoteIP == nil || !remoteIP.IsLoopback() {
+		return false
+	}
+
+	host, _, err := net.SplitHostPort(r.Host)
+	if err != nil {
+		host = r.Host
+	}
+	host = strings.TrimSuffix(strings.TrimPrefix(host, "["), "]")
+	return IsLocalhostTarget(strings.ToLower(host))
 }
 
 // IsIPAddress checks if a string is a valid IP address (not a hostname)

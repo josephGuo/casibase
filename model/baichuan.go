@@ -15,10 +15,7 @@
 package model
 
 import (
-	"fmt"
 	"io"
-
-	"github.com/the-open-agent/openagent/i18n"
 )
 
 type BaichuanModelProvider struct {
@@ -41,23 +38,21 @@ func (p *BaichuanModelProvider) GetPricing() string {
 	return `URL:
 https://platform.baichuan-ai.com/price
 
-| Model      | sub-type             | Input Price per 1K characters    | Output Price per 1K characters |
+| Model      | sub-type             | Input Price per 1K tokens        | Output Price per 1K tokens     |
 |------------|----------------------|----------------------------------|--------------------------------|
-| Baichuan   | Baichuan2-Turbo      | 0.008yuan/1,000 tokens           | 0.008yuan/1,000 tokens         |
-| Baichuan   | Baichuan2-53B        | 0.010yuan/1,000 tokens           | 0.010yuan/1,000 tokens         |
-| Baichuan   | Baichuan3-Turbo      | 0.012yuan/1,000 tokens           | 0.012yuan/1,000 tokens         |
-| Baichuan   | Baichuan3-Turbo-128k | 0.024yuan/1,000 tokens           | 0.024yuan/1,000 tokens         |
-| Baichuan   | Baichuan4            | 0.100yuan/1,000 tokens           | 0.100yuan/1,000 tokens         |
-| Baichuan   | Baichuan4-Air        | 0.00098yuan/1,000 tokens         | 0.00098yuan/1,000 tokens       |
+| Baichuan   | Baichuan-M4          | see Baichuan pricing page        | see Baichuan pricing page      |
+| Baichuan   | Baichuan-M3          | see Baichuan pricing page        | see Baichuan pricing page      |
 | Baichuan   | Baichuan4-Turbo      | 0.015yuan/1,000 tokens           | 0.015yuan/1,000 tokens         |
+| Baichuan   | Baichuan4-Air        | 0.00098yuan/1,000 tokens         | 0.00098yuan/1,000 tokens       |
+| Baichuan   | Baichuan4            | 0.100yuan/1,000 tokens           | 0.100yuan/1,000 tokens         |
+| Baichuan   | Baichuan3-Turbo-128k | 0.024yuan/1,000 tokens           | 0.024yuan/1,000 tokens         |
+| Baichuan   | Baichuan3-Turbo      | 0.012yuan/1,000 tokens           | 0.012yuan/1,000 tokens         |
 `
 }
 
 func (p *BaichuanModelProvider) calculatePrice(modelResult *ModelResult, lang string) error {
 	price := 0.0
 	priceTable := map[string][2]float64{
-		"Baichuan2-Turbo":      {0.008, 0.008},
-		"Baichuan2-53B":        {0.1, 0.1},
 		"Baichuan3-Turbo":      {0.012, 0.012},
 		"Baichuan3-Turbo-128k": {0.024, 0.024},
 		"Baichuan4":            {0.1, 0.1},
@@ -65,12 +60,12 @@ func (p *BaichuanModelProvider) calculatePrice(modelResult *ModelResult, lang st
 		"Baichuan4-Turbo":      {0.015, 0.015},
 	}
 
+	// The Baichuan-M medical models are quoted per contract, so they report price = 0
+	// instead of failing the request.
 	if priceItem, ok := priceTable[p.subType]; ok {
 		inputPrice := getPrice(modelResult.PromptTokenCount, priceItem[0])
 		outputPrice := getPrice(modelResult.ResponseTokenCount, priceItem[1])
 		price = inputPrice + outputPrice
-	} else {
-		return fmt.Errorf(i18n.Translate(lang, "embedding:calculatePrice() error: unknown model type: %s"), p.subType)
 	}
 
 	modelResult.TotalPrice = price
