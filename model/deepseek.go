@@ -49,6 +49,9 @@ billed at twice these rates, and cache hits are billed far lower.
 |-----------------|-----------------|---------------------------|----------------------------|
 | DeepSeek-V4-Pro | deepseek-v4-pro | $0.00066                  | $0.00198                   |
 | DeepSeek-Flash  | deepseek-flash  | $0.00015                  | $0.0006                    |
+
+The legacy names deepseek-v4-flash and deepseek-v4-flash-vision-exp are still accepted;
+their requests are served by DeepSeek-V4.1-Flash and billed at the Flash price.
 `
 }
 
@@ -57,6 +60,9 @@ func (p *DeepSeekProvider) calculatePrice(modelResult *ModelResult, lang string)
 	priceTable := map[string][2]float64{
 		"deepseek-v4-pro": {0.00066, 0.00198},
 		"deepseek-flash":  {0.00015, 0.0006},
+		// Legacy names still accepted by the API, served and billed as deepseek-flash
+		"deepseek-v4-flash":            {0.00015, 0.0006},
+		"deepseek-v4-flash-vision-exp": {0.00015, 0.0006},
 	}
 
 	if priceItem, ok := priceTable[p.subType]; ok {
