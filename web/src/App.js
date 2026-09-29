@@ -66,7 +66,6 @@ class App extends Component {
     this.updateMenuKey();
     this.getAccount();
     this.setTheme();
-    this.getForms();
   }
 
   setTheme() {
@@ -181,6 +180,7 @@ class App extends Component {
         if (account !== null) {
           this.setLanguage(account);
           this.setState({account: account});
+          this.getForms();
           return;
         }
 
