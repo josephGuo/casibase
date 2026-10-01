@@ -225,6 +225,7 @@
     "Cannot delete the default store": "无法删除默认存储库",
     "Only the super admin can publish an agent directly. Please set the publish state to Pending Review instead": "只有超级管理员才能直接将状态设置为已发布，请改为设置成待审核状态",
     "The agent does not exist": "智能体不存在",
+    "The store name cannot be empty": "存储库名称不能为空",
     "You can only set the publish state to Private or Pending Review": "您只能将状态设置为私有或待审核",
     "You cannot fork your own agent": "无法复刻自己的智能体",
     "You have already forked this agent": "你已经复刻过这个智能体了",
