@@ -1001,6 +1001,7 @@
     "Messages scanned": "已扫描消息数",
     "Min frequency": "最小词频",
     "Move": "移动",
+    "Name cannot be empty": "ID不能为空",
     "Navbar items": "导航栏项",
     "Navbar items - Tooltip": "导航栏菜单项配置",
     "New folder": "新建文件夹",

@@ -225,6 +225,7 @@
     "Cannot delete the default store": "Cannot delete the default store",
     "Only the super admin can publish an agent directly. Please set the publish state to Pending Review instead": "Only the super admin can publish an agent directly. Please set the publish state to Pending Review instead",
     "The agent does not exist": "The agent does not exist",
+    "The store name cannot be empty": "The store name cannot be empty",
     "You can only set the publish state to Private or Pending Review": "You can only set the publish state to Private or Pending Review",
     "You cannot fork your own agent": "You cannot fork your own agent",
     "You have already forked this agent": "You have already forked this agent",

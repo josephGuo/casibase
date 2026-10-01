@@ -1001,6 +1001,7 @@
     "Messages scanned": "Messages scanned",
     "Min frequency": "Min frequency",
     "Move": "Move",
+    "Name cannot be empty": "Name cannot be empty",
     "Navbar items": "Navbar items",
     "Navbar items - Tooltip": "Navigation bar menu items configuration",
     "New folder": "New folder",

@@ -309,6 +309,11 @@ class StoreEditPage extends React.Component {
 
   setPublishState(newState) {
     const store = Setting.deepCopy(this.state.store);
+    if (!store.name || store.name.trim() === "") {
+      Setting.showMessage("error", i18next.t("store:Name cannot be empty"));
+      return;
+    }
+
     store.publishState = newState;
     store.fileTree = undefined;
     StoreBackend.updateStore(this.state.owner, this.state.storeName, store)
@@ -1017,6 +1022,11 @@ class StoreEditPage extends React.Component {
     let store = Setting.deepCopy(this.state.store);
     if (storeParam) {
       store = storeParam;
+    }
+
+    if (!store.name || store.name.trim() === "") {
+      Setting.showMessage("error", i18next.t("store:Name cannot be empty"));
+      return;
     }
 
     const basePath = this.props.basePath || "/stores";

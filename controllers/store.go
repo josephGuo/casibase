@@ -254,6 +254,11 @@ func (c *ApiController) UpdateStore() {
 		return
 	}
 
+	if strings.TrimSpace(store.Name) == "" {
+		c.ResponseError(c.T("store:The store name cannot be empty"))
+		return
+	}
+
 	oldStore, err := object.GetStore(id)
 	if err != nil {
 		c.ResponseError(err.Error())
@@ -390,6 +395,11 @@ func (c *ApiController) AddStore() {
 	err := json.Unmarshal(c.Ctx.Input.RequestBody, &store)
 	if err != nil {
 		c.ResponseError(err.Error())
+		return
+	}
+
+	if strings.TrimSpace(store.Name) == "" {
+		c.ResponseError(c.T("store:The store name cannot be empty"))
 		return
 	}
 
