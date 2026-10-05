@@ -18,11 +18,6 @@
 package auth
 
 import (
-	"context"
-	"errors"
-	"fmt"
-	"strings"
-
 	"github.com/casdoor/casdoor-go-sdk/casdoorsdk"
 	"golang.org/x/oauth2"
 )
@@ -41,18 +36,9 @@ type (
 	User         = casdoorsdk.User
 )
 
-var (
-	authEndpoint     string
-	authClientId     string
-	authClientSecret string
-)
-
 // InitConfig initialises the identity-provider SDK client.
 func InitConfig(endpoint, clientId, clientSecret, jwtPublicKey, organization, application string) {
 	casdoorsdk.InitConfig(endpoint, clientId, clientSecret, jwtPublicKey, organization, application)
-	authEndpoint = strings.TrimSuffix(endpoint, "/")
-	authClientId = clientId
-	authClientSecret = clientSecret
 }
 
 func GetApplication(name string) (*Application, error) {
@@ -65,28 +51,6 @@ func GetCert(name string) (*Cert, error) {
 
 func GetOAuthToken(code, state string) (*oauth2.Token, error) {
 	return casdoorsdk.GetOAuthToken(code, state)
-}
-
-// GetWechatMiniProgramToken exchanges a wx.login code for a token via the
-// application's WeChat Mini Program provider.
-func GetWechatMiniProgramToken(code string) (*oauth2.Token, error) {
-	config := oauth2.Config{
-		ClientID:     authClientId,
-		ClientSecret: authClientSecret,
-		Endpoint: oauth2.Endpoint{
-			TokenURL:  fmt.Sprintf("%s/api/login/oauth/access_token", authEndpoint),
-			AuthStyle: oauth2.AuthStyleInParams,
-		},
-	}
-
-	token, err := config.Exchange(context.Background(), code, oauth2.SetAuthURLParam("tag", "wechat_miniprogram"))
-	if err != nil {
-		return nil, err
-	}
-	if strings.HasPrefix(token.AccessToken, "error:") {
-		return nil, errors.New(strings.TrimPrefix(token.AccessToken, "error: "))
-	}
-	return token, nil
 }
 
 func ParseJwtToken(token string) (*Claims, error) {
