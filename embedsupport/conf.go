@@ -86,3 +86,25 @@ func confSearchPaths() []string {
 	}
 	return paths
 }
+
+// AppDir returns the directory of conf/app.conf (the executable's one if none),
+// so a binary shared by several sites uses each site's own directory.
+func AppDir() (dir string, isExeDir bool) {
+	exeDir := ""
+	if exePath, err := os.Executable(); err == nil {
+		exeDir = filepath.Dir(exePath)
+		if _, err = os.Stat(filepath.Join(exeDir, "conf", "app.conf")); err == nil {
+			return exeDir, true
+		}
+	}
+	cwd, err := os.Getwd()
+	if err == nil {
+		if _, err = os.Stat(filepath.Join(cwd, "conf", "app.conf")); err == nil {
+			return cwd, false
+		}
+	}
+	if exeDir != "" {
+		return exeDir, true
+	}
+	return cwd, false
+}

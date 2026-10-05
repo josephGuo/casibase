@@ -117,13 +117,13 @@ func StopManaged() {
 }
 
 func Start(ctx context.Context) (*Manager, error) {
-	rootDir, err := executableDir()
-	if err != nil {
-		return nil, err
+	rootDir, _ := embedsupport.AppDir()
+	if rootDir == "" {
+		return nil, fmt.Errorf("cannot locate the OpenAgent directory for the local OCR service")
 	}
 
 	manager := NewManager(rootDir)
-	if err = manager.Start(ctx); err != nil {
+	if err := manager.Start(ctx); err != nil {
 		manager.Stop()
 		return nil, err
 	}
@@ -423,16 +423,6 @@ func freePort() (int, error) {
 		return 0, fmt.Errorf("failed to resolve local OCR listener address")
 	}
 	return address.Port, nil
-}
-
-// executableDir returns the directory that contains the running binary.
-// It prefers os.Executable (reliable regardless of working directory) and
-// falls back to os.Getwd so that `go run` and tests still work.
-func executableDir() (string, error) {
-	if exe, err := os.Executable(); err == nil {
-		return filepath.Dir(exe), nil
-	}
-	return os.Getwd()
 }
 
 type localOcrLogWriter struct{}
