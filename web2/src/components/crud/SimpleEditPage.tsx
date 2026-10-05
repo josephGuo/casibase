@@ -80,6 +80,8 @@ export interface SimpleEditPageProps {
    */
   onAdded?: (record: any, res: CasdoorResponse) => Record<string, any> | undefined;
   transform?: (record: any) => any;
+  /** opens a loaded record in view mode, for records this site may look at but not change */
+  readOnly?: (record: any) => boolean;
   /**
    * Last chance to adjust the payload before it is sent. Returning `null` aborts
    * the save, which is how a page rejects a record its own validation refuses.
@@ -105,6 +107,7 @@ export function SimpleEditPage({
   editUrl,
   onAdded,
   transform,
+  readOnly,
   beforeSave,
   extraActions,
   children,
@@ -112,7 +115,7 @@ export function SimpleEditPage({
   const navigate = useNavigate();
   const [saving, setSaving] = React.useState(false);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
-  const {record, updateField, updateFields, loading, denied, mode, setMode, reload} = useEditRecord<any>({fetch, transform, deps});
+  const {record, updateField, updateFields, loading, denied, mode: loadedMode, setMode, reload} = useEditRecord<any>({fetch, transform, deps});
   const savedIdentity = React.useRef<{owner: any; name: any} | null>(null);
 
   React.useEffect(() => {
@@ -128,6 +131,7 @@ export function SimpleEditPage({
     return <Loading />;
   }
 
+  const mode: EditMode = loadedMode !== "add" && readOnly?.(record) ? "view" : loadedMode;
   const ctx: Ctx = {record, mode, reload};
 
   // the identity the record was last loaded or saved under: a rejected rename has

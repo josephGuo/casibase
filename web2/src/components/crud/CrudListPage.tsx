@@ -63,6 +63,12 @@ export interface CrudListPageProps<T extends Record<string, any>> {
    */
   readOnly?: boolean;
   /**
+   * `readOnly` for a single row, such as a provider synced from a remote
+   * OpenAgent: its action reads "View" and opens the read-only edit page, and it
+   * cannot be deleted.
+   */
+  rowReadOnly?: (record: T) => boolean;
+  /**
    * Blocks Delete for one row. A string is shown as a tooltip explaining why
    * (the group list uses it for a group that still has subgroups); `true` just
    * disables the button, the way antd does for the built-in objects.
@@ -96,6 +102,7 @@ export function CrudListPage<T extends Record<string, any>>({
   showActionColumn = true,
   actionColumnWidth = 180,
   readOnly = false,
+  rowReadOnly,
   deleteDisabled,
   tableId,
 }: CrudListPageProps<T>) {
@@ -159,7 +166,7 @@ export function CrudListPage<T extends Record<string, any>>({
   const formItems = formItemsProp ?? savedFormItems;
 
   const deleteAction = (record: T): RowAction => {
-    const blockedReason = deleteDisabled?.(record);
+    const blockedReason = deleteDisabled?.(record) || rowReadOnly?.(record);
     return {
       key: "delete",
       label: i18next.t("general:Delete"),
@@ -186,28 +193,31 @@ export function CrudListPage<T extends Record<string, any>>({
         align: "right",
         // antd pins it so the row's actions stay reachable on a wide table
         fixed: "right",
-        render: (_: any, record: T, index: number) => (
-          <RowActions
-            actions={[
-              editUrl
-                ? {
-                  key: "edit",
-                  label: i18next.t(readOnly ? "general:View" : "general:Edit"),
-                  onSelect: () => navigate(editUrl(record), readOnly ? {state: {mode: "view"}} : undefined),
-                }
-                : null,
-              ...(rowActions?.(record, index, {refresh}) ?? []),
-              remove ? deleteAction(record) : null,
-            ]}
-          />
-        ),
+        render: (_: any, record: T, index: number) => {
+          const viewOnly = readOnly || Boolean(rowReadOnly?.(record));
+          return (
+            <RowActions
+              actions={[
+                editUrl
+                  ? {
+                    key: "edit",
+                    label: i18next.t(viewOnly ? "general:View" : "general:Edit"),
+                    onSelect: () => navigate(editUrl(record), viewOnly ? {state: {mode: "view"}} : undefined),
+                  }
+                  : null,
+                ...(rowActions?.(record, index, {refresh}) ?? []),
+                remove ? deleteAction(record) : null,
+              ]}
+            />
+          );
+        },
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columns, formItems, editUrl, remove, rowActions, showActionColumn, readOnly, deleteDisabled, rows, query.page, refresh]);
+  }, [columns, formItems, editUrl, remove, rowActions, showActionColumn, readOnly, rowReadOnly, deleteDisabled, rows, query.page, refresh]);
 
   const deleteSelected = async() => {
-    const records = (rows ?? []).filter((row, index) => selected.has(keyOf(row, index)) && !deleteDisabled?.(row));
+    const records = (rows ?? []).filter((row, index) => selected.has(keyOf(row, index)) && !deleteDisabled?.(row) && !rowReadOnly?.(row));
     setDeletingMany(true);
     await submitDeleteMany({records, remove: remove!, onDeleted: () => {
       setSelected(new Set());

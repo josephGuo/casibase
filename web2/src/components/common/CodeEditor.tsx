@@ -6,7 +6,7 @@ import {useTheme} from "@/hooks/use-theme";
 
 interface CodeEditorProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange?: (value: string) => void;
   /** "javascript" | "json" | "html" | "css" | "sql" | "go" ... */
   language?: string;
   height?: number;
@@ -33,7 +33,7 @@ export function CodeEditor({value, onChange, language, height = 240, readOnly, c
         readOnly={readOnly}
         theme={resolvedTheme === "dark" ? material : "light"}
         extensions={extensions}
-        onChange={(next) => onChange(next)}
+        onChange={(next) => onChange?.(next)}
         basicSetup={{lineNumbers: true, foldGutter: false, highlightActiveLine: !readOnly}}
       />
     </div>
