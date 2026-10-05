@@ -37,6 +37,8 @@ export interface CrudListPageProps<T extends Record<string, any>> {
   /** extra buttons next to Refresh/Add; a function form gets `refresh` to re-fetch the list */
   toolbar?: React.ReactNode | ((ctx: {refresh: () => void}) => React.ReactNode);
   rowKey?: (row: T, index: number) => string;
+  /** extra classes for one row, such as the antd lists' highlighted deleted rows */
+  rowClassName?: (row: T, index: number) => string | undefined;
   initialQuery?: Partial<TableQuery>;
   /**
    * Extra entries for the row's actions menu, between Edit and Delete.
@@ -95,6 +97,7 @@ export function CrudListPage<T extends Record<string, any>>({
   addButtonLabel,
   toolbar,
   rowKey,
+  rowClassName,
   initialQuery,
   rowActions,
   formType,
@@ -270,6 +273,7 @@ export function CrudListPage<T extends Record<string, any>>({
         query={query}
         onQueryChange={setQuery}
         rowKey={rowKey}
+        rowClassName={rowClassName}
         selection={
           selectable
             ? {

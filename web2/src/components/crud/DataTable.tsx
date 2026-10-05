@@ -29,6 +29,8 @@ interface DataTableProps<T> {
   query: TableQuery;
   onQueryChange: (patch: Partial<TableQuery>) => void;
   rowKey?: (row: T, index: number) => string;
+  /** extra classes for one row; keep the background opaque, pinned cells inherit it */
+  rowClassName?: (row: T, index: number) => string | undefined;
   emptyText?: React.ReactNode;
   className?: string;
   /**
@@ -349,6 +351,7 @@ export function DataTable<T = any>({
   query,
   onQueryChange,
   rowKey,
+  rowClassName,
   emptyText,
   className,
   selection,
@@ -540,7 +543,7 @@ export function DataTable<T = any>({
                   <TableRow
                     key={keyOf(row, index)}
                     // pinned cells inherit this, so it has to stay fully opaque
-                    className="bg-card hover:bg-muted"
+                    className={cn("bg-card hover:bg-muted", rowClassName?.(row, index))}
                   >
                     {visibleColumns.map((column, columnIndex) => {
                       const value = row[column.dataIndex];

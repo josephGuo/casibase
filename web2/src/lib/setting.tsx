@@ -484,3 +484,27 @@ export function getDefaultAiAvatar() {
 export function getStoreIconUrl(store: any) {
   return store?.avatar || getDefaultAiAvatar();
 }
+
+/** A price with its currency sign and no trailing zeros: "$0.0012", "￥3". */
+export function formatPrice(price: number | null | undefined, currency?: string) {
+  if (price === null || price === undefined) {
+    return "";
+  }
+  let text = price === 0 ? "0" : price.toFixed(7);
+  if (text.includes(".")) {
+    text = text.replace(/(\.\d*?[1-9])0+$/, "$1").replace(/\.$/, "");
+  }
+  return `${currency === "CNY" ? "￥" : "$"}${text}`;
+}
+
+/** Downloads rows of {column: value} as a one-sheet .xlsx file. */
+export async function saveRowsAsXlsx(rows: Record<string, any>[], sheetName: string, filename: string, columnWidths?: number[]) {
+  const XLSX = await import("xlsx");
+  const sheet = XLSX.utils.json_to_sheet(rows);
+  if (columnWidths) {
+    sheet["!cols"] = columnWidths.map((wch) => ({wch}));
+  }
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+  XLSX.writeFile(workbook, filename, {compression: true});
+}

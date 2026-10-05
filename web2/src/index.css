@@ -223,6 +223,64 @@
   @apply text-muted-foreground;
 }
 
+/* A chat message's markdown. Tight paragraphs, the way the antd chat spaced them */
+.message-text {
+  @apply flex flex-col text-sm leading-relaxed;
+  overflow-wrap: anywhere;
+}
+.message-text p {
+  margin: 0 0 0.5em;
+}
+.message-text p:last-child {
+  margin-bottom: 0;
+}
+.message-text h1,
+.message-text h2 {
+  @apply my-4 text-lg font-semibold;
+}
+.message-text h3,
+.message-text h4,
+.message-text h5,
+.message-text h6 {
+  @apply my-3 text-base font-semibold;
+}
+.message-text ul {
+  @apply my-2 list-disc space-y-1.5 pl-6;
+}
+.message-text ol {
+  @apply my-3 list-decimal space-y-0.5 pl-6;
+}
+.message-text a {
+  @apply text-primary underline underline-offset-2;
+}
+.message-text blockquote {
+  @apply my-2 border-l-4 pl-3 text-muted-foreground;
+}
+.message-text code:not(pre code) {
+  @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.85em];
+}
+.message-text pre {
+  @apply my-2 overflow-x-auto rounded-md text-xs;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.message-text pre code.hljs {
+  @apply rounded-md p-3;
+}
+.message-text table {
+  @apply my-2 block overflow-x-auto border-collapse text-xs;
+}
+.message-text th,
+.message-text td {
+  @apply border px-2 py-1 text-left;
+}
+.message-text img {
+  @apply my-1 max-w-full rounded;
+}
+.message-text .katex-display {
+  @apply my-2 overflow-x-auto;
+}
+
 /* antd's compactAlgorithm equivalent. The class goes on <html>, and because the
    Tailwind spacing scale is in rem, shrinking the root size tightens padding,
    gaps and type together the way the antd compact tokens did. */
