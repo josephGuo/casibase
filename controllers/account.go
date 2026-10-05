@@ -25,6 +25,7 @@ import (
 	"github.com/the-open-agent/openagent/conf"
 	"github.com/the-open-agent/openagent/object"
 	"github.com/the-open-agent/openagent/util"
+	"golang.org/x/oauth2"
 )
 
 func init() {
@@ -92,6 +93,7 @@ func InitAuthConfig() {
 // @Description sign in with Casdoor OAuth code or password
 // @Param code  query string false "code of account"
 // @Param state query string false "state of account"
+// @Param tag   query string false "wechat_miniprogram to sign in with a wx.login code"
 // @Success 200 {casdoorsdk} auth.Claims The Response object
 // @router /signin [post]
 func (c *ApiController) Signin() {
@@ -102,7 +104,13 @@ func (c *ApiController) Signin() {
 		return
 	}
 
-	token, err := auth.GetOAuthToken(code, state)
+	var token *oauth2.Token
+	var err error
+	if c.Input().Get("tag") == "wechat_miniprogram" {
+		token, err = auth.GetWechatMiniProgramToken(code)
+	} else {
+		token, err = auth.GetOAuthToken(code, state)
+	}
 	if err != nil {
 		c.ResponseError(err.Error())
 		return
