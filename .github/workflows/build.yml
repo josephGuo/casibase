@@ -7,6 +7,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - "v*"
   pull_request:
 
 jobs:
@@ -101,35 +103,14 @@ jobs:
           args: --config .golangci.yml --max-same-issues=0 --timeout 5m ./...
 
 
-  tag-release:
-    name: Create Tag
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-    if: github.repository == 'the-open-agent/openagent' && github.event_name == 'push'
-    needs: [ frontend, backend, linter ]
-    outputs:
-      new-release-published: ${{ steps.semantic.outputs.new_release_published }}
-      new-release-version: ${{ steps.semantic.outputs.new_release_version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Create Tag with Semantic Release
-        id: semantic
-        uses: cycjimmy/semantic-release-action@v4
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   github-release:
     name: GitHub Release
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      issues: write
-    if: github.repository == 'the-open-agent/openagent' && github.event_name == 'push' && needs.tag-release.outputs.new-release-published == 'true'
-    needs: [ tag-release ]
+    # Releases are cut by hand: push a `vX.Y.Z` tag and this job publishes it.
+    if: github.repository == 'the-open-agent/openagent' && startsWith(github.ref, 'refs/tags/v')
+    needs: [ frontend, backend, linter ]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -162,7 +143,7 @@ jobs:
 
       - name: Publish release
         run: |
-          TAG="v${{ needs.tag-release.outputs.new-release-version }}"
+          TAG="${{ github.ref_name }}"
           # A draft release isn't attached to its tag yet, so "gh release edit <tag>"
           # (which resolves by tag) can't find it. List releases instead — that
           # endpoint includes drafts — and match by tag_name to get the real id.
@@ -179,15 +160,26 @@ jobs:
     name: Docker Release
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      issues: write
-    if: github.repository == 'the-open-agent/openagent' && github.event_name == 'push' && needs.tag-release.outputs.new-release-published == 'true'
-    needs: [ tag-release ]
+      contents: read
+    if: github.repository == 'the-open-agent/openagent' && startsWith(github.ref, 'refs/tags/v')
+    needs: [ frontend, backend, linter ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: -1
+
+      # Registry versions keep the historical, un-prefixed form: tag `v1.2.3`
+      # publishes `1.2.3`. `latest` is skipped for pre-release tags such as
+      # `v1.2.3-beta.1`.
+      - name: Resolve the released version
+        id: version
+        run: |
+          version=${GITHUB_REF_NAME#v}
+          echo "version=$version" >> $GITHUB_OUTPUT
+          if [[ "$version" == *-* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -212,10 +204,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            VERSION=${{ needs.tag-release.outputs.new-release-version }}
+            VERSION=${{ steps.version.outputs.version }}
             COMMIT=${{ github.sha }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
-          tags: casbin/openagent:${{ needs.tag-release.outputs.new-release-version }},casbin/openagent:latest
+          tags: |
+            casbin/openagent:${{ steps.version.outputs.version }}
+            ${{ steps.version.outputs.prerelease == 'false' && 'casbin/openagent:latest' || '' }}
 
       - name: Push All In One Version to Docker Hub
         uses: docker/build-push-action@v3
@@ -225,10 +219,12 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           build-args: |
-            VERSION=${{ needs.tag-release.outputs.new-release-version }}
+            VERSION=${{ steps.version.outputs.version }}
             COMMIT=${{ github.sha }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
-          tags: casbin/openagent-all-in-one:${{ needs.tag-release.outputs.new-release-version }},casbin/openagent-all-in-one:latest
+          tags: |
+            casbin/openagent-all-in-one:${{ steps.version.outputs.version }}
+            ${{ steps.version.outputs.prerelease == 'false' && 'casbin/openagent-all-in-one:latest' || '' }}
 
       - uses: actions/checkout@v3
         with:
@@ -239,8 +235,8 @@ jobs:
       - name: Update Helm Chart
         run: |
           # Set the appVersion and version of the chart to the current tag
-          sed -i "s/appVersion: .*/appVersion: ${{ needs.tag-release.outputs.new-release-version }}/g" ./openagent-helm-chart/Chart.yaml
-          sed -i "s/version: .*/version: ${{ needs.tag-release.outputs.new-release-version }}/g" ./openagent-helm-chart/Chart.yaml
+          sed -i "s/appVersion: .*/appVersion: ${{ steps.version.outputs.version }}/g" ./openagent-helm-chart/Chart.yaml
+          sed -i "s/version: .*/version: ${{ steps.version.outputs.version }}/g" ./openagent-helm-chart/Chart.yaml
 
           REGISTRY=oci://registry-1.docker.io/casbin
           cd openagent-helm-chart
@@ -254,6 +250,6 @@ jobs:
           git config --global user.name "casbin-bot"
           git config --global user.email "bot@casbin.org"
           git add Chart.yaml index.yaml
-          git commit -m "chore(helm): bump helm charts appVersion to ${{ needs.tag-release.outputs.new-release-version }}"
-          git tag ${{ needs.tag-release.outputs.new-release-version }}
+          git commit -m "chore(helm): bump helm charts appVersion to ${{ steps.version.outputs.version }}"
+          git tag ${{ steps.version.outputs.version }}
           git push origin HEAD:master --follow-tags
