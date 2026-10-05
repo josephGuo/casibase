@@ -83,7 +83,8 @@ function ObjectCell({text, decoding}: {text: string; decoding: boolean}) {
   );
 }
 
-export default function RecordListPage() {
+/** `formItems` is how the Form editor previews the columns it is editing. */
+export default function RecordListPage({formItems}: {formItems?: any[]} = {}) {
   const {account} = useAccount();
   const [providerMap, setProviderMap] = React.useState<Record<string, any>>({});
   const [crossChain, setCrossChain] = React.useState(() => Setting.getBoolValue("enableCrossChain", false));
@@ -278,6 +279,7 @@ export default function RecordListPage() {
       <CrudListPage
         title={i18next.t("general:Logs")}
         columns={columns}
+        formItems={formItems}
         fetch={(q) => RecordBackend.getRecords(Setting.getRequestOrganization(account), q.page, q.pageSize, q.searchedColumn, q.searchText, q.sortField, q.sortOrder)}
         deps={[account?.owner]}
         editUrl={(r) => `/records/${r.owner}/${r.id}`}

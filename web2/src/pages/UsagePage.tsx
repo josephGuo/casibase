@@ -30,6 +30,7 @@ import {DataTable} from "@/components/crud/DataTable";
 import {PageHeader} from "@/components/crud/PageHeader";
 import type {ColumnDef, TableQuery} from "@/components/crud/types";
 import {useAccount} from "@/hooks/use-account";
+import {useRequestStore} from "@/hooks/use-request-store";
 import {queryRows} from "@/lib/client-table";
 import * as Setting from "@/lib/setting";
 
@@ -125,7 +126,7 @@ export default function UsagePage() {
   const {account} = useAccount();
   const isAdmin = account?.name === "admin";
   const canViewAll = Setting.canViewAllUsers(account);
-  const store = Setting.getRequestStore(account);
+  const store = useRequestStore();
   const [users, setUsers] = React.useState<string[] | null>(null);
   const [selectedUser, setSelectedUser] = React.useState<string | null>(null);
   const [rangeType, setRangeType] = React.useState<RangeType>("All");

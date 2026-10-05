@@ -21,6 +21,7 @@ import {CrudListPage} from "@/components/crud/CrudListPage";
 import {boolColumn, dateColumn, linkColumn, textColumn, valueFilters} from "@/components/crud/columns";
 import type {ColumnDef} from "@/components/crud/types";
 import {useAccount} from "@/hooks/use-account";
+import {useRequestStore} from "@/hooks/use-request-store";
 import * as ProviderSetting from "@/lib/provider-setting";
 import * as Setting from "@/lib/setting";
 
@@ -67,6 +68,7 @@ function newProvider() {
 
 export default function ProviderListPage() {
   const {account} = useAccount();
+  const store = useRequestStore();
 
   const columns: ColumnDef<any>[] = [
     linkColumn({dataIndex: "name", to: (r) => `/providers/${r.name}`, width: 180}),
@@ -116,8 +118,8 @@ export default function ProviderListPage() {
     <CrudListPage
       title={i18next.t("general:Providers")}
       columns={columns}
-      deps={[account?.name]}
-      fetch={(q) => ProviderBackend.getProviders(account?.name ?? "", Setting.getRequestStore(account), q.page, q.pageSize, q.searchedColumn, q.searchText, q.sortField, q.sortOrder)}
+      deps={[account?.name, store]}
+      fetch={(q) => ProviderBackend.getProviders(account?.name ?? "", store, q.page, q.pageSize, q.searchedColumn, q.searchText, q.sortField, q.sortOrder)}
       newRecord={newProvider}
       editUrl={(r) => `/providers/${r.name}`}
       remove={(r) => ProviderBackend.deleteProvider(r)}

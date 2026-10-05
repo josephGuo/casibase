@@ -50,6 +50,7 @@
     "codemirror": "^6.0.1",
     "copy-to-clipboard": "^3.3.3",
     "dayjs": "^1.11.13",
+    "docx": "^9.6.1",
     "dompurify": "^3.0.9",
     "emoji-picker-react": "^4.19.1",
     "file-saver": "^2.0.5",

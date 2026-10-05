@@ -476,3 +476,11 @@ export function formatJsonString(s: string | undefined | null) {
     return s;
   }
 }
+
+export function getDefaultAiAvatar() {
+  return `${Conf.StaticBaseUrl}/img/openagent.png`;
+}
+
+export function getStoreIconUrl(store: any) {
+  return store?.avatar || getDefaultAiAvatar();
+}

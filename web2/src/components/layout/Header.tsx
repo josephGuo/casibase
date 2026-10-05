@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {BreadcrumbBar} from "@/components/layout/BreadcrumbBar";
+import {StoreSelect} from "@/components/layout/StoreSelect";
 import {LanguageSelect} from "@/components/common/LanguageSelect";
 import {ThemeToggle} from "@/components/common/ThemeToggle";
 import {useAccount} from "@/hooks/use-account";
@@ -55,6 +56,7 @@ export function Header() {
       <BreadcrumbBar />
 
       <div className="ml-auto flex items-center gap-1.5">
+        {Setting.isLocalAdminUser(account) ? <StoreSelect account={account} /> : null}
         <LanguageSelect />
         <ThemeToggle />
         <Tooltip>

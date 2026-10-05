@@ -35,6 +35,9 @@ export let IsDemoMode = false;
 export const DefaultLanguage = "en";
 export const ForceLanguage = "";
 
+/** "Labeling" turns tasks into the label-an-example tool; "PBL" grades a document against a scale. */
+export const TaskMode: "PBL" | "Labeling" = "PBL";
+
 export const ThemeDefault = {
   themeType: "default",
   colorPrimary: "",
