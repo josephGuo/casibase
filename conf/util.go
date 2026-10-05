@@ -26,6 +26,20 @@ func FileExist(path string) bool {
 	return true
 }
 
+func GetSharedPath(path string) string {
+	if FileExist(path) {
+		return path
+	}
+
+	for _, dir := range []string{FrontendBaseDir, filepath.Join(filepath.Dir(FrontendBaseDir), "casibase")} {
+		res := filepath.Join(dir, path)
+		if FileExist(res) {
+			return res
+		}
+	}
+	return path
+}
+
 func ReadStringFromPath(path string) string {
 	data, err := os.ReadFile(filepath.Clean(path))
 	if err != nil {

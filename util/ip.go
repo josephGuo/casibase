@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/beego/beego"
+	"github.com/the-open-agent/openagent/conf"
 )
 
 // ipParsingMode holds the resolved config string: "" = disabled, "17monipdb" = 17monipdb, "MaxMind GeoIP2" = MaxMind.
@@ -30,7 +31,7 @@ var ipParsingMode string
 // tryInitLocalDb tries to initialize the local IP database from different paths.
 // Returns (found, error): found=false means the data file doesn't exist (caller should skip silently).
 func tryInitLocalDb() (bool, error) {
-	err := Init("data/17monipdb.dat")
+	err := Init(conf.GetSharedPath("data/17monipdb.dat"))
 	if err == nil {
 		return true, nil
 	}

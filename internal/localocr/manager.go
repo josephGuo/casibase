@@ -33,6 +33,7 @@ import (
 	"time"
 
 	"github.com/beego/beego/logs"
+	"github.com/the-open-agent/openagent/conf"
 	"github.com/the-open-agent/openagent/embedsupport"
 )
 
@@ -71,6 +72,11 @@ var (
 func NewManager(rootDir string) *Manager {
 	stateDir := filepath.Join(rootDir, "tmp", "ocr-service")
 	serviceDir := filepath.Join(rootDir, "deploy", "ocr-service")
+	if !conf.FileExist(serviceDir) {
+		if shared := conf.GetSharedPath(filepath.Join("deploy", "ocr-service")); conf.FileExist(shared) {
+			serviceDir, _ = filepath.Abs(shared)
+		}
+	}
 	return &Manager{
 		rootDir:       rootDir,
 		serviceDir:    serviceDir,

@@ -67,7 +67,7 @@ func main() {
 	go object.InitNotificationSender()
 	controllers.InitWeixinClawPipeMonitors()
 
-	beego.SetStaticPath("/swagger", "swagger")
+	beego.SetStaticPath("/swagger", conf.GetSharedPath("swagger"))
 	beego.InsertFilter("*", beego.BeforeStatic, routers.BodyLimitFilter)
 	beego.InsertFilter("*", beego.BeforeRouter, routers.CorsFilter)
 	beego.InsertFilter("*", beego.BeforeRouter, routers.EndpointFilter)

@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/the-open-agent/openagent/conf"
 	"github.com/ua-parser/uap-go/uaparser"
 )
 
@@ -27,7 +28,7 @@ var Parser *uaparser.Parser
 func InitParser() {
 	candidates := []string{
 		"../data/regexes.yaml",
-		"data/regexes.yaml",
+		conf.GetSharedPath("data/regexes.yaml"),
 		"../../data/regexes.yaml",
 	}
 	if exe, err := os.Executable(); err == nil {
