@@ -451,3 +451,28 @@ export function getBoolValue(key: string, defaultValue: boolean) {
 export function setBoolValue(key: string, value: boolean) {
   localStorage.setItem(key, value ? "true" : "false");
 }
+
+export function getFriendlyFileSize(size: number) {
+  if (size < 1024) {
+    return size + " B";
+  }
+
+  const i = Math.floor(Math.log(size) / Math.log(1024));
+  const value = size / Math.pow(1024, i);
+  const round = Math.round(value);
+  const num = round < 10 ? value.toFixed(2) : round < 100 ? value.toFixed(1) : round;
+  return `${num} ${"KMGTPEZY"[i - 1]}B`;
+}
+
+/** Pretty-prints a JSON string, leaving anything that is not JSON as it is. */
+export function formatJsonString(s: string | undefined | null) {
+  if (!s) {
+    return "";
+  }
+
+  try {
+    return JSON.stringify(JSON.parse(s), null, 2);
+  } catch {
+    return s;
+  }
+}

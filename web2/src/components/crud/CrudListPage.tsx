@@ -44,9 +44,9 @@ export interface CrudListPageProps<T extends Record<string, any>> {
    */
   rowActions?: (record: T, index: number, ctx: {refresh: () => void}) => (RowAction | null | false | undefined)[];
   /**
-   * Name of the Form that customizes this list ("users", "applications", ...).
-   * When the organization saved one, it decides which columns show and in which
-   * order — see /forms.
+   * Name of the Form that customizes this list ("records", "stores", ...);
+   * defaults to the route. When the organization saved one, it decides which
+   * columns show and in which order — see /forms.
    */
   formType?: string;
   /**
@@ -162,7 +162,8 @@ export function CrudListPage<T extends Record<string, any>>({
     });
   };
 
-  const savedFormItems = useFormItems(formItemsProp ? undefined : formType);
+  // like the antd BaseListPage, a list is customized by the Form named after its route
+  const savedFormItems = useFormItems(formItemsProp ? undefined : (formType ?? location.pathname.replace(/^\//, "")));
   const formItems = formItemsProp ?? savedFormItems;
 
   const deleteAction = (record: T): RowAction => {
