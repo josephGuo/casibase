@@ -53,15 +53,18 @@
     --sidebar-ring: 0 0% 9%;
 
     /* The chrome is deliberately neutral, so charts are where colour lives. Eight
-       hues far enough apart to stay legible next to each other in a legend. */
-    --chart-1: 215 90% 52%;
-    --chart-2: 199 89% 44%;
-    --chart-3: 173 58% 37%;
-    --chart-4: 258 70% 58%;
-    --chart-5: 322 65% 53%;
-    --chart-6: 25 85% 51%;
-    --chart-7: 142 60% 36%;
-    --chart-8: 240 5% 45%;
+       categorical hues, assigned in this order and never cycled: each neighbour
+       pair stays apart under colour-vision deficiency, on this surface and, with
+       their own steps, on the dark one. Slots 3-5 are under 3:1 on white, so a
+       chart using them also offers labels or a table. */
+    --chart-1: 213 68% 50%;
+    --chart-2: 17 82% 56%;
+    --chart-3: 159 73% 40%;
+    --chart-4: 41 100% 46%;
+    --chart-5: 337 70% 70%;
+    --chart-6: 120 100% 26%;
+    --chart-7: 249 48% 44%;
+    --chart-8: 0 73% 59%;
 
     --radius: 0.5rem;
   }
@@ -115,14 +118,14 @@
     --sidebar-border: 0 0% 17%;
     --sidebar-ring: 0 0% 70%;
 
-    --chart-1: 213 85% 62%;
-    --chart-2: 199 85% 55%;
-    --chart-3: 172 55% 48%;
-    --chart-4: 258 75% 68%;
-    --chart-5: 322 70% 63%;
-    --chart-6: 25 88% 60%;
-    --chart-7: 142 55% 48%;
-    --chart-8: 240 5% 65%;
+    --chart-1: 213 77% 56%;
+    --chart-2: 17 70% 50%;
+    --chart-3: 159 73% 36%;
+    --chart-4: 40 100% 39%;
+    --chart-5: 338 61% 58%;
+    --chart-6: 120 100% 26%;
+    --chart-7: 247 69% 72%;
+    --chart-8: 0 72% 65%;
   }
 }
 
@@ -170,6 +173,54 @@
 .cm-editor.cm-focused {
   outline: none;
   @apply ring-1 ring-ring;
+}
+
+/* Comment bodies and the comment editor share one look for paragraphs and images */
+.comment-content,
+.comment-editor .tiptap {
+  overflow-wrap: anywhere;
+}
+.comment-content p,
+.comment-editor .tiptap p {
+  margin: 0 0 6px;
+}
+.comment-content p:last-child,
+.comment-editor .tiptap p:last-child {
+  margin-bottom: 0;
+}
+.comment-content ul,
+.comment-editor .tiptap ul {
+  @apply list-disc pl-5;
+}
+.comment-content ol,
+.comment-editor .tiptap ol {
+  @apply list-decimal pl-5;
+}
+.comment-content a {
+  @apply text-primary underline underline-offset-2;
+}
+.comment-content img,
+.comment-editor .tiptap img {
+  display: block;
+  max-width: min(240px, 100%);
+  max-height: 240px;
+  margin-top: 6px;
+  border-radius: 6px;
+  object-fit: contain;
+}
+.comment-editor .tiptap {
+  min-height: 78px;
+  max-height: 260px;
+  overflow: auto;
+  outline: none;
+  @apply text-sm;
+}
+.comment-editor .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  @apply text-muted-foreground;
 }
 
 /* antd's compactAlgorithm equivalent. The class goes on <html>, and because the

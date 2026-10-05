@@ -13,21 +13,9 @@
 // limitations under the License.
 import type {CasdoorListResponse, TableQuery} from "@/components/crud/types";
 
-/**
- * For the list APIs that return every row at once (pipes, sites...): applies the
- * search, sort and paging of the table on the client, so these lists behave like
- * the server-paged ones.
- */
-export async function clientPaged<T extends Record<string, any>>(
-  request: Promise<CasdoorListResponse<T>>,
-  query: TableQuery,
-): Promise<CasdoorListResponse<T>> {
-  const res = await request;
-  if (res?.status !== "ok") {
-    return res;
-  }
-
-  let rows = [...(res.data ?? [])];
+/** Applies a table's search, sort and paging to rows that are all in memory. */
+export function queryRows<T extends Record<string, any>>(allRows: T[], query: TableQuery): {rows: T[]; total: number} {
+  let rows = [...allRows];
   if (query.searchedColumn && query.searchText) {
     const needle = query.searchText.toLowerCase();
     rows = rows.filter((row) => String(row[query.searchedColumn] ?? "").toLowerCase().includes(needle));
@@ -45,5 +33,23 @@ export async function clientPaged<T extends Record<string, any>>(
   }
 
   const start = (query.page - 1) * query.pageSize;
-  return {...res, data: rows.slice(start, start + query.pageSize), data2: rows.length};
+  return {rows: rows.slice(start, start + query.pageSize), total: rows.length};
+}
+
+/**
+ * For the list APIs that return every row at once (pipes, sites...): applies the
+ * search, sort and paging of the table on the client, so these lists behave like
+ * the server-paged ones.
+ */
+export async function clientPaged<T extends Record<string, any>>(
+  request: Promise<CasdoorListResponse<T>>,
+  query: TableQuery,
+): Promise<CasdoorListResponse<T>> {
+  const res = await request;
+  if (res?.status !== "ok") {
+    return res;
+  }
+
+  const {rows, total} = queryRows(res.data ?? [], query);
+  return {...res, data: rows, data2: total};
 }
