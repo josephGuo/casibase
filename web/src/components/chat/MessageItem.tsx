@@ -177,7 +177,7 @@ export interface MessageItemProps {
   isLoadingTts: boolean;
   onLike: (message: any, reaction: "like" | "dislike") => void;
   onToggleRead: (message: any) => void;
-  onRegenerate: () => void;
+  onRegenerate: () => Promise<void>;
   onEdit: (message: any) => void;
   onSaveCorrection: (message: any, payload: CorrectionPayload) => Promise<boolean>;
   onRevertCorrection: (message: any) => void;
@@ -209,7 +209,7 @@ function MessageItemInner(props: MessageItemProps) {
 
   const regenerate = () => {
     setRegenerating(true);
-    props.onRegenerate();
+    props.onRegenerate().finally(() => setRegenerating(false));
   };
 
   const saveEdit = () => {

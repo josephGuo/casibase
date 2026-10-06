@@ -226,7 +226,7 @@ export function MultiPaneChat({stores, account, initialChat, paneCount, onPaneCo
             <div key={index} className="flex min-h-0 flex-col bg-background">
               <div className="flex flex-wrap items-center gap-2 border-b bg-muted/30 px-2 py-1.5">
                 <div className="w-36">
-                  <SearchableSelect className="h-8" value={store?.name ?? ""} allowUnknownValue={false} options={stores.map(storeOption)} onChange={(name) => saveChat(index, {store: name})} />
+                  <SearchableSelect className="h-8" value={store?.name ?? ""} allowUnknownValue={false} options={stores.map(storeOption)} onChange={(name) => saveChat(index, {store: name, modelProvider: stores.find((item) => item.name === name)?.modelProvider || pane?.chat?.modelProvider})} />
                 </div>
                 {providers.length > 0 ? (
                   <div className="w-44">

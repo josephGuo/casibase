@@ -15,7 +15,7 @@
 import * as Setting from "@/lib/setting";
 
 export function getGlobalChats(page: any = "", pageSize: any = "", field: any = "", value: any = "", sortField: any = "", sortOrder: any = "", store: any = "") {
-  return fetch(`${Setting.ServerUrl}/api/get-global-chats?p=${page}&pageSize=${pageSize}&field=${field}&value=${value}&sortField=${sortField}&sortOrder=${sortOrder}&store=${encodeURIComponent(store)}`, {
+  return fetch(`${Setting.ServerUrl}/api/get-global-chats?p=${page}&pageSize=${pageSize}&field=${field}&value=${encodeURIComponent(value)}&sortField=${sortField}&sortOrder=${sortOrder}&store=${encodeURIComponent(store)}`, {
     method: "GET",
     credentials: "include",
     headers: {
@@ -25,7 +25,7 @@ export function getGlobalChats(page: any = "", pageSize: any = "", field: any = 
 }
 
 export function getChats(user, storeName: any = "", page: any = "", pageSize: any = "", field: any = "", value: any = "", sortField: any = "", sortOrder: any = "", selectedUser: any = "", startTime: any = "", endTime: any = "") {
-  return fetch(`${Setting.ServerUrl}/api/get-chats?user=${user}&selectedUser=${selectedUser}&store=${storeName}&p=${page}&pageSize=${pageSize}&field=${field}&value=${value}&sortField=${sortField}&sortOrder=${sortOrder}&startTime=${startTime}&endTime=${endTime}`, {
+  return fetch(`${Setting.ServerUrl}/api/get-chats?user=${user}&selectedUser=${selectedUser}&store=${storeName}&p=${page}&pageSize=${pageSize}&field=${field}&value=${encodeURIComponent(value)}&sortField=${sortField}&sortOrder=${sortOrder}&startTime=${startTime}&endTime=${endTime}`, {
     method: "GET",
     credentials: "include",
     headers: {

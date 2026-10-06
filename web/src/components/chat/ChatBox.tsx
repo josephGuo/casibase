@@ -228,10 +228,10 @@ export const ChatBox = React.forwardRef<ChatBoxHandle, ChatBoxProps>(function Ch
   const onEdit = React.useCallback((message: any) => sendEdited(message, false), [store, chat, webSearchEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // regenerating re-asks the last question
-  const onRegenerate = React.useCallback(() => {
+  const onRegenerate = React.useCallback(async() => {
     const question = [...(localMessages ?? [])].reverse().find((message) => message.author !== "AI");
     if (question) {
-      sendEdited({...question, updatedTime: new Date().toISOString()}, true);
+      await sendEdited({...question, updatedTime: new Date().toISOString()}, true);
     }
   }, [localMessages, store, chat, webSearchEnabled]); // eslint-disable-line react-hooks/exhaustive-deps
 

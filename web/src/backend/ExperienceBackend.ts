@@ -25,7 +25,7 @@ export function getGlobalExperiences() {
 }
 
 export function getExperiences(owner, page: any = "", pageSize: any = "", field: any = "", value: any = "", sortField: any = "", sortOrder: any = "", store: any = "") {
-  return fetch(`${Setting.ServerUrl}/api/get-experiences?owner=${owner}&p=${page}&pageSize=${pageSize}&field=${field}&value=${value}&sortField=${sortField}&sortOrder=${sortOrder}&store=${store}`, {
+  return fetch(`${Setting.ServerUrl}/api/get-experiences?owner=${owner}&p=${page}&pageSize=${pageSize}&field=${field}&value=${encodeURIComponent(value)}&sortField=${sortField}&sortOrder=${sortOrder}&store=${store}`, {
     method: "GET",
     credentials: "include",
     headers: {
