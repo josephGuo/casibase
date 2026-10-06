@@ -115,20 +115,6 @@ func (w *RefinedWriter) Write(p []byte) (n int, err error) {
 		return n, err
 	}
 
-	if w.writerCleaner.cleaned == false && w.writerCleaner.dataTimes < w.writerCleaner.bufferSize {
-		w.writerCleaner.AddData(data)
-		if w.writerCleaner.dataTimes == w.writerCleaner.bufferSize {
-			cleanedData := w.writerCleaner.GetCleanedData()
-			fmt.Print(cleanedData)
-			jsonData, err := ConvertMessageDataToJSON(cleanedData)
-			if err != nil {
-				return 0, err
-			}
-			return w.ResponseWriter.Write([]byte(fmt.Sprintf("event: %s\ndata: %s\n\n", eventType, jsonData)))
-		}
-		return 0, nil
-	}
-
 	fmt.Print(data)
 	jsonData, err := ConvertMessageDataToJSON(data)
 	if err != nil {

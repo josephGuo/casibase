@@ -284,6 +284,11 @@ func (c *ApiController) UpdateChat() {
 		return
 	}
 	chat.Source = originalChat.Source
+	// The counters grow as answers are saved; the client's copy of the chat may predate them.
+	chat.MessageCount = originalChat.MessageCount
+	chat.TokenCount = originalChat.TokenCount
+	chat.Price = originalChat.Price
+	chat.Currency = originalChat.Currency
 	if !c.IsAdmin() {
 		// Binding a chat to a tool grants the agent that tool's capabilities, so only admins may change it.
 		chat.Tool = originalChat.Tool

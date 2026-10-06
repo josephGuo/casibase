@@ -1,22 +1,17 @@
-// Copyright 2025 The OpenAgent Authors. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// Vite writes to build-temp so that a failed build never leaves a half-written
+// "build" directory behind; this swaps it into place.
+import fs from "fs";
+import path from "path";
+import {fileURLToPath} from "url";
 
-const fs = require("fs");
-const path = require("path");
+const dirname = path.dirname(fileURLToPath(import.meta.url));
+const sourceDir = path.join(dirname, "build-temp");
+const targetDir = path.join(dirname, "build");
+const backupDir = path.join(dirname, "build-old");
 
-const sourceDir = path.join(__dirname, "build-temp");
-const targetDir = path.join(__dirname, "build");
+// On Windows a removed directory lingers while another process holds a handle
+// under it, so let rmSync retry instead of failing the build.
+const rmOptions = {recursive: true, force: true, maxRetries: 10, retryDelay: 200};
 
 if (!fs.existsSync(sourceDir)) {
   // eslint-disable-next-line no-console
@@ -24,12 +19,32 @@ if (!fs.existsSync(sourceDir)) {
   process.exit(1);
 }
 
-if (fs.existsSync(targetDir)) {
-  fs.rmSync(targetDir, {recursive: true, force: true});
-  // eslint-disable-next-line no-console
-  console.log(`Target directory "${targetDir}" has been deleted successfully.`);
+// Left behind by an earlier run that was interrupted between the two renames.
+if (fs.existsSync(backupDir)) {
+  if (fs.existsSync(targetDir)) {
+    fs.rmSync(backupDir, rmOptions);
+  } else {
+    fs.renameSync(backupDir, targetDir);
+  }
 }
 
-fs.renameSync(sourceDir, targetDir);
+const hasPreviousBuild = fs.existsSync(targetDir);
+if (hasPreviousBuild) {
+  fs.renameSync(targetDir, backupDir);
+}
+
+try {
+  fs.renameSync(sourceDir, targetDir);
+} catch (err) {
+  if (hasPreviousBuild) {
+    fs.renameSync(backupDir, targetDir);
+  }
+  throw err;
+}
+
+if (hasPreviousBuild) {
+  fs.rmSync(backupDir, rmOptions);
+}
+
 // eslint-disable-next-line no-console
 console.log(`Renamed "${sourceDir}" to "${targetDir}" successfully.`);

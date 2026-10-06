@@ -15,24 +15,19 @@
 package embedsupport
 
 import (
+	"bytes"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"io/fs"
 	"mime"
 	"net/http"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
-
-	"github.com/the-open-agent/openagent/conf"
 )
 
-var mainJSRe = regexp.MustCompile(`^static/js/main\.[a-f0-9]+\.js$`)
-
 // ServeEmbedded serves a frontend asset from the embedded web/build FS.
-// urlPath is the raw request URL path (e.g. "/", "/static/js/main.abc.js").
+// urlPath is the raw request URL path (e.g. "/", "/assets/index-abc123.js").
 // Must only be called when WebFS() != nil.
 func ServeEmbedded(w http.ResponseWriter, r *http.Request, urlPath string) {
 	embedPath := strings.TrimPrefix(urlPath, "/")
@@ -55,8 +50,9 @@ func ServeEmbedded(w http.ResponseWriter, r *http.Request, urlPath string) {
 	}
 }
 
-// serveEmbeddedFile writes a single embedded asset to w, applying the
-// Casdoor config substitution for the main.*.js bundle.
+// serveEmbeddedFile writes a single embedded asset to w. The frontend reads the
+// per-instance settings (Casdoor issuer, client ID, branding) from the
+// jsonWebConfig cookie that StaticFilter sets, so no asset needs patching here.
 func serveEmbeddedFile(w http.ResponseWriter, r *http.Request, embedPath string) {
 	data, err := fs.ReadFile(webFS, embedPath)
 	if err != nil {
@@ -64,25 +60,11 @@ func serveEmbeddedFile(w http.ResponseWriter, r *http.Request, embedPath string)
 		return
 	}
 
-	content := string(data)
-
-	if mainJSRe.MatchString(embedPath) {
-		serverUrl := conf.GetConfigString("casdoorEndpoint")
-		clientId := conf.GetConfigString("clientId")
-		appName := conf.GetConfigString("casdoorApplication")
-		organizationName := conf.GetConfigString("casdoorOrganization")
-
-		content = regexp.MustCompile(`serverUrl:"[^"]*"`).ReplaceAllString(content, fmt.Sprintf(`serverUrl:"%s"`, serverUrl))
-		content = regexp.MustCompile(`clientId:"[^"]*"`).ReplaceAllString(content, fmt.Sprintf(`clientId:"%s"`, clientId))
-		content = regexp.MustCompile(`appName:"[^"]*"`).ReplaceAllString(content, fmt.Sprintf(`appName:"%s"`, appName))
-		content = regexp.MustCompile(`organizationName:"[^"]*"`).ReplaceAllString(content, fmt.Sprintf(`organizationName:"%s"`, organizationName))
-	}
-
 	if ct := mime.TypeByExtension(filepath.Ext(embedPath)); ct != "" {
 		w.Header().Set("Content-Type", ct)
 	}
 
-	http.ServeContent(w, r, filepath.Base(embedPath), time.Time{}, strings.NewReader(content))
+	http.ServeContent(w, r, filepath.Base(embedPath), time.Time{}, bytes.NewReader(data))
 }
 
 type gzipWriter struct {
