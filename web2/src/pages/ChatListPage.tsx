@@ -233,6 +233,7 @@ export default function ChatListPage() {
 
   return (
     <CrudListPage
+      formType="chats"
       title={i18next.t("general:Chats")}
       description={
         <span className="flex flex-wrap items-center gap-x-5 gap-y-1">

@@ -223,6 +223,7 @@ export default function MessageListPage() {
 
   return (
     <CrudListPage
+      formType="messages"
       title={i18next.t("general:Messages")}
       description={
         <span className="flex flex-wrap items-center gap-x-5 gap-y-1">

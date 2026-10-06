@@ -1,5 +1,6 @@
 import * as React from "react";
 import {Link, useLocation} from "react-router-dom";
+import * as FormBackend from "@/backend/FormBackend";
 import {ChevronDown} from "lucide-react";
 import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible";
 import {
@@ -176,11 +177,23 @@ export function AppSidebar({onNavigate}: {onNavigate?: () => void}) {
   const collapsed = state === "collapsed" && !isMobile;
 
   const {site} = useSite();
+  const [forms, setForms] = React.useState<any[]>([]);
+  const isTaskUser = Setting.isTaskUser(account);
+  React.useEffect(() => {
+    if (!isTaskUser) {
+      return;
+    }
+    FormBackend.getForms("admin").then((res: any) => {
+      if (res.status === "ok") {
+        setForms(res.data ?? []);
+      }
+    }).catch(() => undefined);
+  }, [isTaskUser]);
   // the built-in site brands the console
   const siderLogo = Setting.getThemedLogo(site?.logoUrl, null, [isDark ? "dark" : "light"]);
   // recomputed every render on purpose: the labels come from i18next, which
   // changes language without re-rendering this component's inputs
-  const groups = getNavGroups(account, site);
+  const groups = getNavGroups(account, site, forms);
   // an organization trimmed down to a handful of entries gets a flat list
   const flatten = shouldFlattenNav(groups);
 

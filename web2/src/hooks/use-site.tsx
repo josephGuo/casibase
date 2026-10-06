@@ -14,6 +14,8 @@
 
 import * as React from "react";
 import * as SiteBackend from "@/backend/SiteBackend";
+import * as Conf from "@/Conf";
+import * as Setting from "@/lib/setting";
 
 // The built-in site carries the instance's branding (logo, favicon, theme colour)
 // and which menu entries to show.
@@ -35,16 +37,25 @@ export function SiteProvider({children}: {children: React.ReactNode}) {
   }, [reload]);
 
   React.useEffect(() => {
-    if (site?.faviconUrl) {
+    const faviconUrl = site?.faviconUrl || Conf.FaviconUrl;
+    if (faviconUrl) {
       let link = document.querySelector<HTMLLinkElement>("link[rel='icon']");
       if (!link) {
         link = document.createElement("link");
         link.rel = "icon";
         document.head.appendChild(link);
       }
-      link.href = site.faviconUrl;
+      link.href = faviconUrl;
     }
   }, [site?.faviconUrl]);
+
+  // the site's title wins over the instance's, which is all there is until the site loads
+  React.useEffect(() => {
+    const title = Setting.getHtmlTitle(site?.htmlTitle);
+    if (title) {
+      document.title = title;
+    }
+  }, [site?.htmlTitle]);
 
   const value = React.useMemo(() => ({site, reload}), [site, reload]);
   return <SiteContext.Provider value={value}>{children}</SiteContext.Provider>;

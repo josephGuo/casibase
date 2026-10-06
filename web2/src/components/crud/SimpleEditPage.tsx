@@ -88,6 +88,8 @@ export interface SimpleEditPageProps {
    */
   beforeSave?: (record: any) => any;
   extraActions?: (ctx: Ctx) => React.ReactNode;
+  /** deletes a record the list created before opening it, when the user cancels */
+  remove?: (record: any) => Promise<CasdoorResponse>;
   children?: (ctx: Ctx, update: (field: string, value: any) => void) => React.ReactNode;
 }
 
@@ -110,6 +112,7 @@ export function SimpleEditPage({
   readOnly,
   beforeSave,
   extraActions,
+  remove,
   children,
 }: SimpleEditPageProps) {
   const navigate = useNavigate();
@@ -169,17 +172,17 @@ export function SimpleEditPage({
       setErrors(found);
       // every offending row is marked; the page scrolls to the first one
       document.querySelector(`[data-field="${Object.keys(found)[0]}"]`)?.scrollIntoView({block: "center"});
-      return;
+      return false;
     }
     setErrors({});
 
     const payload = beforeSave ? beforeSave(Setting.deepCopy(record)) : Setting.deepCopy(record);
     if (payload === null) {
-      return;
+      return false;
     }
     const isAdd = mode === "add";
     setSaving(true);
-    await submitEdit({
+    const ok = await submitEdit({
       mode,
       record: payload,
       add,
@@ -212,6 +215,7 @@ export function SimpleEditPage({
       },
     });
     setSaving(false);
+    return ok;
   };
 
   const renderField = (field: EditField) => {
@@ -349,6 +353,7 @@ export function SimpleEditPage({
       backTo={backTo}
       onSave={save}
       saving={saving}
+      remove={remove ? () => remove(record) : undefined}
       extraActions={extraActions?.(ctx)}
     >
       <FormGrid>{fields.map(renderField)}</FormGrid>

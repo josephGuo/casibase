@@ -47,7 +47,7 @@ export interface NavGroup {
 const MaxItemsForFlatMenu = 7;
 
 /** The console navigation, mirroring the antd ManagementPage menu. */
-export function getNavGroups(account: Account | null | undefined, site?: any): NavGroup[] {
+export function getNavGroups(account: Account | null | undefined, site?: any, forms: any[] = []): NavGroup[] {
   if (!account) {
     return [];
   }
@@ -57,6 +57,10 @@ export function getNavGroups(account: Account | null | undefined, site?: any): N
     if (Setting.isAdminUser(account)) {
       items.push({key: "/scales", label: i18next.t("general:Scales")});
     }
+    // task users reach each form's data straight from the menu, in the forms' own order
+    [...forms].sort((a, b) => String(a.position ?? "").localeCompare(String(b.position ?? ""))).forEach((form) => {
+      items.push({key: `/forms/${form.name}/data`, label: form.displayName || form.name});
+    });
     return [{key: "/multimedia", label: i18next.t("general:Tasks"), icon: Clapperboard, to: "/tasks", items}];
   }
 

@@ -49,6 +49,7 @@ export default function ScaleEditPage() {
       transform={(record) => ({...record, state: record.state || "Public"})}
       fetch={() => ScaleBackend.getScale(owner, scaleName)}
       add={(record) => ScaleBackend.addScale(record)}
+      remove={(record) => ScaleBackend.deleteScale(record)}
       update={(record) => ScaleBackend.updateScale(owner, scaleName, record)}
       editUrl={(record) => `/scales/${record.owner}/${record.name}`}
     />

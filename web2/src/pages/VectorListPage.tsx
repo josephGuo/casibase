@@ -121,6 +121,7 @@ export default function VectorListPage({formItems}: {formItems?: any[]} = {}) {
 
   return (
     <CrudListPage
+      formType="vectors"
       title={i18next.t("general:Vectors")}
       description={fileFilter ? fileFilter : undefined}
       columns={columns}

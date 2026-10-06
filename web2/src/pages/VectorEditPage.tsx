@@ -77,6 +77,7 @@ export default function VectorEditPage() {
       readOnly={() => viewOnly}
       fetch={() => VectorBackend.getVector("admin", vectorName)}
       add={(record) => VectorBackend.addVector(record)}
+      remove={(record) => VectorBackend.deleteVector(record)}
       update={(record) => VectorBackend.updateVector(record.owner, vectorName, record)}
       editUrl={(record) => `/vectors/${record.name}`}
     />

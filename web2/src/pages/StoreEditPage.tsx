@@ -36,6 +36,7 @@ import {SearchableSelect} from "@/components/common/SearchableSelect";
 import {TagsInput} from "@/components/common/TagsInput";
 import {UnauthorizedPage} from "@/components/common/UnauthorizedPage";
 import {EditPageShell} from "@/components/crud/EditPageShell";
+import {FileTree} from "@/components/store/FileTree";
 import {EditableTable} from "@/components/crud/EditableTable";
 import {FormRow, FormSection} from "@/components/crud/FormRow";
 import {useAccount} from "@/hooks/use-account";
@@ -219,6 +220,14 @@ export default function StoreEditPage({basePath = "/stores"}: {basePath?: string
       navigate(`${basePath}/${res.data.owner}/${res.data.name}`, {replace: true});
     } else {
       Setting.showMessage("error", `${i18next.t("general:Failed to save")}: ${res.msg}`);
+    }
+  };
+
+  // only the tree is taken from the reload, so unsaved edits in the form survive an upload
+  const refreshFileTree = async() => {
+    const res: any = await StoreBackend.getStore(store.owner, store.name);
+    if (res.status === "ok" && res.data) {
+      updateField("fileTree", res.data.fileTree);
     }
   };
 
@@ -444,6 +453,16 @@ export default function StoreEditPage({basePath = "/stores"}: {basePath?: string
             </>
           ) : null}
         </FormSection>
+
+        {mode !== "add" && store.fileTree ? (
+          <section className="space-y-2">
+            <header className="space-y-0.5">
+              <h3 className="text-sm font-semibold tracking-tight">{i18next.t("store:File tree")}</h3>
+              <p className="text-sm text-muted-foreground">{i18next.t("store:File tree desc")}</p>
+            </header>
+            <FileTree store={store} account={account} onRefresh={refreshFileTree} />
+          </section>
+        ) : null}
       </div>
     </EditPageShell>
   );

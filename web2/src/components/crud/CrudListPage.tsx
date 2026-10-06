@@ -135,7 +135,7 @@ export function CrudListPage<T extends Record<string, any>>({
       setAdding(false);
       if (ok) {
         if (editUrl) {
-          navigate(editUrl(record));
+          navigate(editUrl(record), {state: {isNew: true}});
         } else {
           refresh();
         }

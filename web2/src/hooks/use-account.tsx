@@ -50,9 +50,6 @@ const AccountContext = React.createContext<AccountContextValue>({
 function applyWebConfig() {
   Conf.initConfigFromCookie();
   Setting.initCasdoorSdk();
-  if (Conf.HtmlTitle) {
-    document.title = Conf.HtmlTitle;
-  }
 }
 
 export function AccountProvider({children}: {children: React.ReactNode}) {

@@ -1,5 +1,5 @@
 import * as React from "react";
-import {Outlet} from "react-router-dom";
+import {Outlet, useSearchParams} from "react-router-dom";
 import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar";
 import {Loading} from "@/components/common/Loading";
 import {Header} from "@/components/layout/Header";
@@ -17,20 +17,33 @@ function readSidebarCookie(): boolean {
 }
 
 export function AppLayout({fullBleed = false}: {fullBleed?: boolean}) {
+  const [searchParams] = useSearchParams();
+
+  // ?isRaw is the page another site puts in an iframe: no menu, header or footer
+  if (searchParams.has("isRaw")) {
+    return (
+      <div className="h-screen overflow-hidden bg-background">
+        <React.Suspense fallback={<Loading />}>
+          <Outlet />
+        </React.Suspense>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">
       <SidebarProvider defaultOpen={readSidebarCookie()} className="min-h-0 flex-1">
         <AppSidebar />
         <SidebarInset className="min-h-0 overflow-hidden">
           <Header />
-          <main className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
+          <div className="min-h-0 flex-1 overflow-y-auto scrollbar-thin">
             {/* the chat fills the whole pane; console pages get the usual padding */}
             <div className={fullBleed ? "h-full" : "mx-auto w-full max-w-[1600px] p-4 md:p-6"}>
               <React.Suspense fallback={<Loading />}>
                 <Outlet />
               </React.Suspense>
             </div>
-          </main>
+          </div>
         </SidebarInset>
       </SidebarProvider>
 

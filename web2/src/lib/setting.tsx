@@ -68,7 +68,7 @@ export function getAcceptLanguage() {
 }
 
 export function isResponseDenied(data: any) {
-  return data?.msg === "Unauthorized operation";
+  return data?.msg === "Unauthorized operation" || data?.msg === "this operation requires admin privilege";
 }
 
 // ---- messages and links ------------------------------------------------------
@@ -259,21 +259,45 @@ export function filterTableColumns(columns: any[], formItems: any[]) {
 
 // ---- branding ----------------------------------------------------------------
 
-export function getLogo(themes: string[] = []) {
-  if (Conf.LogoUrl) {
-    return Conf.LogoUrl;
-  }
-  if (themes.includes("dark")) {
-    return `${Conf.StaticBaseUrl}/img/openagent-logo_1900x450_dark.png`;
-  }
-  return `${Conf.StaticBaseUrl}/img/openagent-logo_1900x450.png`;
+const DefaultLogoUrl = "https://cdn.openagentai.org/img/openagent-logo_1900x450.png";
+const DefaultHtmlTitle = "OpenAgent";
+
+/** Points the default CDN at the instance's own static host (the bundled /img of an offline build). */
+export function localizeStaticUrl(text: string) {
+  return Conf.StaticBaseUrl ? text.split("https://cdn.openagentai.org").join(Conf.StaticBaseUrl) : text;
 }
 
+/** In dark mode every PNG is swapped for its "_white" twin, the convention of the OpenAgent CDN. */
+function whiteInDark(text: string, themes: string[]) {
+  return themes.includes("dark") ? text.replace(/\.png/g, "_white.png") : text;
+}
+
+export function getLogo(themes: string[] = []) {
+  return getThemedLogo(null, null, themes);
+}
+
+/** The site's logo, else the instance's, else OpenAgent's. */
 export function getThemedLogo(logo: string | undefined | null, logoDark: string | undefined | null, themes: string[]) {
   if (themes.includes("dark") && logoDark) {
     return logoDark;
   }
-  return logo || getLogo(themes);
+  const url = logo && logo !== DefaultLogoUrl ? logo : (Conf.LogoUrl || DefaultLogoUrl);
+  return whiteInDark(localizeStaticUrl(url), themes);
+}
+
+export function getNavbarHtml(siteNavbarHtml: string | undefined | null, themes: string[]) {
+  return whiteInDark(localizeStaticUrl(siteNavbarHtml || Conf.NavbarHtml || ""), themes);
+}
+
+/** The site's footer, unless it is still the stock OpenAgent one. */
+export function getCustomFooterHtml(siteFooterHtml: string | undefined | null, themes: string[]) {
+  const isStock = !siteFooterHtml || siteFooterHtml.includes("/img/openagent-logo_1900x450.png");
+  const html = isStock ? Conf.FooterHtml : siteFooterHtml;
+  return html ? whiteInDark(localizeStaticUrl(html), themes) : "";
+}
+
+export function getHtmlTitle(siteHtmlTitle: string | undefined | null) {
+  return siteHtmlTitle && siteHtmlTitle !== DefaultHtmlTitle ? siteHtmlTitle : Conf.HtmlTitle;
 }
 
 export function getFaviconUrl(siteFaviconUrl?: string) {

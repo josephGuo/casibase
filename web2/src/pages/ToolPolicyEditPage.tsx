@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import i18next from "i18next";
-import {TriangleAlert} from "lucide-react";
+import {Info, TriangleAlert} from "lucide-react";
 import {useParams} from "react-router-dom";
 import * as ToolPolicyBackend from "@/backend/ToolPolicyBackend";
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
@@ -51,6 +51,20 @@ export default function ToolPolicyEditPage() {
           <TriangleAlert />
           <AlertTitle>{i18next.t("toolPolicy:Not enforced yet")}</AlertTitle>
           <AlertDescription>{i18next.t("toolPolicy:Not enforced yet desc")}</AlertDescription>
+        </Alert>
+      ),
+    },
+    {
+      // how the patterns below are matched and which rule wins
+      type: "custom",
+      name: "matchingHelp",
+      label: "",
+      block: true,
+      render: () => (
+        <Alert>
+          <Info />
+          <AlertTitle>{i18next.t("toolPolicy:Matching help title")}</AlertTitle>
+          <AlertDescription>{i18next.t("toolPolicy:Matching help desc")}</AlertDescription>
         </Alert>
       ),
     },

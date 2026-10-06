@@ -77,15 +77,17 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
   const chatName = embeddedStore ? undefined : params.chatName;
   const urlStore = embeddedStore ?? params.storeName;
   const [searchParams] = useSearchParams();
+  const isRaw = searchParams.get("isRaw") !== null;
+  // embedded, or in the bare ?isRaw page another site frames, the URL stays as it was opened
+  const keepsUrl = Boolean(embeddedStore) || isRaw;
   const routerNavigate = useNavigate();
   const navigate = React.useCallback((to: string, options?: {replace?: boolean}) => {
-    if (!embeddedStore) {
+    if (!keepsUrl) {
       routerNavigate(to, options);
     }
-  }, [embeddedStore, routerNavigate]);
+  }, [keepsUrl, routerNavigate]);
   const {account} = useAccount();
   const isMobile = useIsMobile();
-  const isRaw = searchParams.get("isRaw") !== null;
 
   // a store in the URL becomes the selected store; otherwise the remembered one is kept
   const [storeName] = React.useState(() => {

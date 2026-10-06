@@ -130,6 +130,7 @@ export default function MessageEditPage() {
       // what was logged from the API, or said in an API chat, is a record and stays as it was
       readOnly={(record) => record.isReadOnly === true || isApiChat(chat)}
       add={(record) => MessageBackend.addMessage(record)}
+      remove={(record) => MessageBackend.deleteMessage(record)}
       update={(record) => MessageBackend.updateMessage(record.owner, messageName, record)}
       editUrl={(record) => `/messages/${record.name}`}
       extraActions={(ctx) => (ctx.mode === "view" ? (

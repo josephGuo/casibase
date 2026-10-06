@@ -71,10 +71,12 @@ function RedirectIfSignedIn({children}: {children: React.ReactNode}) {
 /** "/" lands on the chat for most users and on the task list for task users. */
 function HomeRedirect() {
   const {account} = useAccount();
+  const {search} = useLocation();
   if (Setting.isTaskUser(account)) {
-    return <Navigate to="/tasks" replace />;
+    return <Navigate to={`/tasks${search}`} replace />;
   }
-  return <Navigate to="/chat" replace />;
+  // keeps ?isRaw, so a site that frames "/?isRaw=1" still gets the bare chat
+  return <Navigate to={`/chat${search}`} replace />;
 }
 
 export default function App() {

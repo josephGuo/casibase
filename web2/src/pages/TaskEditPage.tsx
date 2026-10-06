@@ -127,7 +127,7 @@ export default function TaskEditPage() {
       payload.result = JSON.stringify(payload.result);
     }
     setSaving(true);
-    await submitEdit({
+    const ok = await submitEdit({
       mode: "edit",
       record: payload,
       add: TaskBackend.addTask,
@@ -141,6 +141,7 @@ export default function TaskEditPage() {
       },
     });
     setSaving(false);
+    return ok;
   };
 
   const uploadDocument = async(file: File | undefined) => {
@@ -252,6 +253,7 @@ export default function TaskEditPage() {
       mode="edit"
       backTo="/tasks"
       onSave={save}
+      remove={() => TaskBackend.deleteTask(task)}
       saving={saving}
     >
       <div className="space-y-6">

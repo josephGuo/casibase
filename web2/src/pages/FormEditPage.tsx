@@ -88,7 +88,7 @@ export default function FormEditPage() {
 
   const save = async(exitAfterSave: boolean) => {
     setSaving(true);
-    await submitEdit({
+    const ok = await submitEdit({
       mode: "edit",
       record: Setting.deepCopy(form),
       add: FormBackend.addForm,
@@ -103,6 +103,7 @@ export default function FormEditPage() {
       },
     });
     setSaving(false);
+    return ok;
   };
 
   const text = (name: string, labelKey: string) => (
@@ -157,6 +158,7 @@ export default function FormEditPage() {
       mode="edit"
       backTo="/forms"
       onSave={save}
+      remove={() => FormBackend.deleteForm(form)}
       saving={saving}
     >
       <div className="space-y-6">

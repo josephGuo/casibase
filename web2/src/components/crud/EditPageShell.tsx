@@ -1,12 +1,13 @@
 import * as React from "react";
 import i18next from "i18next";
 import {ArrowLeft} from "lucide-react";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader} from "@/components/ui/card";
 import {FormGrid} from "@/components/crud/FormRow";
 import {PageHeader} from "@/components/crud/PageHeader";
-import type {EditMode} from "@/lib/crud";
+import type {CasdoorResponse, EditMode} from "@/lib/crud";
+import * as Setting from "@/lib/setting";
 import {cn} from "@/lib/utils";
 
 interface EditPageShellProps {
@@ -14,9 +15,16 @@ interface EditPageShellProps {
   description?: React.ReactNode;
   mode: EditMode;
   backTo: string;
-  onSave: (exitAfterSave: boolean) => void | Promise<void>;
+  /** resolving to `false` means the save failed */
+  onSave: (exitAfterSave: boolean) => void | boolean | Promise<void | boolean>;
   /** in "add" mode Cancel simply leaves the page, dropping the unsaved object */
   onCancel?: () => void;
+  /**
+   * Deletes the record. A list that creates the record before opening it marks the
+   * visit with `isNew`; until the first save, Cancel then deletes it again, as the
+   * antd pages do, so backing out of "Add" leaves nothing behind.
+   */
+  remove?: () => Promise<CasdoorResponse>;
   extraActions?: React.ReactNode;
   /** lay a flat run of `FormRow` children out in the two-column `FormGrid` */
   grid?: boolean;
@@ -32,6 +40,7 @@ export function EditPageShell({
   backTo,
   onSave,
   onCancel,
+  remove,
   extraActions,
   grid,
   children,
@@ -39,6 +48,36 @@ export function EditPageShell({
   className,
 }: EditPageShellProps) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isNew, setIsNew] = React.useState(Boolean((location.state as any)?.isNew));
+  const [cancelling, setCancelling] = React.useState(false);
+
+  const save = async(exitAfterSave: boolean) => {
+    const ok = await onSave(exitAfterSave);
+    if (ok !== false) {
+      setIsNew(false);
+    }
+  };
+
+  const discard = async() => {
+    if (!remove) {
+      return;
+    }
+    setCancelling(true);
+    try {
+      const res = await remove();
+      if (res.status === "ok") {
+        Setting.showMessage("success", i18next.t("general:Cancelled successfully"));
+        navigate(backTo);
+      } else {
+        Setting.showMessage("error", `${i18next.t("general:Failed to cancel")}: ${res.msg}`);
+      }
+    } catch (error) {
+      Setting.showMessage("error", `${i18next.t("general:Failed to connect to server")}: ${error}`);
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   // a read-only page offers no way to save; the antd pages hide the same buttons
   const actions = (
@@ -47,16 +86,20 @@ export function EditPageShell({
       {mode !== "view" ? (
         <>
           {/* Save is the one people press over and over, so it is the filled one */}
-          <Button variant="outline" loading={saving} onClick={() => onSave(true)}>
+          <Button variant="outline" loading={saving} onClick={() => save(true)}>
             {i18next.t("general:Save & Exit")}
           </Button>
-          <Button loading={saving} onClick={() => onSave(false)}>
+          <Button loading={saving} onClick={() => save(false)}>
             {i18next.t("general:Save")}
           </Button>
         </>
       ) : null}
       {mode === "add" ? (
         <Button variant="ghost" onClick={() => (onCancel ? onCancel() : navigate(backTo))}>
+          {i18next.t("general:Cancel")}
+        </Button>
+      ) : isNew && remove ? (
+        <Button variant="ghost" loading={cancelling} onClick={discard}>
           {i18next.t("general:Cancel")}
         </Button>
       ) : null}

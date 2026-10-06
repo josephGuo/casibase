@@ -83,6 +83,7 @@ export default function ChatEditPage() {
       readOnly={isApiChat}
       fetch={() => ChatBackend.getChat("admin", chatName)}
       add={(record) => ChatBackend.addChat(record)}
+      remove={(record) => ChatBackend.deleteChat(record)}
       update={(record) => ChatBackend.updateChat(record.owner, chatName, record)}
       editUrl={(record) => `/chats/${record.name}`}
       extraActions={(ctx) => (isApiChat(ctx.record) ? (

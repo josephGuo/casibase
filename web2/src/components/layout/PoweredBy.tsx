@@ -1,5 +1,4 @@
 import {CustomHtml} from "@/components/common/CustomHtml";
-import * as Conf from "@/Conf";
 import {useIsDark} from "@/hooks/use-theme";
 import {useSite} from "@/hooks/use-site";
 import * as Setting from "@/lib/setting";
@@ -12,8 +11,9 @@ export function PoweredBy() {
   const isDark = useIsDark();
   const {site} = useSite();
 
-  const footerHtml = site?.footerHtml || Conf.FooterHtml;
-  if (footerHtml && !footerHtml.includes("/img/openagent-logo_1900x450.png")) {
+  const themes = [isDark ? "dark" : "light"];
+  const footerHtml = Setting.getCustomFooterHtml(site?.footerHtml, themes);
+  if (footerHtml) {
     return <CustomHtml html={footerHtml} />;
   }
 
@@ -22,7 +22,7 @@ export function PoweredBy() {
       Powered by
       <a href="https://openagentai.org" target="_blank" rel="noreferrer">
         <img
-          src={Setting.getLogo([isDark ? "dark" : "light"])}
+          src={Setting.getThemedLogo(site?.logoUrl, null, themes)}
           alt="OpenAgent"
           height={20}
           className="h-5 w-auto pb-[3px]"
