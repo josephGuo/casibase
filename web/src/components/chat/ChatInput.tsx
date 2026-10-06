@@ -22,7 +22,7 @@ import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {FileTypeIcon} from "@/components/common/FileTypeIcon";
 import * as ProviderSetting from "@/lib/provider-setting";
 import * as Setting from "@/lib/setting";
-import {cn} from "@/lib/utils";
+import {cn, isComposing} from "@/lib/utils";
 
 export const ACCEPTED_FILE_TYPES = "image/*, .txt, .md, .yaml, .csv, .docx, .pdf, .xlsx, .pptx";
 const SUPPORTED_EXTENSIONS = new Set(["txt", "md", "yaml", "csv", "docx", "pdf", "xlsx", "pptx"]);
@@ -252,7 +252,7 @@ export const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(f
           }}
           onKeyDown={(e) => {
             // Enter sends, Shift+Enter breaks the line; an IME composing Chinese also uses Enter
-            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            if (e.key === "Enter" && !e.shiftKey && !isComposing(e)) {
               e.preventDefault();
               if (canSend) {
                 props.onSend();

@@ -25,6 +25,7 @@ import {MAX_PANES, providerOption, storeOption, useChildModelProviders} from "@/
 import {SearchableSelect} from "@/components/common/SearchableSelect";
 import {getPendingAnswer, getRefinedErrorText, streamAnswer} from "@/lib/chat-stream";
 import * as Setting from "@/lib/setting";
+import {isComposing} from "@/lib/utils";
 
 interface Pane {
   chat: any;
@@ -314,7 +315,7 @@ export function MultiPaneChat({stores, account, initialChat, paneCount, onPaneCo
           placeholder={i18next.t("chat:Send message to all panes...")}
           onChange={(e) => setGlobalText(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            if (e.key === "Enter" && !e.shiftKey && !isComposing(e)) {
               e.preventDefault();
               sendToAll();
             }

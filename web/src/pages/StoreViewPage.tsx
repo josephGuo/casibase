@@ -236,9 +236,15 @@ export default function StoreViewPage() {
     ? "insights"
     : issueName ? "issues" : Tabs.includes(tabParam as Tab) ? tabParam as Tab : "overview";
 
+  // a reply for an agent left behind must not replace the one now shown
+  const latestLoad = React.useRef(0);
   // the visit is logged by the backend when the store is fetched, so there is no separate call
   const loadStore = React.useCallback(() => {
+    const load = ++latestLoad.current;
     StoreBackend.getStore(owner, storeName).then((res: any) => {
+      if (load !== latestLoad.current) {
+        return;
+      }
       if (res.status !== "ok") {
         Setting.showMessage("error", `${i18next.t("general:Failed to get")}: ${res.msg}`);
         setStore(null);
@@ -251,7 +257,7 @@ export default function StoreViewPage() {
       setStore(loaded ?? null);
       if (loaded) {
         StoreBackend.getStoreFavoriteStatus(owner, storeName, loaded.hubDbName).then((status: any) => {
-          if (status.status === "ok" && status.data) {
+          if (load === latestLoad.current && status.status === "ok" && status.data) {
             setFavorite({...emptyFavorite, ...status.data});
           }
         });

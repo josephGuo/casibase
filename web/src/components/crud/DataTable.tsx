@@ -2,7 +2,7 @@ import * as React from "react";
 import i18next from "i18next";
 import {Link} from "react-router-dom";
 import {ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsUpDown, Filter, Inbox, Search, X} from "lucide-react";
-import {cn} from "@/lib/utils";
+import {cn, isComposing} from "@/lib/utils";
 import {Badge} from "@/components/ui/badge";
 import {Checkbox} from "@/components/ui/checkbox";
 import {Button} from "@/components/ui/button";
@@ -118,7 +118,7 @@ function ColumnSearch({
           placeholder={i18next.t("general:Please input your search")}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && !isComposing(e)) {
               submit();
             }
           }}

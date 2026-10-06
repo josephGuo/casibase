@@ -53,7 +53,7 @@ import {MessageText} from "@/components/chat/MessageText";
 import {KnowledgeSourcesSheet, WebSourcesSheet} from "@/components/chat/SourcesSheet";
 import {getRefinedErrorText, isNoModelProviderError} from "@/lib/chat-stream";
 import * as Setting from "@/lib/setting";
-import {cn} from "@/lib/utils";
+import {cn, isComposing} from "@/lib/utils";
 
 /** The message as plain text for the clipboard, tool calls first, the way the answer was produced. */
 export function copyMessage(message: any) {
@@ -274,6 +274,9 @@ function MessageItemInner(props: MessageItemProps) {
             value={editedText}
             onChange={(e) => setEditedText(e.target.value)}
             onKeyDown={(e) => {
+              if (isComposing(e)) {
+                return;
+              }
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 saveEdit();

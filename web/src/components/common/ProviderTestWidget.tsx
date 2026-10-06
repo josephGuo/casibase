@@ -23,6 +23,7 @@ import {Button} from "@/components/ui/button";
 import {Textarea} from "@/components/ui/textarea";
 import {blobToWav} from "@/lib/audio";
 import * as Setting from "@/lib/setting";
+import {isComposing} from "@/lib/utils";
 
 interface ProviderTestProps {
   provider: any;
@@ -82,7 +83,7 @@ function ModelTest({provider, ensureSaved}: ProviderTestProps) {
           placeholder={i18next.t("chat:Type message here")}
           onChange={(e) => setQuestion(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey && question.trim() !== "" && !loading) {
+            if (e.key === "Enter" && !e.shiftKey && !isComposing(e) && question.trim() !== "" && !loading) {
               e.preventDefault();
               send();
             }

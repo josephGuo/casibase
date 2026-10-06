@@ -26,6 +26,7 @@ import {SimpleEditPage, type EditField} from "@/components/crud/SimpleEditPage";
 import {useAccount} from "@/hooks/use-account";
 import {useStoreOptions} from "@/hooks/use-stores";
 import * as Setting from "@/lib/setting";
+import {isComposing} from "@/lib/utils";
 import {PipeTypeLabel, PipeTypes} from "@/pages/PipeListPage";
 
 // the types that take a second secret besides the token, and what that secret is called there
@@ -224,7 +225,7 @@ function ChatTestCard({pipe, update}: {pipe: any; update: (field: string, value:
             value={pipe.chatTestMessage ?? ""}
             onChange={(e) => update("chatTestMessage", e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && !isComposing(e)) {
                 test();
               }
             }}
