@@ -155,7 +155,7 @@ export function ColumnMenu({
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => visibility.showAll()}>{i18next.t("general:Select all")}</DropdownMenuItem>
         <DropdownMenuItem disabled={!visibility.customized} onSelect={() => visibility.reset()}>
-          {i18next.t("forget:Reset")}
+          {i18next.t("general:Reset")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

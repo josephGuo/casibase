@@ -18,7 +18,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 7001,
+    port: 13001,
     proxy: Object.fromEntries(
       // /api also carries the speech-to-text websocket
       proxyPaths.map((p) => [p, {target: backend, changeOrigin: true, ws: p === "/api"}])

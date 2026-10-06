@@ -68,7 +68,7 @@ go run main.go
 ```bash
 cd web
 yarn install
-yarn start   # Dev server on http://localhost:3000 (proxies API to :14444)
+yarn start   # Dev server on http://localhost:13001 (proxies API to :14000)
 ```
 
 ### 5. Docker (all-in-one, quickest start)
@@ -98,7 +98,7 @@ docker-compose up
    golangci-lint run
 
    # Frontend
-   cd web && yarn lint && yarn test
+   cd web && yarn typecheck && yarn lint
    ```
 
 4. **Commit** with a semantic message:
@@ -121,12 +121,13 @@ docker-compose up
 - Formatting: `gofumpt` (enforced by golangci-lint)
 - Avoid duplicate i18n keys between frontend and backend
 
-### Frontend (React)
+### Frontend (React + TypeScript)
 
-- UI components use Ant Design v5
+- UI components use [shadcn/ui](https://ui.shadcn.com/) on Tailwind CSS, built with Vite; the primitives live in `web/src/components/ui/`
 - i18n strings must be added to **both** `web/src/locales/en/data.json` and `web/src/locales/zh/data.json`
 - API calls go through helper modules in `web/src/backend/`
 - State via React Context/Hooks — no Redux
+- `web-old/` is the previous Ant Design frontend, kept for reference only: it is not built, served or linted, and PRs should not change it
 
 ## Adding a New AI Provider
 
@@ -152,6 +153,7 @@ Every pull request runs the following checks automatically:
 | Go build | `go build ./...` |
 | golangci-lint | `golangci-lint run` |
 | Frontend build | `yarn run build` |
+| Frontend typecheck | `yarn typecheck` |
 | Frontend lint | `yarn lint` |
 
 All checks must pass before a PR can be merged.

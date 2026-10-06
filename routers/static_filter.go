@@ -21,7 +21,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"strings"
 
@@ -123,6 +122,14 @@ func StaticFilter(ctx *context.Context) {
 		path = webBuildFolder + "/index.html"
 	}
 	if util.FileExist(path) {
+		// index.html hands the per-instance settings (Casdoor issuer, client ID,
+		// branding) to the frontend through the jsonWebConfig cookie.
+		if strings.HasSuffix(path, "/index.html") {
+			err := util.AppendWebConfigCookie(ctx)
+			if err != nil {
+				logs.Error("AppendWebConfigCookie() error: %s", err.Error())
+			}
+		}
 		makeGzipResponse(ctx.ResponseWriter, ctx.Request, path)
 	} else {
 		fallback := "web/build/index.html"
@@ -219,45 +226,12 @@ func (w gzipResponseWriter) Write(b []byte) (int, error) {
 
 func makeGzipResponse(w http.ResponseWriter, r *http.Request, path string) {
 	if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-		serveFileWithReplace(w, r, path)
+		http.ServeFile(w, r, path)
 		return
 	}
 	w.Header().Set("Content-Encoding", "gzip")
 	gz := gzip.NewWriter(w)
 	defer gz.Close()
 	gzw := gzipResponseWriter{Writer: gz, ResponseWriter: w}
-	serveFileWithReplace(gzw, r, path)
-}
-
-func serveFileWithReplace(w http.ResponseWriter, r *http.Request, path string) {
-	if !regexp.MustCompile(`/static/js/main\.[a-f0-9]+\.js$`).MatchString(path) {
-		http.ServeFile(w, r, path)
-		return
-	}
-
-	f, err := os.Open(filepath.Clean(path))
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	d, err := f.Stat()
-	if err != nil {
-		panic(err)
-	}
-
-	oldContent := util.ReadStringFromPath(path)
-	newContent := oldContent
-
-	issuer := conf.GetIssuer()
-	clientId := conf.GetConfigString("clientId")
-	appName := conf.GetConfigString("casdoorApplication")           // casdoor backward compat
-	organizationName := conf.GetConfigString("casdoorOrganization") // casdoor backward compat
-
-	newContent = regexp.MustCompile(`issuer:"[^"]*"`).ReplaceAllString(newContent, fmt.Sprintf(`issuer:"%s"`, issuer))
-	newContent = regexp.MustCompile(`clientId:"[^"]*"`).ReplaceAllString(newContent, fmt.Sprintf(`clientId:"%s"`, clientId))
-	newContent = regexp.MustCompile(`appName:"[^"]*"`).ReplaceAllString(newContent, fmt.Sprintf(`appName:"%s"`, appName))
-	newContent = regexp.MustCompile(`organizationName:"[^"]*"`).ReplaceAllString(newContent, fmt.Sprintf(`organizationName:"%s"`, organizationName))
-
-	http.ServeContent(w, r, d.Name(), d.ModTime(), strings.NewReader(newContent))
+	http.ServeFile(gzw, r, path)
 }

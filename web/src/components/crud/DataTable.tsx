@@ -130,7 +130,7 @@ function ColumnSearch({
           </Button>
           <Button size="sm" variant="outline" className="flex-1" onClick={reset}>
             <X />
-            {i18next.t("forget:Reset")}
+            {i18next.t("general:Reset")}
           </Button>
           <Button size="sm" variant="link" onClick={filter}>
             {i18next.t("general:Filter")}
@@ -216,7 +216,7 @@ function ColumnFilter({
         <div className="border-t p-1">
           <Button size="sm" variant="ghost" className="w-full" disabled={!active} onClick={reset}>
             <X />
-            {i18next.t("forget:Reset")}
+            {i18next.t("general:Reset")}
           </Button>
         </div>
       </PopoverContent>
@@ -332,7 +332,7 @@ function ActiveFilter({
         <span className="font-medium">{optionLabel(column?.filters) ?? query.searchText}</span>
         <button
           type="button"
-          aria-label={i18next.t("forget:Reset")}
+          aria-label={i18next.t("general:Reset")}
           className="ml-0.5 rounded-sm p-0.5 text-muted-foreground hover:bg-background hover:text-foreground"
           onClick={() => onQueryChange({searchText: "", searchedColumn: "", page: 1})}
         >
@@ -602,7 +602,7 @@ export function DataTable<T = any>({
               </span>
               {selection.actions}
               <Button variant="ghost" size="sm" onClick={() => selection.onChange(new Set())}>
-                {i18next.t("forget:Reset")}
+                {i18next.t("general:Reset")}
               </Button>
             </div>
           ) : (

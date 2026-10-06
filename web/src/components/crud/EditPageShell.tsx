@@ -117,7 +117,7 @@ export function EditPageShell({
         <PageHeader
           title={
             <span className="flex items-center gap-2">
-              <Button variant="ghost" size="iconSm" onClick={() => navigate(backTo)} aria-label={i18next.t("general:Back")}>
+              <Button variant="ghost" size="iconSm" onClick={() => navigate(backTo)} aria-label={i18next.t("general:Go back")}>
                 <ArrowLeft />
               </Button>
               {title}

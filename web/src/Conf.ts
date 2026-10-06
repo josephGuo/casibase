@@ -24,7 +24,10 @@ export const AuthConfig = {
   redirectPath: "/callback",
 };
 
-export let StaticBaseUrl = "https://cdn.openagentai.org";
+// A build made with VITE_EMBED_STATIC_ASSETS=true carries img/ and flag-icons/ in
+// web/public, so it asks for them on its own origin instead of the CDN. The
+// backend blanks out a default staticBaseUrl too when it runs with -tags embed.
+export let StaticBaseUrl = import.meta.env.VITE_EMBED_STATIC_ASSETS === "true" ? "" : "https://cdn.openagentai.org";
 export let HtmlTitle = "";
 export let FaviconUrl = "";
 export let LogoUrl = "";

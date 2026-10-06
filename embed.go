@@ -15,17 +15,16 @@
 //go:build embed
 
 // This file is only compiled when building with -tags embed.
-// It embeds conf/, web/build/ (without source-map files), skills/, the OCR
-// service and the PPTX worker into the binary, and wires them up via
-// embedsupport.Setup so that the server can run from a single executable
-// without any on-disk assets.
+// It embeds conf/, web/build/, skills/, the OCR service and the PPTX worker into
+// the binary, and wires them up via embedsupport.Setup so that the server can run
+// from a single executable without any on-disk assets.
 // On-disk files always take priority over the embedded versions at runtime.
 //
-// web/build/img, web/build/flag-icons, web/build/gravatar and web/build/icon
-// must exist before building with -tags embed, or this file will fail to
-// compile (go:embed errors on a missing directory). The official release
-// pipeline populates them by running scripts/prepare-embedded-web-assets.sh
-// before `yarn build`; do the same for a manual -tags embed build.
+// web/build/img and web/build/flag-icons must exist before building with
+// -tags embed, or this file will fail to compile (go:embed errors on a missing
+// directory). The official release pipeline populates them by running
+// scripts/prepare-embedded-web-assets.sh before `yarn build`; do the same for a
+// manual -tags embed build.
 
 package main
 
@@ -39,17 +38,14 @@ import (
 //go:embed conf
 var _embeddedConf embed.FS
 
-// web/build is embedded file by file so that *.map (source-map) files are
-// excluded — they are only needed for debugging and can be tens of MB.
+// Vite writes the hashed bundles, the stylesheet and the fonts into
+// web/build/assets and leaves no source maps behind (sourcemap is off), so the
+// whole directory can go in as is.
 //
-//go:embed web/build/index.html web/build/manifest.json web/build/asset-manifest.json
-//go:embed web/build/static/css/*.css
-//go:embed web/build/static/js/*.js web/build/static/js/*.txt
-//go:embed web/build/static/media
+//go:embed web/build/index.html web/build/manifest.json web/build/pcm-worklet.js
+//go:embed web/build/assets
 //go:embed web/build/img
 //go:embed web/build/flag-icons
-//go:embed web/build/gravatar
-//go:embed web/build/icon
 var _embeddedWeb embed.FS
 
 //go:embed skills

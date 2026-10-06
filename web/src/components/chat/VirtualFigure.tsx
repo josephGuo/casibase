@@ -65,12 +65,12 @@ function computeStatus(props: {messageError: boolean; loading: boolean; messages
 }
 
 const STATUS_KEYS: Record<Status, string> = {
-  idle: "figure:Idle",
-  typing: "figure:Typing",
-  thinking: "figure:Thinking",
-  replying: "figure:Replying",
-  error: "figure:Error",
-  done: "figure:Done",
+  idle: "figure:State - Idle",
+  typing: "figure:State - Typing",
+  thinking: "figure:State - Thinking",
+  replying: "figure:State - Replying",
+  error: "figure:State - Error",
+  done: "figure:State - Done",
 };
 
 interface VirtualFigureProps {

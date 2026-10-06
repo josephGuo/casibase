@@ -54,7 +54,7 @@ export default function FileTreePage() {
     <PageHeader
       title={
         <span className="flex items-center gap-2">
-          <Button variant="ghost" size="iconSm" aria-label={i18next.t("general:Back")} onClick={() => navigate("/stores")}>
+          <Button variant="ghost" size="iconSm" aria-label={i18next.t("general:Go back")} onClick={() => navigate("/stores")}>
             <ArrowLeft />
           </Button>
           {store.displayName || store.name || storeName}

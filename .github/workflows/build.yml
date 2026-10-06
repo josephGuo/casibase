@@ -47,16 +47,18 @@ jobs:
           cache-dependency-path: ./web/yarn.lock
       - run: yarn install
         working-directory: ./web
+      - run: yarn typecheck && yarn lint
+        working-directory: ./web
       - name: Prepare embedded web static assets
         if: github.repository == 'the-open-agent/openagent' && github.event_name == 'push'
         run: ./scripts/prepare-embedded-web-assets.sh
       - name: Build embedded frontend
         if: github.repository == 'the-open-agent/openagent' && github.event_name == 'push'
-        run: CI=false REACT_APP_EMBED_STATIC_ASSETS=true yarn run build
+        run: VITE_EMBED_STATIC_ASSETS=true yarn run build
         working-directory: ./web
       - name: Build frontend
         if: github.repository != 'the-open-agent/openagent' || github.event_name != 'push'
-        run: CI=false yarn run build
+        run: yarn run build
         working-directory: ./web
       - name: Upload build artifacts
         if: github.repository == 'the-open-agent/openagent' && github.event_name == 'push'

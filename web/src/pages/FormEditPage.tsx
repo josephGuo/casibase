@@ -30,7 +30,12 @@ import {submitEdit} from "@/lib/crud";
 import {getFormTypeItems, getFormTypeOptions} from "@/lib/form-types";
 import * as Setting from "@/lib/setting";
 
-const Categories = ["Table", "iFrame", "List Page"];
+// "Table" borrows general:Table: the i18n dedup check allows a word in one namespace only
+const CategoryLabelKeys: Record<string, string> = {
+  "Table": "general:Table",
+  "iFrame": "form:iFrame",
+  "List Page": "form:List Page",
+};
 
 // the list pages a "List Page" Form customizes, previewed with the columns being edited
 const listPageModules = import.meta.glob("./*ListPage.tsx");
@@ -169,7 +174,7 @@ export default function FormEditPage() {
           <FormRow labelKey="general:Category" tooltip={i18next.t("provider:Category - Tooltip")}>
             <SearchableSelect
               value={form.category ?? ""}
-              options={Categories.map((category) => ({value: category, label: i18next.t(`form:${category}`)}))}
+              options={Object.entries(CategoryLabelKeys).map(([category, labelKey]) => ({value: category, label: i18next.t(labelKey)}))}
               onChange={(category) => updateField("category", category)}
             />
           </FormRow>
