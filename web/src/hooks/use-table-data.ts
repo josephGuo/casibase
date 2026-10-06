@@ -47,8 +47,16 @@ export function useTableData<T = any>(
 
   const fetcherRef = React.useRef(fetcher);
   fetcherRef.current = fetcher;
+  const depsRef = React.useRef(deps);
 
   React.useEffect(() => {
+    // another store or owner has its own pages; staying on page 5 of the old one would show nothing
+    const depsChanged = deps.length !== depsRef.current.length || deps.some((dep, i) => !Object.is(dep, depsRef.current[i]));
+    depsRef.current = deps;
+    if (depsChanged && query.page !== 1) {
+      setQueryState((prev) => ({...prev, page: 1}));
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     setErrorMessage("");

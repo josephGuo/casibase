@@ -65,6 +65,8 @@ export function useEditRecord<T extends Record<string, any>>({
     }
     let cancelled = false;
     setLoading(true);
+    setNotFound(false);
+    setDenied(false);
     fetchRef
       .current()
       .then((res) => {

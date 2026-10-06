@@ -17,7 +17,7 @@ import * as Setting from "@/lib/setting";
 export function addFile(storeId, key, isLeaf, filename, file) {
   const formData = new FormData();
   formData.append("file", file);
-  return fetch(`${Setting.ServerUrl}/api/add-tree-file?store=${storeId}&key=${key}&isLeaf=${isLeaf ? 1 : 0}&filename=${encodeURIComponent(filename)}`, {
+  return fetch(`${Setting.ServerUrl}/api/add-tree-file?store=${encodeURIComponent(storeId)}&key=${encodeURIComponent(key)}&isLeaf=${isLeaf ? 1 : 0}&filename=${encodeURIComponent(filename)}`, {
     method: "POST",
     credentials: "include",
     headers: {
@@ -28,7 +28,7 @@ export function addFile(storeId, key, isLeaf, filename, file) {
 }
 
 export function deleteFile(storeId, key, isLeaf) {
-  return fetch(`${Setting.ServerUrl}/api/delete-tree-file?store=${storeId}&key=${key}&isLeaf=${isLeaf ? 1 : 0}`, {
+  return fetch(`${Setting.ServerUrl}/api/delete-tree-file?store=${encodeURIComponent(storeId)}&key=${encodeURIComponent(key)}&isLeaf=${isLeaf ? 1 : 0}`, {
     method: "POST",
     credentials: "include",
     headers: {

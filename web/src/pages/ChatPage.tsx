@@ -89,9 +89,10 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
   const {account} = useAccount();
   const isMobile = useIsMobile();
 
-  // a store in the URL becomes the selected store; otherwise the remembered one is kept
+  // a store in the URL becomes the selected store; otherwise the remembered one is kept.
+  // An agent's page only borrows the chat, so it leaves the selection alone.
   const [storeName, setStoreName] = React.useState(() => {
-    if (urlStore) {
+    if (urlStore && !embeddedStore) {
       Setting.setStore(urlStore);
     }
     return urlStore || Setting.getStoreCurrent() || "";
