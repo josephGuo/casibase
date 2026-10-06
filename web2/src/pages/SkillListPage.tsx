@@ -12,12 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import * as React from "react";
 import i18next from "i18next";
 import dayjs from "dayjs";
-import {Link} from "react-router-dom";
+import {Download, Store} from "lucide-react";
+import {Link, useNavigate} from "react-router-dom";
 import * as SkillBackend from "@/backend/SkillBackend";
 import {Badge} from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
 import {CrudListPage} from "@/components/crud/CrudListPage";
+import {LoadSkillDialog} from "@/components/skill/LoadSkillDialog";
+import {SkillMarketplaceDialog} from "@/components/skill/SkillMarketplaceDialog";
 import {dateColumn, textColumn, valueFilters} from "@/components/crud/columns";
 import type {ColumnDef} from "@/components/crud/types";
 import * as Setting from "@/lib/setting";
@@ -43,6 +48,11 @@ function newSkill() {
 }
 
 export default function SkillListPage() {
+  const navigate = useNavigate();
+  const [loadOpen, setLoadOpen] = React.useState(false);
+  const [marketplaceOpen, setMarketplaceOpen] = React.useState(false);
+  const openSkill = (name: string) => navigate(`/skills/${name}`);
+
   const columns: ColumnDef<any>[] = [
     {
       dataIndex: "name",
@@ -97,13 +107,23 @@ export default function SkillListPage() {
   ];
 
   return (
-    <CrudListPage
-      title={i18next.t("general:Skills")}
-      columns={columns}
-      fetch={(q) => SkillBackend.getSkills("admin", q.page, q.pageSize, q.searchedColumn, q.searchText, q.sortField, q.sortOrder)}
-      newRecord={newSkill}
-      editUrl={(r) => `/skills/${r.name}`}
-      remove={(r) => SkillBackend.deleteSkill(r)}
-    />
+    <>
+      <CrudListPage
+        title={i18next.t("general:Skills")}
+        columns={columns}
+        fetch={(q) => SkillBackend.getSkills("admin", q.page, q.pageSize, q.searchedColumn, q.searchText, q.sortField, q.sortOrder)}
+        newRecord={newSkill}
+        editUrl={(r) => `/skills/${r.name}`}
+        remove={(r) => SkillBackend.deleteSkill(r)}
+        toolbar={
+          <>
+            <Button variant="outline" onClick={() => setLoadOpen(true)}><Download />{i18next.t("skill:Load Existing Skill")}</Button>
+            <Button variant="outline" onClick={() => setMarketplaceOpen(true)}><Store />{i18next.t("skill:Marketplace")}</Button>
+          </>
+        }
+      />
+      <LoadSkillDialog open={loadOpen} onOpenChange={setLoadOpen} onImported={openSkill} />
+      <SkillMarketplaceDialog open={marketplaceOpen} onOpenChange={setMarketplaceOpen} onInstalled={openSkill} />
+    </>
   );
 }

@@ -283,8 +283,9 @@ export default function RecordListPage({formItems}: {formItems?: any[]} = {}) {
         fetch={(q) => RecordBackend.getRecords(Setting.getRequestOrganization(account), q.page, q.pageSize, q.searchedColumn, q.searchText, q.sortField, q.sortOrder)}
         deps={[account?.owner]}
         editUrl={(r) => `/records/${r.owner}/${r.id}`}
+        remove={(r) => RecordBackend.deleteRecord(r)}
         rowActions={(record, _index, {refresh}) => chainActions(record, refresh)}
-        actionColumnWidth={crossChain ? 260 : 180}
+        actionColumnWidth={crossChain ? 330 : 250}
         toolbar={isAdmin ? (
           <div className="mr-2 flex items-center gap-5 text-sm">
             <label className="flex items-center gap-2">
