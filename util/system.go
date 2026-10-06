@@ -32,6 +32,7 @@ import (
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
 	"github.com/shirou/gopsutil/v3/process"
+	"github.com/the-open-agent/openagent/embedsupport"
 	"github.com/the-open-agent/openagent/internal/cli"
 )
 
@@ -81,12 +82,17 @@ func getMemoryUsage() (uint64, uint64, error) {
 	return memInfo.RSS, virtualMem.Total, nil
 }
 
+func getRootPath() string {
+	if dir, isExeDir := embedsupport.AppDir(); !isExeDir {
+		return dir
+	}
+	_, filename, _, _ := runtime.Caller(0)
+	return path.Dir(path.Dir(filename))
+}
+
 // getDiskUsage gets disk usage for OpenAgent's data directory
 func getDiskUsage() (uint64, uint64, error) {
-	// Get the root path of the project
-	_, filename, _, _ := runtime.Caller(0)
-	rootPath := path.Dir(path.Dir(filename))
-	dataPath := filepath.Join(rootPath, "data")
+	dataPath := filepath.Join(getRootPath(), "data")
 
 	// Calculate directory size recursively
 	var size uint64
@@ -176,9 +182,7 @@ func GetVersionInfo() (*VersionInfo, error) {
 		CommitOffset: -1,
 	}
 
-	_, filename, _, _ := runtime.Caller(0)
-	rootPath := path.Dir(path.Dir(filename))
-	r, err := git.PlainOpen(rootPath)
+	r, err := git.PlainOpen(getRootPath())
 	if err != nil {
 		return res, err
 	}
@@ -285,9 +289,7 @@ func GetVersionInfoFromFile() (*VersionInfo, error) {
 		CommitOffset: -1,
 	}
 
-	_, filename, _, _ := runtime.Caller(0)
-	rootPath := path.Dir(path.Dir(filename))
-	file, err := os.Open(filepath.Clean(path.Join(rootPath, "version_info.txt")))
+	file, err := os.Open(filepath.Clean(path.Join(getRootPath(), "version_info.txt")))
 	if err != nil {
 		return res, err
 	}

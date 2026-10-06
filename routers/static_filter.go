@@ -68,7 +68,7 @@ func StaticFilter(ctx *context.Context) {
 	}
 
 	if strings.HasPrefix(urlPath, "/swagger") {
-		if !util.FileExist(filepath.Join("swagger", "index.html")) {
+		if !util.FileExist(filepath.Join(conf.GetSharedPath("swagger"), "index.html")) {
 			target := urlPath
 			if target == "/swagger" || target == "/swagger/" {
 				target = "/swagger/index.html"

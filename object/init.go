@@ -341,7 +341,7 @@ func findSkillsDir() string {
 
 	// 2. Current working directory (development: go run .)
 	if cwd, err := os.Getwd(); err == nil {
-		candidate := filepath.Join(cwd, "skills")
+		candidate := filepath.Join(cwd, conf.GetSharedPath("skills"))
 		if _, err2 := os.Stat(candidate); err2 == nil {
 			return candidate
 		}

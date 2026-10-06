@@ -26,6 +26,7 @@ import (
 	"strings"
 
 	"github.com/ThinkInAIXYZ/go-mcp/protocol"
+	"github.com/the-open-agent/openagent/conf"
 	"github.com/the-open-agent/openagent/embedsupport"
 )
 
@@ -225,9 +226,9 @@ func findPptxWorkerPath(ctx context.Context) (string, error) {
 		)
 	}
 	candidates = append(candidates,
-		pptxWorkerCandidate{path: filepath.Join("tool", "pptx-worker", "worker.mjs"), requireNodeModules: true},
+		pptxWorkerCandidate{path: conf.GetSharedPath(filepath.Join("tool", "pptx-worker", "worker.mjs")), requireNodeModules: true},
 		pptxWorkerCandidate{path: filepath.Join("pptx-worker", "worker.mjs"), requireNodeModules: true},
-		pptxWorkerCandidate{path: filepath.Join("tool", "pptx-worker", "worker.bundle.mjs")},
+		pptxWorkerCandidate{path: conf.GetSharedPath(filepath.Join("tool", "pptx-worker", "worker.bundle.mjs"))},
 		pptxWorkerCandidate{path: filepath.Join("pptx-worker", "worker.bundle.mjs")},
 	)
 

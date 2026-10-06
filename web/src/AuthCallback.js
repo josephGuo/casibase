@@ -18,6 +18,12 @@ import {withRouter} from "react-router-dom";
 import * as Setting from "./Setting";
 import i18next from "i18next";
 
+const MiniProgramCallbackPage = "/pages/callback/index";
+
+function isInMiniProgram() {
+  return window.__wxjs_environment === "miniprogram" || /miniProgram/i.test(navigator.userAgent);
+}
+
 class AuthCallback extends React.Component {
   constructor(props) {
     super(props);
@@ -41,7 +47,26 @@ class AuthCallback extends React.Component {
     return from;
   }
 
+  // In a mini program web-view, hand the code back to the mini program, which
+  // signs in with it itself (the code can only be used once).
+  redirectToMiniProgram() {
+    const script = document.createElement("script");
+    script.src = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
+    script.onload = () => {
+      window.wx.miniProgram.redirectTo({url: `${MiniProgramCallbackPage}${window.location.search}`});
+    };
+    script.onerror = () => {
+      this.setState({msg: "Failed to load the WeChat JS-SDK"});
+    };
+    document.head.appendChild(script);
+  }
+
   login() {
+    if (isInMiniProgram()) {
+      this.redirectToMiniProgram();
+      return;
+    }
+
     Setting.signin().then((res) => {
       if (res.status === "ok") {
         Setting.showMessage("success", i18next.t("general:Successfully logged in"));

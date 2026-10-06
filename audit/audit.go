@@ -30,6 +30,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/the-open-agent/openagent/embedsupport"
 )
 
 const timeFormat = "2006-01-02T15:04:05.000Z07:00"
@@ -148,6 +150,9 @@ func flush() {
 func auditDir() string {
 	if override := strings.TrimSpace(os.Getenv("OPENAGENT_AUDIT_DIR")); override != "" {
 		return override
+	}
+	if dir, isExeDir := embedsupport.AppDir(); !isExeDir {
+		return filepath.Join(dir, "logs", "audit")
 	}
 	exe, err := os.Executable()
 	if err != nil {
