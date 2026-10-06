@@ -1035,6 +1035,7 @@
     "Pending Review": "Pending Review",
     "Please choose the type of your data": "Please choose the type of your data",
     "Please input your search term": "Please input your search term",
+    "Please select a file or folder": "Please select a file or folder",
     "Please search here": "Please search here",
     "Please sign in to continue": "Please sign in to continue",
     "Possible secrets detected in the agent's prompt or description: {c}.": "Possible secrets detected in the agent's prompt or description: {c}.",

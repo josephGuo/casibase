@@ -1035,6 +1035,7 @@
     "Pending Review": "审核中",
     "Please choose the type of your data": "请选择您的数据类型",
     "Please input your search term": "请输入搜索关键词",
+    "Please select a file or folder": "请选择一个文件或文件夹",
     "Please search here": "请在此处搜索",
     "Please sign in to continue": "请先登录",
     "Possible secrets detected in the agent's prompt or description: {c}.": "在智能体的提示词或描述中检测到疑似密钥：{c}。",

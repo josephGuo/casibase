@@ -9,7 +9,8 @@ interface CodeEditorProps {
   onChange?: (value: string) => void;
   /** "javascript" | "json" | "html" | "css" | "sql" | "go" ... */
   language?: string;
-  height?: number;
+  /** px, or any CSS height such as "100%" to fill the parent */
+  height?: number | string;
   readOnly?: boolean;
   className?: string;
 }
@@ -29,7 +30,7 @@ export function CodeEditor({value, onChange, language, height = 240, readOnly, c
     <div className={className}>
       <CodeMirror
         value={value ?? ""}
-        height={`${height}px`}
+        height={typeof height === "number" ? `${height}px` : height}
         readOnly={readOnly}
         theme={resolvedTheme === "dark" ? material : "light"}
         extensions={extensions}
