@@ -29,11 +29,12 @@ import type {ColumnDef} from "@/components/crud/types";
 import * as Setting from "@/lib/setting";
 
 export function newServer(patch: Record<string, any> = {}) {
+  const randomName = Setting.getRandomName();
   return {
     owner: "admin",
-    name: `server_${Setting.getRandomName()}`,
+    name: `server_${randomName}`,
     createdTime: dayjs().format(),
-    displayName: "",
+    displayName: `New MCP Server - ${randomName}`,
     transport: "streamablehttp",
     url: "",
     testContent: "",

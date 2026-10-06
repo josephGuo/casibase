@@ -19,6 +19,26 @@ import {Button} from "@/components/ui/button";
 import {Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog";
 import * as Setting from "@/lib/setting";
 
+const MiniProgramCallbackPage = "/pages/callback/index";
+
+function isInMiniProgram() {
+  return (window as any).__wxjs_environment === "miniprogram" || /miniProgram/i.test(navigator.userAgent);
+}
+
+/**
+ * Inside a WeChat mini program's web-view the code goes back to the mini program,
+ * which signs in with it itself (a code can be redeemed only once).
+ */
+function redirectToMiniProgram(onError: (msg: string) => void) {
+  const script = document.createElement("script");
+  script.src = "https://res.wx.qq.com/open/js/jweixin-1.6.0.js";
+  script.onload = () => {
+    (window as any).wx.miniProgram.redirectTo({url: `${MiniProgramCallbackPage}${window.location.search}`});
+  };
+  script.onerror = () => onError("Failed to load the WeChat JS-SDK");
+  document.head.appendChild(script);
+}
+
 /** Casdoor redirects back here with ?code=&state=; trade them for an OpenAgent session. */
 export default function AuthCallback() {
   const [error, setError] = React.useState<any>(null);
@@ -31,6 +51,10 @@ export default function AuthCallback() {
       return;
     }
     started.current = true;
+    if (isInMiniProgram()) {
+      redirectToMiniProgram((msg) => setError({msg}));
+      return;
+    }
 
     Setting.signin().then((res: any) => {
       if (res.status === "ok") {

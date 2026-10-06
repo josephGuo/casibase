@@ -28,11 +28,12 @@ import * as Setting from "@/lib/setting";
 export const ProviderCategories = ["Model", "Embedding", "Storage", "Agent", "Blockchain", "Video", "Text-to-Speech", "Speech-to-Text"];
 
 function newProvider() {
+  const randomName = Setting.getRandomName();
   return {
     owner: "admin",
-    name: `provider_${Setting.getRandomName()}`,
+    name: `provider_${randomName}`,
     createdTime: dayjs().format(),
-    displayName: "",
+    displayName: `New Provider - ${randomName}`,
     displayName2: "",
     category: "Model",
     type: "OpenAI",

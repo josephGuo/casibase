@@ -49,7 +49,7 @@ export function newStore(owner: string) {
   return {
     owner,
     name: `store_${randomName}`,
-    displayName: "",
+    displayName: `New Store - ${randomName}`,
     createdTime: dayjs().format(),
     title: `Title - ${randomName}`,
     avatar: Setting.getDefaultAiAvatar(),
