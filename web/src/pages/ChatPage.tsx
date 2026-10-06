@@ -94,7 +94,7 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
     if (urlStore) {
       Setting.setStore(urlStore);
     }
-    return urlStore || Setting.getStoreCurrent();
+    return urlStore || Setting.getStoreCurrent() || "";
   });
 
   const [chats, setChats] = React.useState<any[] | null>(null);
