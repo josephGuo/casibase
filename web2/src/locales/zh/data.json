@@ -48,6 +48,7 @@
     "User key - Tooltip": "用于认证的用户私钥"
   },
   "chat": {
+    "Send message to all panes...": "向所有窗格发送消息...",
     "Add attachment": "添加附件",
     "Calling tool": "调用工具",
     "Default Category": "默认分类",
@@ -142,6 +143,12 @@
     "Why was it wrong?": "为什么要改？"
   },
   "figure": {
+    "Done": "完成",
+    "Error": "出错了",
+    "Idle": "空闲",
+    "Replying": "回复中",
+    "Thinking": "思考中",
+    "Typing": "输入中",
     "AI virtual figure": "AI虚拟形象",
     "Collapsed": "收起",
     "Default mode": "默认模式",

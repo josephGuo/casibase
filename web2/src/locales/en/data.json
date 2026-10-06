@@ -48,6 +48,7 @@
     "User key - Tooltip": "User's private key for authentication"
   },
   "chat": {
+    "Send message to all panes...": "Send message to all panes...",
     "Add attachment": "Add attachment",
     "Calling tool": "Calling tool",
     "Default Category": "Default Category",
@@ -142,6 +143,12 @@
     "Why was it wrong?": "Why was it wrong?"
   },
   "figure": {
+    "Done": "Done",
+    "Error": "Error",
+    "Idle": "Idle",
+    "Replying": "Replying",
+    "Thinking": "Thinking",
+    "Typing": "Typing",
     "AI virtual figure": "AI virtual figure",
     "Collapsed": "Collapsed",
     "Default mode": "Default mode",
