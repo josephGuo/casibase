@@ -100,6 +100,8 @@ interface ChatTitleBarProps {
   stores: any[];
   account: any;
   draftStoreName?: string;
+  /** the model picked for a chat not started yet */
+  draftProvider?: string | null;
   onDraftStoreChange: (storeName: string) => void;
   onDraftProviderChange: (providerName: string) => void;
   /** the chat was saved with a new store or model */
@@ -117,7 +119,6 @@ interface ChatTitleBarProps {
 export function ChatTitleBar(props: ChatTitleBarProps) {
   const {chat, stores, account, generationMode} = props;
   const [updating, setUpdating] = React.useState(false);
-  const [draftProvider, setDraftProvider] = React.useState<string | null>(null);
   const [, setCurrentStoreVersion] = React.useState(0);
 
   // the header's store picker changes which store a new chat goes to
@@ -131,9 +132,7 @@ export function ChatTitleBar(props: ChatTitleBarProps) {
   const storeInfo = resolveStore(stores, chat, props.draftStoreName);
   const providers = useChildModelProviders(defaultStore, chat?.owner || account?.owner || "admin", storeInfo?.modelProvider);
   const modeProviders = providers.filter((provider) => (generationMode === "image") === Boolean(ProviderSetting.isImageGenerationModelProvider(provider)));
-  const selectedProvider = (chat ? chat.modelProvider : draftProvider) || storeInfo?.modelProvider || modeProviders[0]?.name || "";
-
-  React.useEffect(() => setDraftProvider(null), [chat?.name]);
+  const selectedProvider = (chat ? chat.modelProvider : props.draftProvider) || storeInfo?.modelProvider || modeProviders[0]?.name || "";
 
   // only the default store's child stores are on offer, plus the one in use
   const storeOptions = React.useMemo(() => {
@@ -178,7 +177,6 @@ export function ChatTitleBar(props: ChatTitleBarProps) {
 
   const changeProvider = (name: string) => {
     if (!chat) {
-      setDraftProvider(name);
       props.onDraftProviderChange(name);
       return;
     }

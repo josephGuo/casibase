@@ -113,6 +113,10 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
   const [menuCollapsed, setMenuCollapsed] = React.useState(readMenuCollapsed);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const chatBox = React.useRef<ChatBoxHandle>(null);
+  const urlMessageSent = React.useRef(false);
+  // answers still streaming when the page goes away are let go; coming back picks them up again
+  const streams = React.useRef(new Set<() => void>());
+  React.useEffect(() => () => streams.current.forEach((stop) => stop()), []);
 
   // stream callbacks and polling outlive renders, so they read the latest state through refs
   const chatRef = React.useRef<any>(undefined);
@@ -180,10 +184,11 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
         markRead({...latest, isGenerating: false});
       }
     };
-    streamAnswer(target, list, pending, {
+    const stop = streamAnswer(target, list, pending, {
       onUpdate: replaceLast,
       onTitle: (title) => patchChat(target.name, {displayName: title, needTitle: false}),
       onDone: (message) => {
+        streams.current.delete(stop);
         finish();
         if (!isCurrent(target)) {
           return;
@@ -196,6 +201,7 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
         }
       },
       onError: (message) => {
+        streams.current.delete(stop);
         finish();
         if (!isCurrent(target)) {
           return;
@@ -205,6 +211,7 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
         setMessageError(true);
       },
     });
+    streams.current.add(stop);
   }, [markRead, patchChat]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const select = React.useCallback((target: any, replace = false) => {
@@ -251,6 +258,7 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
     listedStore.current = storeName;
     if (!chatRef.current) {
       setDraftStoreName(storeName || undefined);
+      setDraftModelProvider(null);
     }
     fetchChats();
   }, [storeName, fetchChats]);
@@ -269,15 +277,21 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
         setChats([]);
         return;
       }
+      // a question in the URL starts a chat of its own
+      const newMessage = searchParams.get("newMessage");
+      if (newMessage?.trim()) {
+        setMessages([]);
+        if (!urlMessageSent.current) {
+          urlMessageSent.current = true;
+          sendMessageRef.current(newMessage, "", false);
+        }
+        return;
+      }
       const target = (chatName && list.find((item: any) => item.name === chatName)) || list[0];
       if (target) {
         select(target, target.name !== chatName);
       } else {
         setMessages([]);
-      }
-      const newMessage = searchParams.get("newMessage");
-      if (newMessage?.trim()) {
-        sendMessageRef.current(newMessage, "", false);
       }
     });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -556,6 +570,7 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
             stores={stores}
             account={account}
             draftStoreName={draftStoreName}
+            draftProvider={draftModelProvider}
             onDraftStoreChange={(name) => {
               setDraftStoreName(name);
               setDraftModelProvider(null);

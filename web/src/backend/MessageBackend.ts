@@ -47,17 +47,27 @@ export function getChatMessages(owner, chat) {
 
 const eventSourceMap = new Map();
 
+/**
+ * Streams an answer and returns a function that stops listening. Asking again for an answer
+ * already streaming (a page opened again, a chat switched back to) takes the stream over:
+ * the old listener is closed and the backend replays the answer from its start.
+ */
 export function getMessageAnswer(owner, name, onMessage, onReason, onTool, onSearch, onVector, onError, onEnd, onInfo, onChat, onToolDelta, onStatus) {
-  if (eventSourceMap.has(`${owner}/${name}`)) {
-    return;
-  }
+  const key = `${owner}/${name}`;
+  eventSourceMap.get(key)?.close();
   // EventSource cannot set Accept-Language, so pass the UI language as a query
   // param. Backend's GetAcceptLanguage() prefers this over the header.
   const lang = i18next.language || "en";
   const eventSource = new EventSource(`${Setting.ServerUrl}/api/get-message-answer?id=${owner}/${encodeURIComponent(name)}&language=${encodeURIComponent(lang)}`, {
     withCredentials: true,
   });
-  eventSourceMap.set(`${owner}/${name}`, eventSource);
+  eventSourceMap.set(key, eventSource);
+  const stop = () => {
+    eventSource.close();
+    if (eventSourceMap.get(key) === eventSource) {
+      eventSourceMap.delete(key);
+    }
+  };
 
   eventSource.addEventListener("message", (e: any) => {
     onMessage(e.data);
@@ -115,8 +125,7 @@ export function getMessageAnswer(owner, name, onMessage, onReason, onTool, onSea
 
   eventSource.addEventListener("myerror", (e: any) => {
     onError(e.data);
-    eventSource.close();
-    eventSourceMap.delete(`${owner}/${name}`);
+    stop();
   });
 
   eventSource.addEventListener("error", (e: any) => {
@@ -125,15 +134,15 @@ export function getMessageAnswer(owner, name, onMessage, onReason, onTool, onSea
       error = "Unknown error";
     }
     onError(error);
-    eventSource.close();
-    eventSourceMap.delete(`${owner}/${name}`);
+    stop();
   });
 
   eventSource.addEventListener("end", (e: any) => {
     onEnd(e.data);
-    eventSource.close();
-    eventSourceMap.delete(`${owner}/${name}`);
+    stop();
   });
+
+  return stop;
 }
 
 export function getAnswer(provider, question, framework, video, tool: any = "") {

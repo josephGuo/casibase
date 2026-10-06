@@ -125,6 +125,9 @@ export const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(f
   const {value, files, loading, disabled, messageError, store, chat} = props;
   const textarea = React.useRef<HTMLTextAreaElement>(null);
   const fileInput = React.useRef<HTMLInputElement>(null);
+  // files are read asynchronously, so a second one added meanwhile must not be dropped
+  const filesRef = React.useRef(files);
+  filesRef.current = files;
   React.useImperativeHandle(ref, () => textarea.current as HTMLTextAreaElement);
 
   const webSearchSupported = useWebSearchSupport(chat?.modelProvider || store?.modelProvider, props.webSearchEnabled, props.onWebSearchChange);
@@ -162,7 +165,9 @@ export const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(f
       Setting.showMessage("error", i18next.t("general:Failed to upload"));
       return null;
     })));
-    props.onFilesChange([...files, ...read.filter(Boolean) as ChatFile[]]);
+    const next = [...filesRef.current, ...read.filter(Boolean) as ChatFile[]];
+    filesRef.current = next;
+    props.onFilesChange(next);
   };
 
   return (

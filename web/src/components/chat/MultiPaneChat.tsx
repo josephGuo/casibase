@@ -31,6 +31,8 @@ interface Pane {
   messages: any[] | null;
   loading: boolean;
   error: boolean;
+  /** an added pane's chat exists only here until its first message is sent */
+  isDraft?: boolean;
 }
 
 function newChat(account: any, base: any, store: any) {
@@ -72,6 +74,9 @@ export function MultiPaneChat({stores, account, initialChat, paneCount, onPaneCo
   const [globalText, setGlobalText] = React.useState("");
   const panesRef = React.useRef(panes);
   panesRef.current = panes;
+  const creating = React.useRef(new Map<string, Promise<boolean>>());
+  const streams = React.useRef(new Set<() => void>());
+  React.useEffect(() => () => streams.current.forEach((stop) => stop()), []);
   const defaultStore = stores.find((store) => store.isDefault);
   const providers = useChildModelProviders(defaultStore, "admin");
 
@@ -79,37 +84,45 @@ export function MultiPaneChat({stores, account, initialChat, paneCount, onPaneCo
     setPanes((prev) => prev.map((pane, i) => (i === index ? {...pane, ...(typeof patch === "function" ? patch(pane) : patch)} : pane)));
   }, []);
 
-  const replaceLast = (index: number, message: any) => patchPane(index, (pane) => ({
-    messages: pane.messages ? [...pane.messages.slice(0, -1), message] : pane.messages,
-  }));
+  // a pane switched to another chat ignores what still arrives for the old one
+  const patchChatPane = React.useCallback((index: number, chatName: string, patch: Partial<Pane> | ((pane: Pane) => Partial<Pane>)) => {
+    setPanes((prev) => prev.map((pane, i) => (i === index && pane.chat?.name === chatName ? {...pane, ...(typeof patch === "function" ? patch(pane) : patch)} : pane)));
+  }, []);
 
   const load = React.useCallback(async(index: number, chat: any) => {
     const res: any = await MessageBackend.getChatMessages("admin", chat.name);
     const messages = res.data ?? [];
-    patchPane(index, {messages, error: false});
+    const patch = (value: Partial<Pane> | ((pane: Pane) => Partial<Pane>)) => patchChatPane(index, chat.name, value);
+    const replaceLast = (message: any) => patch((pane) => ({
+      messages: pane.messages ? [...pane.messages.slice(0, -1), message] : pane.messages,
+    }));
+    patch({messages, error: false});
     const pending = getPendingAnswer(messages);
     if (!pending) {
       return;
     }
     if (pending.errorText) {
-      patchPane(index, {error: true});
+      patch({error: true});
       return;
     }
-    patchPane(index, {loading: true});
-    streamAnswer(chat, messages, pending, {
-      onUpdate: (message) => replaceLast(index, message),
-      onTitle: (title) => patchPane(index, (pane) => ({chat: {...pane.chat, displayName: title, needTitle: false}})),
+    patch({loading: true});
+    const stop = streamAnswer(chat, messages, pending, {
+      onUpdate: replaceLast,
+      onTitle: (title) => patch((pane) => ({chat: {...pane.chat, displayName: title, needTitle: false}})),
       onDone: (message) => {
-        replaceLast(index, message);
-        patchPane(index, {loading: false});
+        streams.current.delete(stop);
+        replaceLast(message);
+        patch({loading: false});
       },
       onError: (message, error) => {
+        streams.current.delete(stop);
         Setting.showMessage("error", getRefinedErrorText(error));
-        replaceLast(index, message);
-        patchPane(index, {loading: false, error: true});
+        replaceLast(message);
+        patch({loading: false, error: true});
       },
     });
-  }, [patchPane]); // eslint-disable-line react-hooks/exhaustive-deps
+    streams.current.add(stop);
+  }, [patchChatPane]);
 
   // the first pane follows the page's chat; added panes get chats of their own
   React.useEffect(() => {
@@ -120,21 +133,16 @@ export function MultiPaneChat({stores, account, initialChat, paneCount, onPaneCo
     const sameChat = current[0]?.chat?.name === initialChat.name;
     const store = stores.find((item) => item.name === initialChat.store);
     const next: Pane[] = [];
-    const created: number[] = [];
     for (let i = 0; i < paneCount; i++) {
       if (i === 0) {
         next.push(sameChat ? {...current[0], chat: initialChat} : {chat: initialChat, messages: null, loading: false, error: false});
       } else if (sameChat && current[i]) {
         next.push(current[i]);
       } else {
-        next.push({chat: newChat(account, initialChat, store), messages: null, loading: false, error: false});
-        created.push(i);
+        next.push({chat: newChat(account, initialChat, store), messages: [], loading: false, error: false, isDraft: true});
       }
     }
     setPanes(next);
-    created.forEach((i) => ChatBackend.addChat(next[i].chat).catch((error: any) => {
-      Setting.showMessage("error", `${i18next.t("general:Failed to connect to server")}: ${error}`);
-    }));
     next.forEach((pane, i) => {
       if (pane.messages === null) {
         load(i, pane.chat);
@@ -148,14 +156,46 @@ export function MultiPaneChat({stores, account, initialChat, paneCount, onPaneCo
     if (index === 0) {
       onChatUpdate(chat);
     }
+    if (panesRef.current[index].isDraft) {
+      return;
+    }
     ChatBackend.updateChat(chat.owner, chat.name, chat).catch((error: any) => {
       Setting.showMessage("error", `${i18next.t("general:Failed to save")}: ${error}`);
     });
   };
 
+  // the chat is saved once, however many messages race to be its first
+  const ensureChat = (index: number, chat: any) => {
+    let pending = creating.current.get(chat.name);
+    if (!pending) {
+      pending = ChatBackend.addChat(chat).then((res: any) => {
+        if (res.status !== "ok") {
+          Setting.showMessage("error", `${i18next.t("general:Failed to add")}: ${res.msg}`);
+          return false;
+        }
+        patchChatPane(index, chat.name, {isDraft: false});
+        return true;
+      }).catch((error: any) => {
+        Setting.showMessage("error", `${i18next.t("general:Failed to connect to server")}: ${error}`);
+        return false;
+      }).then((ok: boolean) => {
+        // a failed save may be retried; a saved one is never saved again
+        if (!ok) {
+          creating.current.delete(chat.name);
+        }
+        return ok;
+      });
+      creating.current.set(chat.name, pending);
+    }
+    return pending;
+  };
+
   const send = async(index: number, text: string, fileName = "", webSearchEnabled = false) => {
     const pane = panesRef.current[index];
     if (!pane?.chat) {
+      return;
+    }
+    if (pane.isDraft && !(await ensureChat(index, pane.chat))) {
       return;
     }
     const store = stores.find((item) => item.name === pane.chat.store);
