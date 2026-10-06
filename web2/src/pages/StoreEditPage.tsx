@@ -131,7 +131,8 @@ function PublishingSection({store, account, onPublish}: {store: any; account: an
   );
 }
 
-export default function StoreEditPage() {
+/** The store's settings; on an agent's page `basePath` is "/agents", so saving stays among the agent pages. */
+export default function StoreEditPage({basePath = "/stores"}: {basePath?: string} = {}) {
   const {owner = "", storeName = ""} = useParams();
   const navigate = useNavigate();
   const {account} = useAccount();
@@ -154,9 +155,9 @@ export default function StoreEditPage() {
   // the store may be addressed under another owner's name; the page moves to where it lives
   React.useEffect(() => {
     if (store && mode !== "add" && store.owner && store.owner !== owner) {
-      navigate(`/stores/${store.owner}/${store.name}`, {replace: true});
+      navigate(`${basePath}/${store.owner}/${store.name}`, {replace: true});
     }
-  }, [store, mode, owner, navigate]);
+  }, [store, mode, owner, navigate, basePath]);
 
   if (denied) {
     return <UnauthorizedPage />;
@@ -190,9 +191,9 @@ export default function StoreEditPage() {
         window.dispatchEvent(new Event("storesChanged"));
         setMode("edit");
         if (exitAfterSave) {
-          navigate("/stores");
+          navigate(basePath === "/stores" ? "/stores" : `${basePath}/${saved.owner}/${saved.name}`);
         } else if (saved.owner !== owner || saved.name !== storeName) {
-          navigate(`/stores/${saved.owner}/${saved.name}`, {replace: true});
+          navigate(`${basePath}/${saved.owner}/${saved.name}`, {replace: true});
         }
       },
     });
@@ -215,7 +216,7 @@ export default function StoreEditPage() {
     if (res.status === "ok") {
       Setting.showMessage("success", i18next.t("general:Successfully saved"));
       window.dispatchEvent(new Event("storesChanged"));
-      navigate(`/stores/${res.data.owner}/${res.data.name}`, {replace: true});
+      navigate(`${basePath}/${res.data.owner}/${res.data.name}`, {replace: true});
     } else {
       Setting.showMessage("error", `${i18next.t("general:Failed to save")}: ${res.msg}`);
     }
@@ -275,7 +276,7 @@ export default function StoreEditPage() {
     <EditPageShell
       title={`${i18next.t(getModeTitleKey("store:Edit Store", mode))} - ${store.displayName || store.name}`}
       mode={mode}
-      backTo="/stores"
+      backTo={basePath === "/stores" ? "/stores" : `${basePath}/${store.owner}/${store.name}`}
       onSave={save}
       saving={saving}
       extraActions={showClaim ? <ConfirmButton variant="outline" title={i18next.t("store:Claim")} onConfirm={claim}>{i18next.t("store:Claim")}</ConfirmButton> : null}

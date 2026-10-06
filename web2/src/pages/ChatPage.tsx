@@ -68,10 +68,21 @@ function UnsafePasswordDialog({account}: {account: any}) {
   );
 }
 
-export default function ChatPage() {
-  const {chatName, storeName: urlStore} = useParams();
+/**
+ * The chat. On an agent's page it is embedded with that agent's store: it then
+ * keeps the chosen chat to itself instead of moving the page to the chat's URL.
+ */
+export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {}) {
+  const params = useParams();
+  const chatName = embeddedStore ? undefined : params.chatName;
+  const urlStore = embeddedStore ?? params.storeName;
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const routerNavigate = useNavigate();
+  const navigate = React.useCallback((to: string, options?: {replace?: boolean}) => {
+    if (!embeddedStore) {
+      routerNavigate(to, options);
+    }
+  }, [embeddedStore, routerNavigate]);
   const {account} = useAccount();
   const isMobile = useIsMobile();
   const isRaw = searchParams.get("isRaw") !== null;
@@ -557,6 +568,7 @@ export default function ChatPage() {
               chat={chat}
               account={account}
               showVirtualFigure
+              autoFocus={!embeddedStore}
               sendMessage={sendMessage}
               onMessageEdit={(updated) => {
                 patchChat(updated.name, updated);
