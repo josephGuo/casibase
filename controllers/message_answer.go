@@ -481,28 +481,6 @@ func generateMessageAnswer(id string, responseWriter http.ResponseWriter, host s
 		}
 	}
 
-	if writer.writerCleaner.cleaned == false {
-		cleanedData := writer.writerCleaner.GetCleanedData()
-		writer.buf = append(writer.buf, []byte(cleanedData)...)
-		jsonData, err := ConvertMessageDataToJSON(cleanedData)
-		if err != nil {
-			responseErrorStream(message, err.Error())
-			return
-		}
-
-		_, err = writer.ResponseWriter.Write([]byte(fmt.Sprintf("event: message\ndata: %s\n\n", jsonData)))
-		if err != nil {
-			if errors.Is(err, errMessageAnswerCanceled) {
-				return
-			}
-			responseErrorStream(message, err.Error())
-			return
-		}
-
-		writer.Flush()
-		fmt.Print(cleanedData)
-	}
-
 	fmt.Printf("]\n")
 
 	answer := writer.MessageString()

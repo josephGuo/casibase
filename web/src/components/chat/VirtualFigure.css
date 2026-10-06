@@ -400,7 +400,9 @@
 }
 
 @media (max-width: 920px) {
-  .chat-virtual-figure {
+  /* the size classes are more specific than .chat-virtual-figure alone, so they are named here too */
+  .chat-virtual-figure,
+  .chat-virtual-figure[class*="chat-virtual-figure--size-"]:not(.chat-virtual-figure--collapsed) {
     width: 58px;
     aspect-ratio: 1;
     right: 18px;

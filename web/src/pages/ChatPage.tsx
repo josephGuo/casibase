@@ -91,12 +91,13 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
 
   // a store in the URL becomes the selected store; otherwise the remembered one is kept.
   // An agent's page only borrows the chat, so it leaves the selection alone.
-  const [storeName, setStoreName] = React.useState(() => {
+  const [storeName, setStoreName] = React.useState(() => urlStore || Setting.getStoreCurrent() || "");
+  React.useEffect(() => {
+    // setStore tells every store listener at once, so it waits until this render is done
     if (urlStore && !embeddedStore) {
       Setting.setStore(urlStore);
     }
-    return urlStore || Setting.getStoreCurrent() || "";
-  });
+  }, [urlStore, embeddedStore]);
 
   const [chats, setChats] = React.useState<any[] | null>(null);
   const [chat, setChat] = React.useState<any>(undefined);

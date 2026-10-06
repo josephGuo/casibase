@@ -40,6 +40,9 @@ const RESOURCE_LABELS: Record<string, string> = {
   "sysinfo": "general:System Info",
   "migration": "general:Migration",
   "analysis": "general:Analysis",
+  // the last segment of /stores/:owner/:name/view and /forms/:name/data
+  "view": "general:Files",
+  "data": "general:Data",
 };
 
 interface Crumb {
