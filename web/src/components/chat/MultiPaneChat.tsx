@@ -153,7 +153,7 @@ export function MultiPaneChat({stores, account, initialChat, paneCount, onPaneCo
     });
   };
 
-  const send = async(index: number, text: string, fileName = "") => {
+  const send = async(index: number, text: string, fileName = "", webSearchEnabled = false) => {
     const pane = panesRef.current[index];
     if (!pane?.chat) {
       return;
@@ -175,6 +175,7 @@ export function MultiPaneChat({stores, account, initialChat, paneCount, onPaneCo
       isAlerted: false,
       isRegenerated: false,
       fileName,
+      webSearchEnabled,
       modelProvider: pane.chat.modelProvider || store?.modelProvider || providers[0]?.name || "",
     };
     try {
@@ -255,7 +256,7 @@ export function MultiPaneChat({stores, account, initialChat, paneCount, onPaneCo
                   chat={pane?.chat}
                   account={account}
                   autoFocus={false}
-                  sendMessage={(text, fileName) => send(index, text, fileName)}
+                  sendMessage={(text, fileName, webSearchEnabled) => send(index, text, fileName, webSearchEnabled)}
                   onMessageEdit={() => pane && load(index, pane.chat)}
                   onCancel={() => cancel(index)}
                 />

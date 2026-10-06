@@ -90,7 +90,7 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
   const isMobile = useIsMobile();
 
   // a store in the URL becomes the selected store; otherwise the remembered one is kept
-  const [storeName] = React.useState(() => {
+  const [storeName, setStoreName] = React.useState(() => {
     if (urlStore) {
       Setting.setStore(urlStore);
     }
@@ -230,6 +230,28 @@ export default function ChatPage({embeddedStore}: {embeddedStore?: string} = {})
     setChats(res.data ?? []);
     return res.data ?? [];
   }, [account, storeName]);
+
+  // without a store in the URL, the header's store picker scopes the chat list
+  React.useEffect(() => {
+    if (urlStore) {
+      return;
+    }
+    const onChange = () => setStoreName(Setting.getStoreCurrent() || "");
+    window.addEventListener("storeChanged", onChange);
+    return () => window.removeEventListener("storeChanged", onChange);
+  }, [urlStore]);
+
+  const listedStore = React.useRef(storeName);
+  React.useEffect(() => {
+    if (listedStore.current === storeName) {
+      return;
+    }
+    listedStore.current = storeName;
+    if (!chatRef.current) {
+      setDraftStoreName(storeName || undefined);
+    }
+    fetchChats();
+  }, [storeName, fetchChats]);
 
   // first load: the chat in the URL, else the newest one
   React.useEffect(() => {
