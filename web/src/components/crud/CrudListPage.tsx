@@ -45,6 +45,8 @@ export interface CrudListPageProps<T extends Record<string, any>> {
    * `refresh` re-fetches the current page.
    */
   rowActions?: (record: T, index: number, ctx: {refresh: () => void}) => (RowAction | null | false | undefined)[];
+  /** a dropdown of less used actions, shown at the end of the row's action cell */
+  rowMenu?: (record: T) => React.ReactNode;
   /**
    * Name of the Form that customizes this list ("records", "stores", ...);
    * defaults to the route. When the organization saved one, it decides which
@@ -100,6 +102,7 @@ export function CrudListPage<T extends Record<string, any>>({
   rowClassName,
   initialQuery,
   rowActions,
+  rowMenu,
   formType,
   formItems: formItemsProp,
   showActionColumn = true,
@@ -200,25 +203,28 @@ export function CrudListPage<T extends Record<string, any>>({
         render: (_: any, record: T, index: number) => {
           const viewOnly = readOnly || Boolean(rowReadOnly?.(record));
           return (
-            <RowActions
-              actions={[
-                editUrl
-                  ? {
-                    key: "edit",
-                    label: i18next.t(viewOnly ? "general:View" : "general:Edit"),
-                    onSelect: () => navigate(editUrl(record), viewOnly ? {state: {mode: "view"}} : undefined),
-                  }
-                  : null,
-                ...(rowActions?.(record, index, {refresh}) ?? []),
-                remove ? deleteAction(record) : null,
-              ]}
-            />
+            <div className="flex items-center justify-end gap-1">
+              <RowActions
+                actions={[
+                  editUrl
+                    ? {
+                      key: "edit",
+                      label: i18next.t(viewOnly ? "general:View" : "general:Edit"),
+                      onSelect: () => navigate(editUrl(record), viewOnly ? {state: {mode: "view"}} : undefined),
+                    }
+                    : null,
+                  ...(rowActions?.(record, index, {refresh}) ?? []),
+                  remove ? deleteAction(record) : null,
+                ]}
+              />
+              {rowMenu?.(record)}
+            </div>
           );
         },
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [columns, formItems, editUrl, remove, rowActions, showActionColumn, readOnly, rowReadOnly, deleteDisabled, rows, query.page, refresh]);
+  }, [columns, formItems, editUrl, remove, rowActions, rowMenu, showActionColumn, readOnly, rowReadOnly, deleteDisabled, rows, query.page, refresh]);
 
   const deleteSelected = async() => {
     const records = (rows ?? []).filter((row, index) => selected.has(keyOf(row, index)) && !deleteDisabled?.(row) && !rowReadOnly?.(row));

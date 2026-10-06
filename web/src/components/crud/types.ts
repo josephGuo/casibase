@@ -48,12 +48,7 @@ export interface ColumnDef<T = any> {
   className?: string;
   /** hide the column entirely (used by the Forms feature) */
   hidden?: boolean;
-  /**
-   * Overrides where this column sits relative to `DataTable`'s default cap on how
-   * many optional columns a list opens with. `true` parks it in the column menu
-   * however early it is declared; `false` keeps it on the table however late.
-   * Leave it unset to let the cap decide.
-   */
+  /** parks the column in the column menu until the reader turns it on */
   defaultHidden?: boolean;
   /**
    * Wraps the cell content in a link, keeping the search highlight the plain

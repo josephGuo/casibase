@@ -180,7 +180,10 @@ export function myParseFloat(f: any) {
   return isNaN(res) ? 0.0 : res;
 }
 
-export function getShortText(s: string, maxLength = 35) {
+export function getShortText(s: string | undefined | null, maxLength = 35) {
+  if (!s) {
+    return "";
+  }
   if (s.length > maxLength) {
     return `${s.slice(0, maxLength)}...`;
   }
@@ -195,7 +198,8 @@ export function getFormattedDate(date: string | undefined | null) {
   if (!date) {
     return null;
   }
-  return dayjs(date).format("YYYY-MM-DD HH:mm:ss");
+  const parsed = dayjs(date);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD HH:mm:ss") : date;
 }
 
 export function getRandomName() {
@@ -474,6 +478,16 @@ export function getBoolValue(key: string, defaultValue: boolean) {
 
 export function setBoolValue(key: string, value: boolean) {
   localStorage.setItem(key, value ? "true" : "false");
+}
+
+/** The file list's size wording: "0 Bytes", "1.5 KB", "12.34 MB". */
+export function getFormattedSize(bytes: number) {
+  if (!bytes) {
+    return "0 Bytes";
+  }
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return `${Math.round(bytes / Math.pow(1024, i) * 100) / 100} ${sizes[i]}`;
 }
 
 export function getFriendlyFileSize(size: number) {

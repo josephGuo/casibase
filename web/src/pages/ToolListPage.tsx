@@ -18,10 +18,12 @@ import * as ToolBackend from "@/backend/ToolBackend";
 import {Badge} from "@/components/ui/badge";
 import {ProviderTypeLabel} from "@/components/common/ProviderLogo";
 import {CrudListPage} from "@/components/crud/CrudListPage";
-import {boolColumn, dateColumn, linkColumn, textColumn} from "@/components/crud/columns";
+import {BoolCell, boolColumn, dateColumn, linkColumn, textColumn} from "@/components/crud/columns";
 import type {ColumnDef} from "@/components/crud/types";
 import * as Setting from "@/lib/setting";
 import {getToolFunctions} from "@/lib/tool-functions";
+
+const ProxyToolTypes = ["web_search", "web_fetch", "web_browser", "browser_use"];
 
 function newTool() {
   return {
@@ -67,7 +69,11 @@ export default function ToolListPage() {
         </div>
       ),
     },
-    boolColumn({dataIndex: "enableProxy", title: i18next.t("provider:Enable proxy")}),
+    {
+      ...boolColumn({dataIndex: "enableProxy", title: i18next.t("provider:Enable proxy")}),
+      // only the tools that fetch from the web go through the proxy
+      render: (value, record) => (ProxyToolTypes.includes(record.type) ? <BoolCell value={value} /> : null),
+    },
     {
       dataIndex: "state",
       title: i18next.t("general:State"),
@@ -75,7 +81,8 @@ export default function ToolListPage() {
       sortable: true,
       render: (value) => <Badge variant={value === "Active" ? "success" : "secondary"}>{value}</Badge>,
     },
-    dateColumn(),
+    // not a column of the antd list, so it starts in the column menu
+    {...dateColumn(), defaultHidden: true},
   ];
 
   return (

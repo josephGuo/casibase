@@ -112,7 +112,8 @@ export default function ProviderListPage() {
       sortable: true,
       render: (value) => <Badge variant={value === "Active" ? "success" : "secondary"}>{value}</Badge>,
     },
-    dateColumn(),
+    // not a column of the antd list, so it starts in the column menu
+    {...dateColumn(), defaultHidden: true},
   ];
 
   return (

@@ -15,16 +15,6 @@ import type {ColumnDef} from "@/components/crud/types";
 
 export const columnKey = (column: ColumnDef) => column.key ?? column.dataIndex;
 
-/**
- * How many optional columns a list shows before the rest move into the column
- * menu. The Casdoor list APIs return every field of the object and the antd
- * tables rendered all of them, which put /users at 23 columns and 3100px wide in
- * a 1130px card. The column arrays are written most-important-first, so keeping
- * the head of each one and parking the tail behind the menu fits the common case
- * on screen without a page having to name its columns twice.
- */
-const DEFAULT_VISIBLE_COLUMNS = 6;
-
 /** the row's identity and its actions are what the table is for; they never hide */
 const isAlwaysVisible = (column: ColumnDef) => column.key === "op" || column.fixed === "left";
 
@@ -34,7 +24,7 @@ const isAlwaysVisible = (column: ColumnDef) => column.key === "op" || column.fix
  * code still reaches everyone who never opened the menu.
  */
 export function useColumnVisibility(columns: ColumnDef[], tableId?: string) {
-  const storageKey = tableId ? `casdoorColumns:${tableId}` : "";
+  const storageKey = tableId ? `openagentColumns:${tableId}` : "";
 
   const read = React.useCallback(() => {
     if (!storageKey) {
@@ -55,21 +45,8 @@ export function useColumnVisibility(columns: ColumnDef[], tableId?: string) {
     if (override) {
       return new Set(override.filter((key) => !columns.some((c) => columnKey(c) === key && isAlwaysVisible(c))));
     }
-    const set = new Set<string>();
-    let shown = 0;
-    columns.forEach((column) => {
-      if (isAlwaysVisible(column)) {
-        return;
-      }
-      // `defaultHidden: false` is a column saying it earns its place past the cap
-      const beyondCap = column.defaultHidden === undefined && shown >= DEFAULT_VISIBLE_COLUMNS;
-      if (column.defaultHidden === true || beyondCap) {
-        set.add(columnKey(column));
-      } else {
-        shown++;
-      }
-    });
-    return set;
+    // like the antd tables, a list opens with every column its page declares
+    return new Set(columns.filter((column) => !isAlwaysVisible(column) && column.defaultHidden === true).map(columnKey));
   }, [override, columns]);
 
   const write = (next: Set<string>) => {

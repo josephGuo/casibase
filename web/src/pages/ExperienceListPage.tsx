@@ -82,6 +82,7 @@ export default function ExperienceListPage() {
       dataIndex: "store",
       title: i18next.t("general:Store"),
       width: 140,
+      sortable: true,
       searchable: true,
       render: (value) => (value ? <Link to={`/stores/admin/${value}`} className="underline-offset-4 hover:underline">{value}</Link> : null),
     },
