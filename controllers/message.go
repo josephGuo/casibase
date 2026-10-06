@@ -323,6 +323,12 @@ func (c *ApiController) UpdateMessage() {
 		return
 	}
 	preserveMessageOwnership(&message, persistedMessage)
+	// Billing is written by the answer stream; a liked or cancelled message comes back from a client that never saw it.
+	message.TokenCount = persistedMessage.TokenCount
+	message.Price = persistedMessage.Price
+	message.Currency = persistedMessage.Currency
+	message.TransactionId = persistedMessage.TransactionId
+	message.Data = persistedMessage.Data
 	if !c.IsAdmin() {
 		// ReplyTo picks the question that an answer (and its notification email) is built from, so a
 		// user repointing it could read any other user's message; the notification is admin-only.
