@@ -19,6 +19,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/the-open-agent/openagent/util"
@@ -27,53 +28,117 @@ import (
 type I18nData map[string]map[string]string
 
 var (
-	reI18nFrontend          *regexp.Regexp
-	reI18nBackendObject     *regexp.Regexp
-	reI18nBackendController *regexp.Regexp
+	reI18nLiteral           *regexp.Regexp
+	reI18nFrontendNamespace *regexp.Regexp
+	reI18nBackendNamespace  *regexp.Regexp
+	reI18nDynamicConcat     *regexp.Regexp
+	reI18nDynamicTemplate   *regexp.Regexp
 )
 
 func init() {
-	reI18nFrontend, _ = regexp.Compile("i18next.t\\(\"(.*?)\"\\)")
-	reI18nBackendObject, _ = regexp.Compile("i18n.Translate\\((.*?)\"\\)")
-	reI18nBackendController, _ = regexp.Compile("c.T\\((.*?)\"\\)")
+	// keys are mostly passed around as plain strings (labelKey="general:Name", c.ResponseError("auth:...")),
+	// so every "namespace:key" literal counts, not only the argument of i18next.t() or c.T()
+	reI18nLiteral = regexp.MustCompile("\"(\\w+:(?:[^\"\\\\\\n]|\\\\.)+)\"")
+	reI18nFrontendNamespace = regexp.MustCompile("i18next\\.t\\([\"`](\\w+):")
+	reI18nBackendNamespace = regexp.MustCompile("(?:i18n\\.Translate\\([^,\"]*,\\s*|c\\.T\\()\"(\\w+):")
+	// keys built at runtime: c.T("comment:" + message), i18next.t(`experience:State - ${item}`)
+	reI18nDynamicConcat = regexp.MustCompile("\"(\\w+):\"\\s*\\+")
+	reI18nDynamicTemplate = regexp.MustCompile("`(\\w+):([^`$\\n]*)\\$\\{")
 }
 
-func getAllI18nStringsFrontend(fileContent string) []string {
+func getAllI18nStrings(fileContent string, namespaces map[string]bool) []string {
 	res := []string{}
 
-	matches := reI18nFrontend.FindAllStringSubmatch(fileContent, -1)
+	matches := reI18nLiteral.FindAllStringSubmatchIndex(fileContent, -1)
 	if matches == nil {
 		return res
 	}
 
 	for _, match := range matches {
+		// an OAuth scope like "user:email" is not an i18n key
+		if strings.HasSuffix(strings.TrimRight(fileContent[:match[0]], " "), "scope:") {
+			continue
+		}
+
+		raw := fileContent[match[2]:match[3]]
+		target, err := strconv.Unquote("\"" + raw + "\"")
+		if err != nil {
+			target = raw
+		}
+
+		tokens := strings.SplitN(target, ":", 2)
+		if !namespaces[tokens[0]] || strings.HasPrefix(tokens[1], " ") {
+			continue
+		}
+		res = append(res, target)
+	}
+	return res
+}
+
+func getI18nNamespaces(fileContent string, category string) []string {
+	re := reI18nFrontendNamespace
+	if category == "backend" {
+		re = reI18nBackendNamespace
+	}
+
+	res := []string{}
+	for _, match := range re.FindAllStringSubmatch(fileContent, -1) {
 		res = append(res, match[1])
 	}
 	return res
 }
 
-func getAllI18nStringsBackend(fileContent string, isControllerPackage bool) []string {
-	res := []string{}
-	if isControllerPackage {
-		matches := reI18nBackendController.FindAllStringSubmatch(fileContent, -1)
-		if matches == nil {
-			return res
+func addDynamicI18nPrefixes(fileContent string, dynamicPrefixes map[string][]string) {
+	for _, match := range reI18nDynamicConcat.FindAllStringSubmatch(fileContent, -1) {
+		dynamicPrefixes[match[1]] = append(dynamicPrefixes[match[1]], "")
+	}
+	for _, match := range reI18nDynamicTemplate.FindAllStringSubmatch(fileContent, -1) {
+		dynamicPrefixes[match[1]] = append(dynamicPrefixes[match[1]], match[2])
+	}
+}
+
+// keepDerivedWords keeps the existing keys that the code never spells out in full:
+// "X - Tooltip" (FormRow derives it from labelKey), "New X" / "View X" (getModeTitleKey
+// derives them from "Edit X") and the keys built at runtime from a known prefix.
+func keepDerivedWords(data *I18nData, oldData *I18nData, dynamicPrefixes map[string][]string) {
+	for namespace, oldPairs := range *oldData {
+		pairs, ok := (*data)[namespace]
+		if !ok {
+			if len(dynamicPrefixes[namespace]) == 0 {
+				continue
+			}
+			pairs = map[string]string{}
 		}
-		for _, match := range matches {
-			res = append(res, match[1][1:])
+
+		for key := range oldPairs {
+			keep := false
+			for _, prefix := range dynamicPrefixes[namespace] {
+				if strings.HasPrefix(key, prefix) {
+					keep = true
+				}
+			}
+			if base, found := strings.CutSuffix(key, " - Tooltip"); found {
+				if _, ok := pairs[base]; ok {
+					keep = true
+				}
+			}
+			for _, prefix := range []string{"New ", "View "} {
+				if base, found := strings.CutPrefix(key, prefix); found {
+					if _, ok := pairs["Edit "+base]; ok {
+						keep = true
+					}
+				}
+			}
+
+			if _, ok := pairs[key]; !ok && keep {
+				pairs[key] = key
+			}
 		}
-	} else {
-		matches := reI18nBackendObject.FindAllStringSubmatch(fileContent, -1)
-		if matches == nil {
-			return res
-		}
-		for _, match := range matches {
-			match := strings.SplitN(match[1], ",", 2)
-			res = append(res, match[1][2:])
+
+		if len(pairs) > 0 {
+			(*data)[namespace] = pairs
 		}
 	}
-
-	return res
 }
 
 func getAllFilePathsInFolder(folder string, fileSuffix string) []string {
@@ -84,7 +149,8 @@ func getAllFilePathsInFolder(folder string, fileSuffix string) []string {
 				return err
 			}
 
-			if strings.HasSuffix(path, "node_modules") {
+			// hidden folders hold other checkouts of this repo (.claude/worktrees, .git)
+			if info.IsDir() && path != folder && (info.Name() == "node_modules" || strings.HasPrefix(info.Name(), ".")) {
 				return filepath.SkipDir
 			}
 
@@ -113,22 +179,30 @@ func parseAllWords(category string) *I18nData {
 		paths = append(paths, getAllFilePathsInFolder("../web/src", ".ts")...)
 	}
 
-	allWords := []string{}
+	fileContents := []string{}
 	for _, path := range paths {
-		fileContent := util.ReadStringFromPath(path)
-
-		var words []string
-		if category == "backend" {
-			if strings.HasSuffix(path, "deduplicate_test.go") {
-				continue
-			}
-
-			isControllerPackage := strings.Contains(path, "controller")
-			words = getAllI18nStringsBackend(fileContent, isControllerPackage)
-		} else {
-			words = getAllI18nStringsFrontend(fileContent)
+		if category == "backend" && filepath.Base(filepath.Dir(path)) == "i18n" {
+			continue
 		}
-		allWords = append(allWords, words...)
+		fileContents = append(fileContents, util.ReadStringFromPath(path))
+	}
+
+	oldData := readI18nFile(category, "en")
+	namespaces := map[string]bool{}
+	dynamicPrefixes := map[string][]string{}
+	for namespace := range *oldData {
+		namespaces[namespace] = true
+	}
+	for _, fileContent := range fileContents {
+		for _, namespace := range getI18nNamespaces(fileContent, category) {
+			namespaces[namespace] = true
+		}
+		addDynamicI18nPrefixes(fileContent, dynamicPrefixes)
+	}
+
+	allWords := []string{}
+	for _, fileContent := range fileContents {
+		allWords = append(allWords, getAllI18nStrings(fileContent, namespaces)...)
 	}
 	fmt.Printf("%v\n", allWords)
 
@@ -143,6 +217,8 @@ func parseAllWords(category string) *I18nData {
 		}
 		data[namespace][key] = key
 	}
+
+	keepDerivedWords(&data, oldData, dynamicPrefixes)
 
 	return &data
 }

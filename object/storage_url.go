@@ -59,6 +59,11 @@ func getStorageObjectUrlPath(providerName string, key string) string {
 	return fmt.Sprintf("%s%s/%s?sig=%s", storageObjectUrlPrefix, url.PathEscape(providerName), strings.Join(segments, "/"), getStorageObjectSignature(providerName, key))
 }
 
+func getStorageObjectMarkdownUrl(providerName string, key string) string {
+	replacer := strings.NewReplacer("%", "%25", " ", "%20", "(", "%28", ")", "%29", "<", "%3C", ">", "%3E", "?", "%3F", "#", "%23", "\\", "%5C")
+	return fmt.Sprintf("%s%s/%s?sig=%s", storageObjectUrlPrefix, replacer.Replace(providerName), replacer.Replace(key), getStorageObjectSignature(providerName, key))
+}
+
 // ParseStorageObjectUrlPath splits a decoded "/storage/objects/<provider>/<key>" path.
 func ParseStorageObjectUrlPath(urlPath string) (string, string, bool) {
 	if !strings.HasPrefix(urlPath, storageObjectUrlPrefix) {

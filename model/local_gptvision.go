@@ -91,11 +91,7 @@ func safeImageURLForError(text string) string {
 
 func getImageRefinedText(text string) (string, error) {
 	// The image URL comes from message text, so internal addresses are refused.
-	httpClient, err := util.GetUntrustedHttpClient(text)
-	if err != nil {
-		return "", err
-	}
-	resp, err := httpClient.Get(text)
+	resp, err := util.GetUntrustedUrl(text)
 	if err != nil {
 		return "", err
 	}
@@ -126,6 +122,24 @@ func getImageRefinedText(text string) (string, error) {
 	base64Data := base64.StdEncoding.EncodeToString(data)
 	res := fmt.Sprintf("data:%s;base64,%s", mimeType, base64Data)
 	return res, nil
+}
+
+func getImageRefinedTexts(urls []string, messageText string) ([]string, string) {
+	images := []string{}
+	failedUrls := []string{}
+	for _, url := range urls {
+		imageText, err := getImageRefinedText(url)
+		if err != nil {
+			failedUrls = append(failedUrls, url)
+			continue
+		}
+		images = append(images, imageText)
+	}
+
+	if len(failedUrls) > 0 {
+		messageText = strings.TrimSpace(messageText + "\n" + strings.Join(failedUrls, "\n"))
+	}
+	return images, messageText
 }
 
 func IsVisionModel(subType string) bool {
@@ -195,6 +209,7 @@ func OpenaiRawMessagesToGptVisionMessages(messages []*RawMessage) ([]openai.Chat
 		}
 
 		urls, messageText := extractImagesURL(message.Text)
+		images, messageText := getImageRefinedTexts(urls, messageText)
 
 		item := openai.ChatCompletionMessage{
 			Role:             role,
@@ -223,12 +238,7 @@ func OpenaiRawMessagesToGptVisionMessages(messages []*RawMessage) ([]openai.Chat
 			}
 		}
 
-		for _, url := range urls {
-			imageText, err := getImageRefinedText(url)
-			if err != nil {
-				return []openai.ChatCompletionMessage{}, err
-			}
-
+		for _, imageText := range images {
 			item.MultiContent = append(item.MultiContent, openai.ChatMessagePart{
 				Type: openai.ChatMessagePartTypeImageURL,
 				ImageURL: &openai.ChatMessageImageURL{

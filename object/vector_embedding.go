@@ -180,11 +180,20 @@ func addVectorsForFile(embeddingProviderObj embedding.EmbeddingProvider, modelPr
 }
 
 func addVectorForImageFile(embeddingProviderObj embedding.EmbeddingProvider, modelProviderObj model.ModelProvider, storeName string, fileKey string, fileUrl string, fileExt string, embeddingProviderName string, modelSubType string, lang string) (bool, int, error) {
-	logs.Info("Generating caption for image, store: [%s], file: [%s]", storeName, fileKey)
-
-	caption, err := generateImageCaption(modelProviderObj, fileUrl, fileExt, lang)
+	imageUrl, err := getImageKnowledgeUrl(fileUrl)
 	if err != nil {
 		return false, 0, err
+	}
+
+	caption := getImageTitle(fileKey)
+	if model.IsVisionModel(modelSubType) {
+		logs.Info("Generating caption for image, store: [%s], file: [%s]", storeName, fileKey)
+
+		description, err := generateImageCaption(modelProviderObj, fileUrl, fileExt, lang)
+		if err != nil {
+			return false, 0, err
+		}
+		caption = fmt.Sprintf("%s\n\n%s", caption, description)
 	}
 
 	logs.Info("Embedding caption for store: [%s], file: [%s]: %s", storeName, fileKey, caption)
@@ -195,7 +204,7 @@ func addVectorForImageFile(embeddingProviderObj embedding.EmbeddingProvider, mod
 	)
 	operation := func() error {
 		var opErr error
-		affected, tokenCount, opErr = addEmbeddedVector(embeddingProviderObj, caption, fileUrl, storeName, fileKey, 0, embeddingProviderName, modelSubType, lang)
+		affected, tokenCount, opErr = addEmbeddedVector(embeddingProviderObj, caption, imageUrl, storeName, fileKey, 0, embeddingProviderName, modelSubType, lang)
 		if opErr != nil {
 			if isRetryableError(opErr) {
 				return opErr

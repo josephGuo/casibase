@@ -98,7 +98,7 @@ export function getFormTypeItems(formType: string): FormItem[] {
       {name: "provider", label: "provider:Model provider", visible: true, width: "250"},
       {name: "type", label: "general:Type", visible: true, width: "90"},
       {name: "subject", label: "store:Subject", visible: true, width: "200"},
-      {name: "topic", label: "video:Topic", visible: true, width: "200"},
+      {name: "topic", label: "store:Topic", visible: true, width: "200"},
       {name: "result", label: "general:Result", visible: true, width: "200"},
       {name: "activity", label: "task:Activity", visible: true, width: "200"},
       {name: "grade", label: "store:Grade", visible: true, width: "200"},

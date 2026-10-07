@@ -48,7 +48,6 @@ func readI18nFile(category string, language string) *I18nData {
 
 func writeI18nFile(category string, language string, data *I18nData) {
 	s := util.StructToJson(data)
-	s = strings.ReplaceAll(s, "\\\\\"", "\"")
 	s = strings.ReplaceAll(s, "\\u0026", "&")
 	// json.Marshal escapes < > for HTML safety; keep readable arrows like "->" in locale files.
 	s = strings.ReplaceAll(s, "\\u003c", "<")
@@ -68,7 +67,6 @@ func applyData(data1 *I18nData, data2 *I18nData) {
 		pairs1 := (*data1)[namespace]
 
 		for key, value := range pairs2 {
-			key = strings.ReplaceAll(key, "\"", "\\\"")
 			if _, ok := pairs1[key]; !ok {
 				continue
 			}

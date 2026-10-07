@@ -552,7 +552,7 @@ func (c *ApiController) AddMessage() {
 			return
 		}
 		if chat == nil {
-			c.ResponseError(fmt.Sprintf("chat:The chat: %s is not found", chatId))
+			c.ResponseError(fmt.Sprintf(c.T("object:The chat: %s is not found"), chatId))
 			return
 		}
 		chat.IsUnread = true
