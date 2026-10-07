@@ -16,6 +16,7 @@ package util
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net"
@@ -23,6 +24,9 @@ import (
 	"net/url"
 	"syscall"
 	"time"
+
+	"github.com/the-open-agent/openagent/proxy"
+	xproxy "golang.org/x/net/proxy"
 )
 
 const (
@@ -176,14 +180,81 @@ func GetUntrustedHttpClient(rawUrl string) (*http.Client, error) {
 	return untrustedHttpClient, nil
 }
 
-// DownloadUntrustedFile downloads a user-supplied URL with SSRF protection and a size limit.
-func DownloadUntrustedFile(rawUrl string) (*bytes.Buffer, error) {
+// newUntrustedProxyHttpClient returns a client that reaches public addresses through the SOCKS5
+// proxy. The host is resolved and checked here and only the IP is handed to the proxy, so the
+// proxy cannot be steered to addresses the check refuses.
+func newUntrustedProxyHttpClient(socks5Proxy string) (*http.Client, error) {
+	dialer, err := xproxy.SOCKS5("tcp", socks5Proxy, nil, &net.Dialer{Timeout: 30 * time.Second})
+	if err != nil {
+		return nil, err
+	}
+	contextDialer, ok := dialer.(xproxy.ContextDialer)
+	if !ok {
+		return nil, fmt.Errorf("the SOCKS5 dialer does not support contexts")
+	}
+
+	transport := &http.Transport{
+		Proxy: nil,
+		DialContext: func(ctx context.Context, network string, address string) (net.Conn, error) {
+			host, port, err := net.SplitHostPort(address)
+			if err != nil {
+				return nil, err
+			}
+			ips, err := net.DefaultResolver.LookupIP(ctx, "ip", host)
+			if err != nil {
+				return nil, err
+			}
+			for _, ip := range ips {
+				if IsPublicIp(ip) {
+					return contextDialer.DialContext(ctx, network, net.JoinHostPort(ip.String(), port))
+				}
+			}
+			return nil, fmt.Errorf("access to the non-public address of %s is not allowed", host)
+		},
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+	return &http.Client{
+		Transport:     transport,
+		Timeout:       untrustedFetchTimeout,
+		CheckRedirect: limitRedirects,
+	}, nil
+}
+
+// GetUntrustedUrl fetches rawUrl like GetUntrustedHttpClient, and when the direct connection
+// fails (for example a site blocked in mainland China), retries through the configured SOCKS5 proxy.
+func GetUntrustedUrl(rawUrl string) (*http.Response, error) {
 	httpClient, err := GetUntrustedHttpClient(rawUrl)
 	if err != nil {
 		return nil, err
 	}
 
 	resp, err := httpClient.Get(rawUrl)
+	if err == nil || httpClient != untrustedHttpClient {
+		return resp, err
+	}
+
+	socks5Proxy := proxy.GetActiveSocks5ProxyAddress()
+	if socks5Proxy == "" {
+		return nil, err
+	}
+	proxyHttpClient, proxyErr := newUntrustedProxyHttpClient(socks5Proxy)
+	if proxyErr != nil {
+		return nil, err
+	}
+	resp, proxyErr = proxyHttpClient.Get(rawUrl)
+	if proxyErr != nil {
+		return nil, fmt.Errorf("%v (via proxy: %v)", err, proxyErr)
+	}
+	return resp, nil
+}
+
+// DownloadUntrustedFile downloads a user-supplied URL with SSRF protection and a size limit.
+func DownloadUntrustedFile(rawUrl string) (*bytes.Buffer, error) {
+	resp, err := GetUntrustedUrl(rawUrl)
 	if err != nil {
 		return nil, err
 	}

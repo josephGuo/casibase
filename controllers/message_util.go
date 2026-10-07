@@ -164,11 +164,7 @@ func RefineMessageImage(message *object.Message, lang string) error {
 	ext := extMatches[1]
 
 	// The URL comes from model output, which a prompt can steer, so internal addresses are refused.
-	httpClient, err := util.GetUntrustedHttpClient(imageUrl)
-	if err != nil {
-		return err
-	}
-	resp, err := httpClient.Get(imageUrl)
+	resp, err := util.GetUntrustedUrl(imageUrl)
 	if err != nil {
 		return err
 	}

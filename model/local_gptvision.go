@@ -91,11 +91,7 @@ func safeImageURLForError(text string) string {
 
 func getImageRefinedText(text string) (string, error) {
 	// The image URL comes from message text, so internal addresses are refused.
-	httpClient, err := util.GetUntrustedHttpClient(text)
-	if err != nil {
-		return "", err
-	}
-	resp, err := httpClient.Get(text)
+	resp, err := util.GetUntrustedUrl(text)
 	if err != nil {
 		return "", err
 	}
