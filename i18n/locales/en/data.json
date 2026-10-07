@@ -59,7 +59,10 @@
     "transaction failed with status: %d, reason: %s": "transaction failed with status: %d, reason: %s"
   },
   "chat": {
-    "Searching experience library": "Searching experience library"
+    "Generating answer with %s": "Generating answer with %s",
+    "Preparing": "Preparing",
+    "Searching experience library": "Searching experience library",
+    "Searching knowledge base": "Searching knowledge base"
   },
   "comment": {
     "Comment content cannot be longer than %d characters": "Comment content cannot be longer than %d characters"
@@ -118,6 +121,10 @@
     "Issue content cannot be longer than %d characters": "Issue content cannot be longer than %d characters",
     "Issue title cannot be longer than %d characters": "Issue title cannot be longer than %d characters"
   },
+  "message_answer": {
+    "No embedding model configured, answering without knowledge base": "No embedding model configured, answering without knowledge base",
+    "object.GetNearestKnowledge() error, %s": "object.GetNearestKnowledge() error, %s"
+  },
   "migration": {
     "Please upload a config file or fill in a directory to scan": "Please upload a config file or fill in a directory to scan",
     "The migration run: %s is not found": "The migration run: %s is not found"
@@ -134,9 +141,7 @@
     "failed to marshal tool response: %v": "failed to marshal tool response: %v",
     "failed to parse tool arguments: %v": "failed to parse tool arguments: %v",
     "failed to write response: %v": "failed to write response: %v",
-    "no generations returned": "no generations returned",
     "the token count: [%d] exceeds the model: [%s]'s maximum token count: [%d]": "the token count: [%d] exceeds the model: [%s]'s maximum token count: [%d]",
-    "unsupported model: %s": "unsupported model: %s",
     "writer does not implement http.Flusher": "writer does not implement http.Flusher"
   },
   "object": {
@@ -150,12 +155,12 @@
     "Please add a model provider first": "Please add a model provider first",
     "Please add an embedding provider first": "To use this feature, please configure an embedding model in the settings first",
     "Question message: [%s] doesn't exist": "Question message: [%s] doesn't exist",
-    "SendErrorEmail() error, the receiver user: ": "SendErrorEmail() error, the receiver user: ",
+    "SendErrorEmail() error, the receiver user: \"admin\" doesn't exist": "SendErrorEmail() error, the receiver user: \"admin\" doesn't exist",
     "Server URL is empty": "Server URL is empty",
     "The MCP server: %s is not found": "The MCP server: %s is not found",
     "The chat: %s is not found": "The chat: %s is not found",
     "The embedding provider for store: %s is not found": "The embedding provider for store: %s is not found",
-    "The embedding provider: %s is expected to be ": "The embedding provider: %s is expected to be ",
+    "The embedding provider: %s is expected to be \"Embedding\" category, got: \"%s\"": "The embedding provider: %s is expected to be \"Embedding\" category, got: \"%s\"",
     "The embedding provider: %s is not found": "The embedding provider: %s is not found",
     "The embedding provider: %s's client secret should not be empty": "The embedding provider: %s's client secret should not be empty",
     "The file URL for: %s is empty": "The file URL for: %s is empty",
@@ -163,7 +168,7 @@
     "The image provider for store: %s should not be empty": "The image provider for store: %s should not be empty",
     "The message: %s is not found": "The message: %s is not found",
     "The model provider for store: %s is not found": "The model provider for store: %s is not found",
-    "The model provider: %s is expected to be ": "The model provider: %s is expected to be ",
+    "The model provider: %s is expected to be \"Model\" category, got: \"%s\"": "The model provider: %s is expected to be \"Model\" category, got: \"%s\"",
     "The model provider: %s is not found": "The model provider: %s is not found",
     "The model provider: %s's client secret should not be empty": "The model provider: %s's client secret should not be empty",
     "The provider is not found": "The provider is not found",
@@ -211,6 +216,7 @@
     "Only image files (PNG, JPEG, GIF, WebP, BMP, ICO) can be uploaded": "Only image files (PNG, JPEG, GIF, WebP, BMP, ICO) can be uploaded",
     "The file is too large, the maximum size is %d MB": "The file is too large, the maximum size is %d MB",
     "The resource: %s is not found": "The resource: %s is not found",
+    "Unsupported legacy file format %s, please convert to a modern format (e.g. .docx, .pptx, .xlsx) before uploading": "Unsupported legacy file format %s, please convert to a modern format (e.g. .docx, .pptx, .xlsx) before uploading",
     "Unsupported resource category: %s": "Unsupported resource category: %s",
     "Your uploaded files exceed the quota of %d MB, please delete some files first": "Your uploaded files exceed the quota of %d MB, please delete some files first"
   },
@@ -224,8 +230,12 @@
   "store": {
     "Cannot delete the default store": "Cannot delete the default store",
     "Only the super admin can publish an agent directly. Please set the publish state to Pending Review instead": "Only the super admin can publish an agent directly. Please set the publish state to Pending Review instead",
+    "Please set a custom display name for this agent (the default \"New Store\" name is not allowed)": "Please set a custom display name for this agent (the default \"New Store\" name is not allowed)",
+    "Please upload a custom avatar for this agent (the default avatar is not allowed)": "Please upload a custom avatar for this agent (the default avatar is not allowed)",
     "The agent does not exist": "The agent does not exist",
     "The store name cannot be empty": "The store name cannot be empty",
+    "This agent needs at least 100 vectors before it can be submitted for review": "This agent needs at least 100 vectors before it can be submitted for review",
+    "This agent needs at least 200 messages before it can be submitted for review": "This agent needs at least 200 messages before it can be submitted for review",
     "You can only set the publish state to Private or Pending Review": "You can only set the publish state to Private or Pending Review",
     "You cannot fork your own agent": "You cannot fork your own agent",
     "You have already forked this agent": "You have already forked this agent",
@@ -256,6 +266,10 @@
     "unsupported file type: %s": "unsupported file type: %s"
   },
   "video": {
-    "The prompt should not be empty": "The prompt should not be empty"
+    "Submitting video generation task...": "Submitting video generation task...",
+    "The prompt should not be empty": "The prompt should not be empty",
+    "Video generation succeeded.\n\n[Download generated video](%s)": "Video generation succeeded.\n\n[Download generated video](%s)",
+    "Video generation task %s is still running...": "Video generation task %s is still running...",
+    "Video generation task submitted: %s": "Video generation task submitted: %s"
   }
 }

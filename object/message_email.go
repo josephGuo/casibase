@@ -134,7 +134,7 @@ func (message *Message) SendErrorEmail(errorText string, lang string) error {
 		return err
 	}
 	if adminUser == nil {
-		return fmt.Errorf(i18n.Translate(lang, "object:SendErrorEmail() error, the receiver user: \")admin\" doesn't exist"))
+		return fmt.Errorf(i18n.Translate(lang, "object:SendErrorEmail() error, the receiver user: \"admin\" doesn't exist"))
 	}
 
 	receiverEmail := adminUser.Email

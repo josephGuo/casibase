@@ -39,7 +39,7 @@ const RESOURCE_LABELS: Record<string, string> = {
   "visitors": "general:Visitors",
   "sysinfo": "general:System Info",
   "migration": "general:Migration",
-  "analysis": "general:Analysis",
+  "analysis": "store:Analysis",
   // the last segment of /stores/:owner/:name/view and /forms/:name/data
   "view": "general:Files",
   "data": "general:Data",

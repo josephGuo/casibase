@@ -48,7 +48,7 @@ func GetProviderFromName(owner string, providerName string, lang string) (*Provi
 
 func ValidateModelProvider(provider *Provider, lang string) error {
 	if provider.Category != "Model" {
-		return fmt.Errorf(i18n.Translate(lang, "object:The model provider: %s is expected to be \")Model\" category, got: \"%s\""), provider.GetId(), provider.Category)
+		return fmt.Errorf(i18n.Translate(lang, "object:The model provider: %s is expected to be \"Model\" category, got: \"%s\""), provider.GetId(), provider.Category)
 	}
 	if provider.ClientSecret == "" && provider.Type != "Ollama" && provider.Type != "OpenCode" {
 		return fmt.Errorf(i18n.Translate(lang, "object:The model provider: %s's client secret should not be empty"), provider.GetId())
@@ -101,7 +101,7 @@ func getEmbeddingProviderFromName(owner string, providerName string, lang string
 	}
 
 	if provider.Category != "Embedding" {
-		return nil, nil, fmt.Errorf(i18n.Translate(lang, "object:The embedding provider: %s is expected to be \")Embedding\" category, got: \"%s\""), provider.GetId(), provider.Category)
+		return nil, nil, fmt.Errorf(i18n.Translate(lang, "object:The embedding provider: %s is expected to be \"Embedding\" category, got: \"%s\""), provider.GetId(), provider.Category)
 	}
 	if provider.ClientSecret == "" {
 		return nil, nil, fmt.Errorf(i18n.Translate(lang, "object:The embedding provider: %s's client secret should not be empty"), provider.GetId())
