@@ -82,7 +82,7 @@ export default function SkillListPage() {
       title: i18next.t("general:Description"),
       width: 220,
       searchable: true,
-      render: (value) => (value ? Setting.getShortText(value, 30) : null),
+      render: (value) => (value ? Setting.getShortText(value, 20) : null),
     },
     {
       dataIndex: "references",
@@ -103,7 +103,8 @@ export default function SkillListPage() {
       sortable: true,
       render: (value) => <Badge variant={value === "Active" ? "success" : "secondary"}>{value}</Badge>,
     },
-    dateColumn(),
+    // not a column of the antd list, so it starts in the column menu
+    {...dateColumn(), defaultHidden: true},
   ];
 
   return (

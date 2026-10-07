@@ -20,7 +20,7 @@ import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 import {Input} from "@/components/ui/input";
 import {ConfirmButton} from "@/components/common/ConfirmButton";
 import * as Setting from "@/lib/setting";
-import {cn} from "@/lib/utils";
+import {cn, isComposing} from "@/lib/utils";
 
 function StatusIndicator({chat}: {chat: any}) {
   if (chat.isGenerating) {
@@ -128,6 +128,9 @@ export function ChatMenu({chats, selectedName, stores, currentStoreName, onSelec
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         onKeyDown={(e) => {
+                          if (isComposing(e)) {
+                            return;
+                          }
                           if (e.key === "Enter") {
                             save(chat);
                           } else if (e.key === "Escape") {
@@ -151,7 +154,7 @@ export function ChatMenu({chats, selectedName, stores, currentStoreName, onSelec
                       selected && "bg-accent font-medium",
                     )}
                     onClick={() => onSelect(chat)}
-                    onKeyDown={(e) => e.key === "Enter" && onSelect(chat)}
+                    onKeyDown={(e) => e.key === "Enter" && e.target === e.currentTarget && onSelect(chat)}
                   >
                     <StatusIndicator chat={chat} />
                     <span className="min-w-0 flex-1 truncate">{chat.displayName}</span>

@@ -41,6 +41,9 @@ export class TtsPlayer {
   private queue: (ArrayBuffer | "END")[] = [];
   private playing = false;
   private node: AudioBufferSourceNode | null = null;
+  private mode: "browser" | "file" | "stream" | null = null;
+  // bumped on every cancel, so audio still on its way for an earlier message is dropped
+  private run = 0;
   private state: TtsState = {readingMessage: null, isReading: false, isLoading: false};
 
   constructor(private onChange: (state: TtsState) => void) {}
@@ -80,10 +83,10 @@ export class TtsPlayer {
   }
 
   pause() {
-    if (this.context) {
-      this.context.suspend();
-    } else if (this.audio) {
-      this.audio.pause();
+    if (this.mode === "stream") {
+      this.context?.suspend();
+    } else if (this.mode === "file") {
+      this.audio?.pause();
     } else {
       this.synth.pause();
     }
@@ -91,10 +94,10 @@ export class TtsPlayer {
   }
 
   resume() {
-    if (this.context) {
-      this.context.resume();
-    } else if (this.audio) {
-      this.audio.play();
+    if (this.mode === "stream") {
+      this.context?.resume();
+    } else if (this.mode === "file") {
+      this.audio?.play();
     } else {
       this.synth.resume();
     }
@@ -102,6 +105,8 @@ export class TtsPlayer {
   }
 
   cancel() {
+    this.run++;
+    this.mode = null;
     this.synth?.cancel();
     this.source?.close();
     this.source = null;
@@ -111,14 +116,13 @@ export class TtsPlayer {
     this.audio = null;
     this.queue = [];
     this.playing = false;
-    this.set({isLoading: false});
+    this.set({readingMessage: null, isReading: false, isLoading: false});
   }
 
   dispose() {
     this.cancel();
     this.context?.close();
     this.context = null;
-    this.set({readingMessage: null, isReading: false});
   }
 
   private fallBack(message: any, detail?: string) {
@@ -128,8 +132,13 @@ export class TtsPlayer {
   }
 
   private readFile(message: any, storeId: string, messageId: string) {
+    const run = this.run;
+    this.mode = "file";
     this.set({isLoading: true});
     TtsBackend.generateTextToSpeechAudio(storeId, "", messageId, "").then((blob: Blob) => {
+      if (run !== this.run) {
+        return;
+      }
       this.set({isLoading: false});
       const url = URL.createObjectURL(blob);
       this.audio = new Audio(url);
@@ -140,14 +149,22 @@ export class TtsPlayer {
       };
       this.audio.play();
     }).catch((error: any) => {
+      if (run !== this.run) {
+        return;
+      }
       this.set({isLoading: false});
       this.fallBack(message, error?.message);
     });
   }
 
   private readStreaming(message: any, storeId: string, messageId: string) {
+    this.mode = "stream";
     this.source = TtsBackend.generateTextToSpeechAudioStream(storeId, messageId);
     this.context ??= new AudioContext();
+    // a reading paused before this one left the context suspended
+    if (this.context.state === "suspended") {
+      this.context.resume();
+    }
     this.queue = [];
     this.playing = false;
 
@@ -192,6 +209,7 @@ export class TtsPlayer {
       return;
     }
     this.playing = true;
+    const run = this.run;
     const item = this.queue.shift()!;
     if (item === "END") {
       this.playing = false;
@@ -199,23 +217,29 @@ export class TtsPlayer {
       return;
     }
     this.context.decodeAudioData(item, (buffer) => {
-      if (!this.context) {
+      if (!this.context || run !== this.run) {
         return;
       }
       const node = this.context.createBufferSource();
       node.buffer = buffer;
       node.connect(this.context.destination);
-      node.onended = () => this.playNext();
+      node.onended = () => run === this.run && this.playNext();
       node.start(0);
       this.node = node;
-    }, () => this.playNext());
+    }, () => run === this.run && this.playNext());
   }
 
   private readWithBrowser(message: any) {
     this.synth.cancel();
+    const run = this.run;
+    this.mode = "browser";
     const utterance = new SpeechSynthesisUtterance(message.correctedText || message.text);
     utterance.lang = Setting.getLanguage();
     utterance.addEventListener("end", () => {
+      // cancelling fires "end" too, possibly after the next reading has started
+      if (run !== this.run) {
+        return;
+      }
       this.synth.cancel();
       this.set({isReading: false, readingMessage: null});
     });

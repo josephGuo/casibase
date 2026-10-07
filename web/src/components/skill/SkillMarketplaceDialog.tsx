@@ -24,6 +24,7 @@ import {Input} from "@/components/ui/input";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Loading} from "@/components/common/Loading";
 import * as Setting from "@/lib/setting";
+import {isComposing} from "@/lib/utils";
 
 const SearchDelayMs = 500;
 
@@ -144,7 +145,7 @@ export function SkillMarketplaceDialog({open, onOpenChange, onInstalled}: SkillM
               value={keyword}
               onChange={(e) => changeKeyword(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (e.key === "Enter" && !isComposing(e)) {
                   clearTimeout(timer.current);
                   search(source, keyword);
                 }

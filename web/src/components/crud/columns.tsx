@@ -51,10 +51,26 @@ export function dateColumn<T>(dataIndex = "createdTime", title?: React.ReactNode
 }
 
 /**
- * A read-only boolean cell. The antd tables show a disabled `<Switch>` labelled
+ * A read-only boolean. The antd tables show a disabled `<Switch>` labelled
  * ON / OFF, so this pairs the same switch with that wording; `invertColor` paints
  * the "on" state as a warning, for flags like `isForbidden` where on is the bad one.
  */
+export function BoolCell({value, invertColor}: {value: any; invertColor?: boolean}) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Switch
+        checked={Boolean(value)}
+        disabled
+        aria-readonly
+        className={cn("opacity-100", value && invertColor && "data-[state=checked]:bg-destructive")}
+      />
+      <span className="text-xs text-muted-foreground">
+        {value ? i18next.t("general:ON") : i18next.t("general:OFF")}
+      </span>
+    </span>
+  );
+}
+
 export function boolColumn<T>(options: {
   dataIndex: string;
   title: React.ReactNode;
@@ -68,19 +84,7 @@ export function boolColumn<T>(options: {
     width,
     sortable: true,
     align: "center",
-    render: (value) => (
-      <span className="inline-flex items-center gap-1.5">
-        <Switch
-          checked={Boolean(value)}
-          disabled
-          aria-readonly
-          className={cn("opacity-100", value && invertColor && "data-[state=checked]:bg-destructive")}
-        />
-        <span className="text-xs text-muted-foreground">
-          {value ? i18next.t("general:ON") : i18next.t("general:OFF")}
-        </span>
-      </span>
-    ),
+    render: (value) => <BoolCell value={value} invertColor={invertColor} />,
   };
 }
 

@@ -209,7 +209,7 @@ export interface StreamHandlers {
  * calls, sources and the text itself. The final message has its title and
  * suggestions cut off.
  */
-export function streamAnswer(chat: any, messages: any[], answer: any, handlers: StreamHandlers) {
+export function streamAnswer(chat: any, messages: any[], answer: any, handlers: StreamHandlers): () => void {
   let current = {...answer};
   let text = "";
   let reasonText = "";
@@ -235,7 +235,7 @@ export function streamAnswer(chat: any, messages: any[], answer: any, handlers: 
     }
   };
 
-  MessageBackend.getMessageAnswer(
+  const stop = MessageBackend.getMessageAnswer(
     answer.owner,
     answer.name,
     (data: string) => {
@@ -280,6 +280,14 @@ export function streamAnswer(chat: any, messages: any[], answer: any, handlers: 
     },
     (status: string) => emit({statusText: status}),
   );
+
+  return () => {
+    if (timer !== null) {
+      window.clearTimeout(timer);
+      timer = null;
+    }
+    stop();
+  };
 }
 
 /** The message the backend is still answering, if the last one is an empty AI reply. */

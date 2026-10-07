@@ -2,7 +2,7 @@ import * as React from "react";
 import {X} from "lucide-react";
 import {Badge} from "@/components/ui/badge";
 import {Input} from "@/components/ui/input";
-import {cn} from "@/lib/utils";
+import {cn, isComposing} from "@/lib/utils";
 
 interface TagsInputProps {
   value: string[];
@@ -57,6 +57,9 @@ export function TagsInput({value, onChange, placeholder, disabled, className}: T
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={(e) => {
+          if (isComposing(e)) {
+            return;
+          }
           if (e.key === "Enter" || e.key === ",") {
             e.preventDefault();
             commit();

@@ -36,7 +36,6 @@ import type {ColumnDef} from "@/components/crud/types";
 import * as Conf from "@/Conf";
 import {useAccount} from "@/hooks/use-account";
 import {useRequestStore} from "@/hooks/use-request-store";
-import * as ProviderSetting from "@/lib/provider-setting";
 import * as Setting from "@/lib/setting";
 
 const DEFAULT_PROMPT = "You are an expert in your field and you specialize in using your knowledge to answer or solve people's problems.";
@@ -303,13 +302,17 @@ export default function StoreListPage() {
       sortable: true,
       searchable: true,
       render: (value, record) => (
-        <Link to={`/stores/${record.owner}/${value}`} className="flex items-center gap-2 font-medium underline-offset-4 hover:underline">
-          <img src={Setting.getStoreIconUrl(record)} alt="" className="h-6 w-6 shrink-0 rounded-full object-cover" />
-          {value}
-        </Link>
+        <Link to={`/stores/${record.owner}/${value}`} className="font-medium underline-offset-4 hover:underline">{value}</Link>
       ),
     },
     textColumn({dataIndex: "displayName", title: i18next.t("general:Display name"), width: 200, searchable: true}),
+    {
+      dataIndex: "avatar",
+      title: i18next.t("general:Avatar"),
+      width: 72,
+      align: "center",
+      render: (_value, record) => <img src={Setting.getStoreIconUrl(record)} alt="" className="mx-auto h-10 w-10 rounded-full object-cover" />,
+    },
     boolColumn({dataIndex: "isDefault", title: i18next.t("store:Is default")}),
     countColumn("chatCount", "store:Chat count", "chats"),
     countColumn("messageCount", "chat:Message count", "messages"),
@@ -327,7 +330,7 @@ export default function StoreListPage() {
         }
         return (
           <Link to={`/providers/${value}`} className="underline-offset-4 hover:underline">
-            {provider ? <ProviderTypeLabel category={provider.category} type={provider.type} text={ProviderSetting.getProviderDisplayName(provider)} /> : value}
+            {provider ? <ProviderTypeLabel category={provider.category} type={provider.type} text={provider.name} /> : value}
           </Link>
         );
       },
@@ -346,16 +349,8 @@ export default function StoreListPage() {
       sortable: true,
       render: (value) => <PublishStateBadge state={value} />,
     },
-    dateColumn(),
-    {
-      dataIndex: "more",
-      title: "",
-      width: 56,
-      align: "center",
-      // the shortcuts belong with the row actions, not among the optional columns
-      defaultHidden: false,
-      render: (_value, record) => renderMoreMenu(record),
-    },
+    // not a column of the antd list, so it starts in the column menu
+    {...dateColumn(), defaultHidden: true},
   ];
   const columns = allColumns.filter((column) => !(hideChat && CHAT_COLUMNS.has(column.dataIndex)));
 
@@ -391,7 +386,8 @@ export default function StoreListPage() {
             </Button>
           </>
         }
-        actionColumnWidth={300}
+        actionColumnWidth={340}
+        rowMenu={renderMoreMenu}
         rowActions={(record) => [
           {key: "files", label: i18next.t("general:Files"), onSelect: () => navigate(`/stores/${record.owner}/${record.name}/view`)},
           {key: "analysis", label: i18next.t("store:Analysis"), disabled: !record.messageCount, onSelect: () => navigate(`/analysis/${record.owner}/${record.name}`)},

@@ -181,7 +181,7 @@ export default function FileListPage() {
         return record.url ? <a href={record.url} target="_blank" rel="noreferrer" download className="underline-offset-4 hover:underline">{inner}</a> : inner;
       },
     },
-    {dataIndex: "size", title: i18next.t("general:Size"), width: 110, sortable: true, render: (value) => <span className="tabular-nums">{Setting.getFriendlyFileSize(value ?? 0)}</span>},
+    {dataIndex: "size", title: i18next.t("general:Size"), width: 110, sortable: true, render: (value) => <span className="tabular-nums">{Setting.getFormattedSize(value ?? 0)}</span>},
     {
       dataIndex: "vectorCount",
       title: i18next.t("store:Vector count"),

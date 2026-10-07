@@ -22,7 +22,7 @@ import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import {FileTypeIcon} from "@/components/common/FileTypeIcon";
 import * as ProviderSetting from "@/lib/provider-setting";
 import * as Setting from "@/lib/setting";
-import {cn} from "@/lib/utils";
+import {cn, isComposing} from "@/lib/utils";
 
 export const ACCEPTED_FILE_TYPES = "image/*, .txt, .md, .yaml, .csv, .docx, .pdf, .xlsx, .pptx";
 const SUPPORTED_EXTENSIONS = new Set(["txt", "md", "yaml", "csv", "docx", "pdf", "xlsx", "pptx"]);
@@ -125,6 +125,9 @@ export const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(f
   const {value, files, loading, disabled, messageError, store, chat} = props;
   const textarea = React.useRef<HTMLTextAreaElement>(null);
   const fileInput = React.useRef<HTMLInputElement>(null);
+  // files are read asynchronously, so a second one added meanwhile must not be dropped
+  const filesRef = React.useRef(files);
+  filesRef.current = files;
   React.useImperativeHandle(ref, () => textarea.current as HTMLTextAreaElement);
 
   const webSearchSupported = useWebSearchSupport(chat?.modelProvider || store?.modelProvider, props.webSearchEnabled, props.onWebSearchChange);
@@ -162,7 +165,9 @@ export const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(f
       Setting.showMessage("error", i18next.t("general:Failed to upload"));
       return null;
     })));
-    props.onFilesChange([...files, ...read.filter(Boolean) as ChatFile[]]);
+    const next = [...filesRef.current, ...read.filter(Boolean) as ChatFile[]];
+    filesRef.current = next;
+    props.onFilesChange(next);
   };
 
   return (
@@ -247,7 +252,7 @@ export const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(f
           }}
           onKeyDown={(e) => {
             // Enter sends, Shift+Enter breaks the line; an IME composing Chinese also uses Enter
-            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            if (e.key === "Enter" && !e.shiftKey && !isComposing(e)) {
               e.preventDefault();
               if (canSend) {
                 props.onSend();

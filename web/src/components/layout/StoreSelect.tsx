@@ -72,11 +72,15 @@ export function StoreSelect({account}: {account: any}) {
         setValue(Setting.getStore());
       }
     };
+    // a page can pick the store too, e.g. a chat opened at /admin/:storeName/chat
+    const onStoreChanged = () => setValue(Setting.getStore());
     window.addEventListener("storesChanged", load);
     window.addEventListener("storage", onStorage);
+    window.addEventListener("storeChanged", onStoreChanged);
     return () => {
       window.removeEventListener("storesChanged", load);
       window.removeEventListener("storage", onStorage);
+      window.removeEventListener("storeChanged", onStoreChanged);
     };
   }, [account?.homepage, change]);
 

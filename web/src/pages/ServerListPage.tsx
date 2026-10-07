@@ -178,6 +178,7 @@ export default function ServerListPage() {
       dataIndex: "transport",
       title: i18next.t("server:Transport"),
       width: 140,
+      defaultHidden: true,
       render: (value, record) => <Badge variant="outline">{value || (record.url ? "streamablehttp" : "stdio")}</Badge>,
     },
     {
@@ -185,16 +186,18 @@ export default function ServerListPage() {
       title: i18next.t("general:URL"),
       width: 260,
       searchable: true,
+      defaultHidden: true,
       render: (value, record) => <span className="font-mono text-xs">{value || [record.command, ...(record.args ?? [])].filter(Boolean).join(" ")}</span>,
     },
     {
       dataIndex: "tools",
-      title: i18next.t("general:Tools"),
+      title: i18next.t("general:Tool"),
       width: 100,
       align: "center",
       render: (value: any[]) => (value ?? []).length,
     },
-    dateColumn(),
+    // not a column of the antd list, so it starts in the column menu
+    {...dateColumn(), defaultHidden: true},
   ];
 
   return (

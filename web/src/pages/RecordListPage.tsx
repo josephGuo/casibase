@@ -27,7 +27,7 @@ import {CommitResult} from "@/components/common/CommitResult";
 import {Loading} from "@/components/common/Loading";
 import {UserLabel} from "@/components/common/UserLabel";
 import {CrudListPage} from "@/components/crud/CrudListPage";
-import {clientIpColumn, dateColumn, textColumn, valueFilters} from "@/components/crud/columns";
+import {BoolCell, clientIpColumn, dateColumn, textColumn, valueFilters} from "@/components/crud/columns";
 import type {ColumnDef, RowAction} from "@/components/crud/types";
 import {useAccount} from "@/hooks/use-account";
 import * as Setting from "@/lib/setting";
@@ -233,7 +233,7 @@ export default function RecordListPage({formItems}: {formItems?: any[]} = {}) {
       title: i18next.t("general:Is triggered"),
       width: 140,
       sortable: true,
-      render: (value, record) => (TriggeredActions.includes(record.action) ? <Switch checked={!!value} disabled className="opacity-100" /> : null),
+      render: (value, record) => (TriggeredActions.includes(record.action) ? <BoolCell value={value} /> : null),
     },
     searchable("action", i18next.t("general:Action"), 150),
     {
@@ -284,6 +284,8 @@ export default function RecordListPage({formItems}: {formItems?: any[]} = {}) {
         deps={[account?.owner]}
         editUrl={(r) => `/records/${r.owner}/${r.id}`}
         remove={(r) => RecordBackend.deleteRecord(r)}
+        // a log is evidence, so the antd list never let one be deleted
+        deleteDisabled={() => true}
         rowActions={(record, _index, {refresh}) => chainActions(record, refresh)}
         actionColumnWidth={crossChain ? 330 : 250}
         toolbar={isAdmin ? (

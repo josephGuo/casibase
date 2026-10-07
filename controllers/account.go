@@ -170,7 +170,7 @@ func (c *ApiController) Signout() {
 	c.ResponseOk()
 }
 
-func (c *ApiController) addInitialChat(organization string, userName string, storeName string) (*object.Chat, error) {
+func (c *ApiController) addInitialChat(organization string, userName string, storeName string, modelProvider string) (*object.Chat, error) {
 	var store *object.Store
 	var err error
 
@@ -192,6 +192,10 @@ func (c *ApiController) addInitialChat(organization string, userName string, sto
 		}
 	}
 
+	if modelProvider == "" {
+		modelProvider = store.ModelProvider
+	}
+
 	currentTime := util.GetCurrentTime()
 	chat := &object.Chat{
 		Owner:         "admin",
@@ -201,7 +205,7 @@ func (c *ApiController) addInitialChat(organization string, userName string, sto
 		Organization:  organization,
 		DisplayName:   "New Chat",
 		Store:         store.Name,
-		ModelProvider: store.ModelProvider,
+		ModelProvider: modelProvider,
 		Category:      "Default Category",
 		User:          userName,
 		ClientIp:      c.getClientIp(),
@@ -239,7 +243,7 @@ func (c *ApiController) addInitialChatAndMessage(user *auth.User) error {
 	organizationName := user.Owner
 	userName := user.Name
 
-	chat, err := c.addInitialChat(organizationName, userName, "")
+	chat, err := c.addInitialChat(organizationName, userName, "", "")
 	if err != nil {
 		return err
 	}
