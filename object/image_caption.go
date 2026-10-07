@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -90,18 +91,26 @@ func detectImageMimeType(data []byte, fallbackExt string) string {
 	return ""
 }
 
+func readImageData(fileUrl string) ([]byte, error) {
+	if !strings.HasPrefix(fileUrl, "http") {
+		return os.ReadFile(fileUrl)
+	}
+
+	resp, err := http.Get(fileUrl)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	return io.ReadAll(resp.Body)
+}
+
 func generateImageCaption(modelProviderObj model.ModelProvider, fileUrl string, fileExt string, lang string) (string, error) {
 	if modelProviderObj == nil {
 		return "", fmt.Errorf(i18n.Translate(lang, "object:image caption requires a model provider; configure a vision-capable ModelProvider on the store"))
 	}
 
-	resp, err := http.Get(fileUrl)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	data, err := io.ReadAll(resp.Body)
+	data, err := readImageData(fileUrl)
 	if err != nil {
 		return "", err
 	}
@@ -137,4 +146,24 @@ func generateImageCaption(modelProviderObj model.ModelProvider, fileUrl string, 
 
 func isSupportedImageFile(fileKey string) bool {
 	return isImageExtension(filepath.Ext(fileKey))
+}
+
+func getImageTitle(fileKey string) string {
+	base := filepath.Base(fileKey)
+	return strings.TrimSuffix(base, filepath.Ext(base))
+}
+
+func getImageKnowledgeUrl(fileUrl string) (string, error) {
+	if strings.HasPrefix(fileUrl, "http") {
+		return fileUrl, nil
+	}
+
+	providerName, key, err := getLocalStorageObjectKey(fileUrl)
+	if err != nil {
+		return "", err
+	}
+	if providerName == "" {
+		return "", fmt.Errorf("the image: %s is not in a local storage provider", fileUrl)
+	}
+	return getStorageObjectMarkdownUrl(providerName, key), nil
 }

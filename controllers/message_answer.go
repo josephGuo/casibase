@@ -371,6 +371,15 @@ func generateMessageAnswer(id string, responseWriter http.ResponseWriter, host s
 		}
 	}
 
+	if chat.Tool == "" && store.KnowledgeCount != 0 {
+		imageCatalog, imageErr := object.GetImageKnowledgeCatalog(store)
+		if imageErr != nil {
+			fmt.Printf("image knowledge catalog: %s\n", imageErr.Error())
+		} else if imageCatalog != "" {
+			store.Prompt += "\n\n" + imageCatalog
+		}
+	}
+
 	// The experience library holds human corrections of this agent's earlier answers.
 	// It is appended to the prompt (like the skills catalog) rather than mixed into the
 	// knowledge list, so it can outrank the knowledge it contradicts.
