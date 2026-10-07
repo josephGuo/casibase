@@ -128,6 +128,24 @@ func getImageRefinedText(text string) (string, error) {
 	return res, nil
 }
 
+func getImageRefinedTexts(urls []string, messageText string) ([]string, string) {
+	images := []string{}
+	failedUrls := []string{}
+	for _, url := range urls {
+		imageText, err := getImageRefinedText(url)
+		if err != nil {
+			failedUrls = append(failedUrls, url)
+			continue
+		}
+		images = append(images, imageText)
+	}
+
+	if len(failedUrls) > 0 {
+		messageText = strings.TrimSpace(messageText + "\n" + strings.Join(failedUrls, "\n"))
+	}
+	return images, messageText
+}
+
 func IsVisionModel(subType string) bool {
 	visionModels := []string{
 		// GPT-6 series (latest)
@@ -195,6 +213,7 @@ func OpenaiRawMessagesToGptVisionMessages(messages []*RawMessage) ([]openai.Chat
 		}
 
 		urls, messageText := extractImagesURL(message.Text)
+		images, messageText := getImageRefinedTexts(urls, messageText)
 
 		item := openai.ChatCompletionMessage{
 			Role:             role,
@@ -223,12 +242,7 @@ func OpenaiRawMessagesToGptVisionMessages(messages []*RawMessage) ([]openai.Chat
 			}
 		}
 
-		for _, url := range urls {
-			imageText, err := getImageRefinedText(url)
-			if err != nil {
-				return []openai.ChatCompletionMessage{}, err
-			}
-
+		for _, imageText := range images {
 			item.MultiContent = append(item.MultiContent, openai.ChatMessagePart{
 				Type: openai.ChatMessagePartTypeImageURL,
 				ImageURL: &openai.ChatMessageImageURL{
