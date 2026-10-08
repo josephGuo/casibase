@@ -54,6 +54,8 @@ OpenAgent is an open-source personal AI assistant that brings together powerful 
 
 ## Sponsors
 
+> [Want to appear here?](mailto:admin@casibase.org)
+
 <table>
   <tr>
     <td width="300" align="center">

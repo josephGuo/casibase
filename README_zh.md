@@ -54,6 +54,8 @@ OpenAgent 是一个开源个人 AI 助手，将强大的大语言模型、私有
 
 ## 赞助商
 
+> [想出现在这里？](mailto:admin@casibase.org)
+
 <table>
   <tr>
     <td width="300" align="center">
