@@ -20,6 +20,10 @@
 
 <br/>
 
+<a href="https://trendshift.io/repositories/26577" target="_blank"><img src="https://trendshift.io/api/badge/repositories/26577" alt="the-open-agent%2Fopenagent | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
+<br/>
+
 [**Live Demo**](https://demo.openagentai.org) · [**Playground**](https://try.openagentai.org) · [**Docs**](https://www.openagentai.org) · [**Discord**](https://discord.gg/5rPsrAzK7S)
 
 </div>
@@ -49,6 +53,8 @@ OpenAgent is an open-source personal AI assistant that brings together powerful 
 ---
 
 ## Sponsors
+
+> [Want to appear here?](mailto:admin@casibase.org)
 
 <table>
   <tr>

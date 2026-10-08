@@ -20,6 +20,10 @@
 
 <br/>
 
+<a href="https://trendshift.io/repositories/26577" target="_blank"><img src="https://trendshift.io/api/badge/repositories/26577" alt="the-open-agent%2Fopenagent | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
+<br/>
+
 [**在线演示**](https://demo.openagentai.org) · [**试用场**](https://try.openagentai.org) · [**文档**](https://www.openagentai.org) · [**Discord**](https://discord.gg/5rPsrAzK7S)
 
 </div>
@@ -49,6 +53,8 @@ OpenAgent 是一个开源个人 AI 助手，将强大的大语言模型、私有
 ---
 
 ## 赞助商
+
+> [想出现在这里？](mailto:admin@casibase.org)
 
 <table>
   <tr>
