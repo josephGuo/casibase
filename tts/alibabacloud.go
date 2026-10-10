@@ -53,13 +53,13 @@ TTS models:
 
 |    Models         |    Per 1,000 tokens  |
 |-------------------|----------------------|
-|    cosyvoice-v1   |   0.2 yuan/1k token  |   
+|    cosyvoice-v2   |   0.2 yuan/1k token  |
 `
 }
 
 func (p *AlibabacloudTextToSpeechProvider) calculatePrice(res *TextToSpeechResult, lang string) error {
 	priceTable := map[string]float64{
-		"cosyvoice-v1": 0.2,
+		"cosyvoice-v2": 0.2,
 	}
 	if priceItem, ok := priceTable[p.subType]; ok {
 		res.Price = getPrice(res.TokenCount, priceItem)

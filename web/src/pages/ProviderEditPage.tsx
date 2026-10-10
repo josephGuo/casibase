@@ -45,7 +45,7 @@ const CATEGORY_DEFAULTS: Record<string, {type: string; subType?: string}> = {
   "Model": {type: "OpenAI", subType: ProviderSetting.getModelProviderMetadata("OpenAI").defaultSubType},
   "Embedding": {type: "OpenAI", subType: "text-embedding-ada-002"},
   "Video": {type: "AWS"},
-  "Text-to-Speech": {type: "Alibaba Cloud", subType: "cosyvoice-v1"},
+  "Text-to-Speech": {type: "Alibaba Cloud", subType: "cosyvoice-v2"},
   "Speech-to-Text": {type: "Alibaba Cloud", subType: "fun-asr-realtime"},
 };
 
@@ -433,7 +433,7 @@ export default function ProviderEditPage() {
         } else if (category === "Embedding") {
           subType = EMBEDDING_DEFAULT_SUB_TYPES[value];
         } else if (category === "Text-to-Speech" && value === "Alibaba Cloud") {
-          subType = "cosyvoice-v1";
+          subType = "cosyvoice-v2";
         } else if (category === "Speech-to-Text" && value === "Alibaba Cloud") {
           subType = "fun-asr-realtime";
         }
@@ -451,7 +451,7 @@ export default function ProviderEditPage() {
       type: "select",
       name: "flavor",
       labelKey: "provider:Flavor",
-      when: (ctx) => ctx.record.category === "Text-to-Speech" && ctx.record.type === "Alibaba Cloud" && ctx.record.subType === "cosyvoice-v1",
+      when: (ctx) => ctx.record.category === "Text-to-Speech" && ctx.record.type === "Alibaba Cloud" && ctx.record.subType === "cosyvoice-v2",
       options: (ctx) => ProviderSetting.getTtsFlavorOptions(ctx.record.type, ctx.record.subType).map((item: any) => ({value: item.id, label: item.name})),
     },
     {

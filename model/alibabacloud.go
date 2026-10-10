@@ -15,13 +15,14 @@
 package model
 
 import (
+	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/casibase/dashscopego"
 	"github.com/casibase/dashscopego/qwen"
@@ -50,7 +51,18 @@ func NewAlibabacloudModelProvider(subType string, apiKey string, temperature flo
 func isWanxModel(subType string) bool {
 	return strings.HasPrefix(subType, "wan2.") ||
 		strings.HasPrefix(subType, "wan3.") ||
-		strings.HasPrefix(subType, "qwen-image")
+		strings.HasPrefix(subType, "wanx") ||
+		strings.HasPrefix(subType, "qwen-image") ||
+		strings.HasPrefix(subType, "z-image")
+}
+
+// The newer image models are only served by the multimodal generation API, the
+// text2image image synthesis API rejects them with "url error".
+func isMultimodalImageModel(subType string) bool {
+	return strings.HasPrefix(subType, "qwen-image-") ||
+		strings.HasPrefix(subType, "wan2.6-image") ||
+		strings.HasPrefix(subType, "wan2.7-image") ||
+		strings.HasPrefix(subType, "z-image")
 }
 
 // Models with native image and video input are only served by the OpenAI-compatible
@@ -118,7 +130,17 @@ func (p *AlibabacloudModelProvider) calculatePrice(modelResult *ModelResult, lan
 	if isWanxModel(p.subType) {
 		// Alibaba Cloud prices the Wan / Qwen-Image models per image and per resolution tier;
 		// 0.04 yuan/image is used as the baseline when a model has no entry here.
-		imagePriceTable := map[string]float64{}
+		imagePriceTable := map[string]float64{
+			"qwen-image-3.0-pro": 0.25,
+			"qwen-image-3.0":     0.18,
+			"wan2.7-image-pro":   0.50,
+			"wan2.7-image":       0.20,
+			"wan2.6-image":       0.20,
+			"wan2.2-t2i-plus":    0.20,
+			"wan2.2-t2i-flash":   0.14,
+			"wanx2.1-t2i-plus":   0.20,
+			"wanx2.1-t2i-turbo":  0.14,
+		}
 		unitPrice, ok := imagePriceTable[p.subType]
 		if !ok {
 			unitPrice = 0.04
@@ -240,38 +262,45 @@ func (p *AlibabacloudModelProvider) queryWanx(ctx context.Context, question stri
 		return nil, fmt.Errorf(i18n.Translate(lang, "model:writer does not implement http.Flusher"))
 	}
 
-	cli := dashscopesdk.NewTongyiClient(p.subType, p.apiKey)
-	req := &wanx.ImageSynthesisRequest{
-		Model: p.subType,
-		Input: wanx.ImageSynthesisInput{
-			Prompt: question,
-		},
-		Params: wanx.ImageSynthesisParams{
-			N:    1,
-			Size: "1024*1024",
-		},
-		// Do not ask the SDK to download the image bytes: GetImage uses the same
-		// HTTP options as DashScope API calls, including Content-Type: application/json,
-		// which breaks OSS presigned URL signature verification (SignatureDoesNotMatch).
-		// The task result URL is returned and embedded; the browser loads it with a plain GET.
-		Download: false,
-	}
-
-	imgBlobs, err := cli.CreateImageGeneration(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-	if len(imgBlobs) == 0 {
-		return nil, fmt.Errorf("empty image generation response")
-	}
-
-	blob := imgBlobs[0]
-	var imgSrc string
-	if len(blob.Data) > 0 {
-		b64 := base64.StdEncoding.EncodeToString(blob.Data)
-		imgSrc = fmt.Sprintf("data:%s;base64,%s", blob.ImgType, b64)
+	var imgUrl string
+	var err error
+	if isMultimodalImageModel(p.subType) {
+		imgUrl, err = p.generateMultimodalImage(ctx, question)
+		if err != nil {
+			return nil, err
+		}
 	} else {
-		imgSrc = blob.ImgURL
+		cli := dashscopesdk.NewTongyiClient(p.subType, p.apiKey)
+		req := &wanx.ImageSynthesisRequest{
+			Model: p.subType,
+			Input: wanx.ImageSynthesisInput{
+				Prompt: question,
+			},
+			Params: wanx.ImageSynthesisParams{
+				N:    1,
+				Size: "1024*1024",
+			},
+			// Do not ask the SDK to download the image bytes: GetImage uses the same
+			// HTTP options as DashScope API calls, including Content-Type: application/json,
+			// which breaks OSS presigned URL signature verification (SignatureDoesNotMatch).
+			Download: false,
+		}
+
+		imgBlobs, err := cli.CreateImageGeneration(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		if len(imgBlobs) == 0 {
+			return nil, fmt.Errorf("empty image generation response")
+		}
+		imgUrl = imgBlobs[0].ImgURL
+	}
+
+	// The result URL is a presigned OSS link that expires in about a day, so the image
+	// is embedded as a data URL to keep it visible in the chat history.
+	imgSrc, err := getImageRefinedText(imgUrl)
+	if err != nil {
+		imgSrc = imgUrl
 	}
 
 	html := fmt.Sprintf("<img src=\"%s\" width=\"100%%\" height=\"auto\">", imgSrc)
@@ -288,6 +317,73 @@ func (p *AlibabacloudModelProvider) queryWanx(ctx context.Context, question stri
 		return nil, err
 	}
 	return modelResult, nil
+}
+
+func (p *AlibabacloudModelProvider) generateMultimodalImage(ctx context.Context, prompt string) (string, error) {
+	body := map[string]interface{}{
+		"model": p.subType,
+		"input": map[string]interface{}{
+			"messages": []map[string]interface{}{
+				{"role": "user", "content": []map[string]string{{"text": prompt}}},
+			},
+		},
+		"parameters": map[string]interface{}{
+			"n":    1,
+			"size": "1024*1024",
+		},
+	}
+	data, err := json.Marshal(body)
+	if err != nil {
+		return "", err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation", bytes.NewReader(data))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", "Bearer "+p.apiKey)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 5 * time.Minute}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var result struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+		Output  struct {
+			Choices []struct {
+				Message struct {
+					Content []struct {
+						Image string `json:"image"`
+					} `json:"content"`
+				} `json:"message"`
+			} `json:"choices"`
+		} `json:"output"`
+	}
+	if err = json.Unmarshal(respBody, &result); err != nil {
+		return "", fmt.Errorf("image generation failed: HTTP %d: %s", resp.StatusCode, string(respBody))
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("image generation failed: %s: %s", result.Code, result.Message)
+	}
+
+	for _, choice := range result.Output.Choices {
+		for _, content := range choice.Message.Content {
+			if content.Image != "" {
+				return content.Image, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("empty image generation response")
 }
 
 func (p *AlibabacloudModelProvider) QueryText(question string, writer io.Writer, history []*RawMessage, prompt string, knowledgeMessages []*RawMessage, toolSession *ToolSession, lang string) (*ModelResult, error) {
