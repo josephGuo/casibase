@@ -170,6 +170,8 @@ func IsVisionModel(subType string) bool {
 		"qwen3.7-plus", "qwen3.7-flash",
 		"qwen3.6-plus", "qwen3.6-flash", "qwen3.6-27b", "qwen3.6-35b-a3b",
 		"qwen3-vl-plus", "qwen3-vl-flash", "qwen3.5-omni-plus",
+		// OpenAI-compatible Kimi vision models
+		"kimi-k3",
 	}
 
 	for _, visionModel := range visionModels {
@@ -208,9 +210,6 @@ func OpenaiRawMessagesToGptVisionMessages(messages []*RawMessage) ([]openai.Chat
 			role = openai.ChatMessageRoleUser
 		}
 
-		urls, messageText := extractImagesURL(message.Text)
-		images, messageText := getImageRefinedTexts(urls, messageText)
-
 		item := openai.ChatCompletionMessage{
 			Role:             role,
 			ReasoningContent: message.ReasoningContent,
@@ -228,6 +227,17 @@ func OpenaiRawMessagesToGptVisionMessages(messages []*RawMessage) ([]openai.Chat
 				item.ToolCalls = nil
 			}
 		}
+
+		// Image inputs are only supported on user messages. Keep image links in
+		// prompts and assistant history as text instead of resending them as images.
+		if role != openai.ChatMessageRoleUser {
+			item.Content = message.Text
+			res = append(res, item)
+			continue
+		}
+
+		urls, messageText := extractImagesURL(message.Text)
+		images, messageText := getImageRefinedTexts(urls, messageText)
 
 		if len(messageText) > 0 {
 			item.MultiContent = []openai.ChatMessagePart{
