@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import {Link} from "react-router-dom";
 import * as UserBackend from "@/backend/UserBackend";
+import {GuardrailMessageNote} from "@/components/layout/Guardrail";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Button} from "@/components/ui/button";
 import {Textarea} from "@/components/ui/textarea";
@@ -219,11 +220,15 @@ function MessageItemInner(props: MessageItemProps) {
 
   const renderError = () => {
     const noProvider = isNoModelProviderError(message.errorText);
+    const refinedErrorText = getRefinedErrorText(message.errorText);
+    const detailIndex = refinedErrorText.indexOf("\n\n");
+    const errorSummary = detailIndex === -1 ? refinedErrorText : refinedErrorText.slice(0, detailIndex);
+    const errorDetail = detailIndex === -1 ? "" : refinedErrorText.slice(detailIndex + 2);
     return (
       <div className="flex items-start gap-2 rounded-md border border-warning/50 bg-warning/10 px-3 py-2 text-xs">
         <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
-        <span className={cn("break-all", !noProvider && "font-mono")}>
-          {getRefinedErrorText(message.errorText)}
+        <span className={cn("break-all", !noProvider && !errorDetail && "font-mono")}>
+          {errorSummary}
           {noProvider ? (
             <Link to="/quick-setup" className="ml-2 font-semibold text-primary hover:underline">{i18next.t("chat:No model provider - action")} →</Link>
           ) : !readOnly ? (
@@ -231,6 +236,7 @@ function MessageItemInner(props: MessageItemProps) {
               {i18next.t(regenerating ? "general:Regenerating..." : "general:Regenerate")} →
             </button>
           ) : null}
+          {errorDetail ? <span className="mt-1 block font-mono text-[11px] text-muted-foreground">{errorDetail}</span> : null}
         </span>
       </div>
     );
@@ -354,6 +360,7 @@ function MessageItemInner(props: MessageItemProps) {
             ) : null}
           </div>
         ) : null}
+        {!isAi && !editing ? <GuardrailMessageNote message={message} /> : null}
 
         {isAi && !reasoningOnly && !correcting && !answering ? (
           <div className="flex flex-wrap items-center gap-0.5">
@@ -387,6 +394,7 @@ function MessageItemInner(props: MessageItemProps) {
                 <FileText />{message.vectorScores.length} {i18next.t("chat:Knowledge sources")}
               </Button>
             ) : null}
+            {!message.errorText ? <GuardrailMessageNote message={message} /> : null}
           </div>
         ) : null}
 

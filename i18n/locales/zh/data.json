@@ -82,7 +82,6 @@
     "No permission": "无权限",
     "No records to add": "没有要添加的记录",
     "No sessions to delete": "没有要删除的会话",
-    "Only the global admin can configure local file system storage": "只有全局管理员可以配置本地文件系统存储",
     "Only the global admin can configure tools or MCP servers that run commands on the host": "只有全局管理员可以配置会在服务器上执行命令的工具或MCP服务器",
     "Please re-enter the secret when changing where it is sent": "修改发送地址时请重新输入密钥",
     "The tool type: %s is disabled on this server": "本服务器已禁用该工具类型：%s",
@@ -132,7 +131,9 @@
     "Issue title cannot be longer than %d characters": "问题标题不能超过 %d 个字符"
   },
   "message_answer": {
+    "Content safety review failed: the model platform flagged this conversation (the question, the agent's prompt and knowledge base, or the generated answer) as possibly inappropriate and refused to answer. This is often a false positive, so please rephrase and try again. If it keeps happening, ask an administrator to check this agent's knowledge base.": "内容安全审核未通过：大模型平台的内容安全审核认为本次对话（提问、智能体的提示词和知识库资料，或生成的回答）可能包含不当内容，已拒绝回答。这类拦截经常是误判，可以换一种说法再试；如果反复出现，请联系管理员检查该智能体的知识库资料。",
     "No embedding model configured, answering without knowledge base": "未配置嵌入模型，将不使用知识库直接回答",
+    "Original error: %s": "原始错误：%s",
     "object.GetNearestKnowledge() error, %s": "object.GetNearestKnowledge() 出错：%s"
   },
   "migration": {

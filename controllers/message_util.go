@@ -29,7 +29,18 @@ import (
 	"github.com/the-open-agent/openagent/util"
 )
 
+func getRefinedModelErrorText(lang string, errorText string) string {
+	if !strings.Contains(errorText, "DataInspectionFailed") && !strings.Contains(errorText, "data_inspection_failed") {
+		return errorText
+	}
+
+	return fmt.Sprintf("%s\n\n%s",
+		i18n.Translate(lang, "message_answer:Content safety review failed: the model platform flagged this conversation (the question, the agent's prompt and knowledge base, or the generated answer) as possibly inappropriate and refused to answer. This is often a false positive, so please rephrase and try again. If it keeps happening, ask an administrator to check this agent's knowledge base."),
+		fmt.Sprintf(i18n.Translate(lang, "message_answer:Original error: %s"), errorText))
+}
+
 func writeMessageErrorStream(responseWriter http.ResponseWriter, lang string, message *object.Message, errorText string) error {
+	errorText = getRefinedModelErrorText(lang, errorText)
 	var err error
 	if message != nil {
 		if !message.IsAlerted {
@@ -86,6 +97,28 @@ func clearMessageChatGenerating(message *object.Message) error {
 func writeInfoStream(responseWriter http.ResponseWriter, infoText string) error {
 	event := fmt.Sprintf("event: myinfo\ndata: %s\n\n", infoText)
 	_, err := responseWriter.Write([]byte(event))
+	if err != nil {
+		return err
+	}
+	if flusher, ok := responseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+	return nil
+}
+
+// writeGuardrailStream replaces the answer already streamed to the page: a
+// refusal when the guardrail blocked it, or the text with personal data masked.
+func writeGuardrailStream(responseWriter http.ResponseWriter, message *object.Message) error {
+	payload, err := json.Marshal(map[string]interface{}{
+		"text":        message.Text,
+		"reasonText":  message.ReasonText,
+		"suggestions": message.Suggestions,
+		"guardrail":   message.Guardrail,
+	})
+	if err != nil {
+		return err
+	}
+	_, err = responseWriter.Write([]byte(fmt.Sprintf("event: guardrail\ndata: %s\n\n", payload)))
 	if err != nil {
 		return err
 	}

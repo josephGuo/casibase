@@ -82,7 +82,6 @@
     "No permission": "No permission",
     "No records to add": "No records to add",
     "No sessions to delete": "No sessions to delete",
-    "Only the global admin can configure local file system storage": "Only the global admin can configure local file system storage",
     "Only the global admin can configure tools or MCP servers that run commands on the host": "Only the global admin can configure tools or MCP servers that run commands on the host",
     "Please re-enter the secret when changing where it is sent": "Please re-enter the secret when changing where it is sent",
     "The tool type: %s is disabled on this server": "The tool type: %s is disabled on this server",
@@ -132,7 +131,9 @@
     "Issue title cannot be longer than %d characters": "Issue title cannot be longer than %d characters"
   },
   "message_answer": {
+    "Content safety review failed: the model platform flagged this conversation (the question, the agent's prompt and knowledge base, or the generated answer) as possibly inappropriate and refused to answer. This is often a false positive, so please rephrase and try again. If it keeps happening, ask an administrator to check this agent's knowledge base.": "Content safety review failed: the model platform flagged this conversation (the question, the agent's prompt and knowledge base, or the generated answer) as possibly inappropriate and refused to answer. This is often a false positive, so please rephrase and try again. If it keeps happening, ask an administrator to check this agent's knowledge base.",
     "No embedding model configured, answering without knowledge base": "No embedding model configured, answering without knowledge base",
+    "Original error: %s": "Original error: %s",
     "object.GetNearestKnowledge() error, %s": "object.GetNearestKnowledge() error, %s"
   },
   "migration": {
