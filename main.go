@@ -72,6 +72,7 @@ func main() {
 	beego.InsertFilter("*", beego.BeforeRouter, routers.CorsFilter)
 	beego.InsertFilter("*", beego.BeforeRouter, routers.EndpointFilter)
 	beego.InsertFilter("*", beego.BeforeRouter, routers.HstsFilter)
+	beego.InsertFilter("*", beego.BeforeRouter, routers.NoIndexFilter)
 	beego.InsertFilter("*", beego.BeforeRouter, routers.CacheControlFilter)
 	beego.InsertFilter("*", beego.BeforeRouter, routers.AutoSigninFilter)
 	beego.InsertFilter("*", beego.BeforeRouter, routers.StaticFilter)
