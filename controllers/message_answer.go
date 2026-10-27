@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/beego/beego/context"
 	"github.com/the-open-agent/openagent/carrier"
@@ -492,6 +493,10 @@ func generateMessageAnswer(id string, responseWriter http.ResponseWriter, host s
 	modelResult, err := queryModel(question, prompt)
 	if err != nil && strings.Contains(err.Error(), "DataInspectionFailed") && (question != reviewQuestion || prompt != store.Prompt) && writer.MessageString() == "" && writer.ReasonString() == "" {
 		question, prompt = reviewQuestion, store.Prompt
+		modelResult, err = queryModel(question, prompt)
+	}
+	for retry := 1; retry <= 2 && err != nil && isModelOverloaded(err) && writer.MessageString() == "" && writer.ReasonString() == "" && writer.ToolString() == ""; retry++ {
+		time.Sleep(time.Duration(retry*3) * time.Second)
 		modelResult, err = queryModel(question, prompt)
 	}
 	if err != nil {

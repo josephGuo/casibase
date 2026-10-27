@@ -488,6 +488,11 @@ func GetRecentRawMessages(chat string, createdTime string, memoryLimit int) ([]*
 			blocked[message.Name] = true
 			blocked[message.ReplyTo] = true
 		}
+		// A question the model failed to answer is left out with its empty answer.
+		if message.Author == "AI" && message.ErrorText != "" && message.Text == "" {
+			blocked[message.Name] = true
+			blocked[message.ReplyTo] = true
+		}
 	}
 
 	for _, message := range messages {

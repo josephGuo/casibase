@@ -233,7 +233,7 @@ function MessageItemInner(props: MessageItemProps) {
           {errorSummary}
           {noProvider ? (
             <Link to="/quick-setup" className="ml-2 font-semibold text-primary hover:underline">{i18next.t("chat:No model provider - action")} →</Link>
-          ) : !readOnly ? (
+          ) : !readOnly && isLast ? (
             <button type="button" className="ml-2 font-semibold text-primary hover:underline disabled:opacity-50" disabled={regenerating} onClick={regenerate}>
               {i18next.t(regenerating ? "general:Regenerating..." : "general:Regenerate")} →
             </button>

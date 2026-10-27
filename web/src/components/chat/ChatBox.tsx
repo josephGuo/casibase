@@ -334,7 +334,7 @@ export const ChatBox = React.forwardRef<ChatBoxHandle, ChatBoxProps>(function Ch
     setFiles((prev) => [...prev, ...read.filter(Boolean) as ChatFile[]]);
   };
 
-  const canDrop = !readOnly && !props.messageError && !store?.disableFileUpload;
+  const canDrop = !readOnly && !store?.disableFileUpload;
   const showFigure = props.showVirtualFigure && !readOnly && store?.figureEnabled !== false;
   const aiAvatar = store?.avatar || Setting.getDefaultAiAvatar();
   const hasUrlMessage = new URLSearchParams(window.location.search).get("newMessage");
@@ -425,7 +425,6 @@ export const ChatBox = React.forwardRef<ChatBoxHandle, ChatBoxProps>(function Ch
             onFilesChange={setFiles}
             onSend={() => send()}
             loading={loading}
-            messageError={messageError}
             onCancel={props.onCancel}
             isVoiceInput={isVoiceInput}
             onVoiceStart={startVoice}

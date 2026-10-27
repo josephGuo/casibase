@@ -29,6 +29,11 @@ import (
 	"github.com/the-open-agent/openagent/util"
 )
 
+func isModelOverloaded(err error) bool {
+	errorText := strings.ToLower(err.Error())
+	return strings.Contains(errorText, "overload") || strings.Contains(errorText, "status code: 503")
+}
+
 func getRefinedModelErrorText(lang string, errorText string) string {
 	if !strings.Contains(errorText, "DataInspectionFailed") && !strings.Contains(errorText, "data_inspection_failed") {
 		return errorText

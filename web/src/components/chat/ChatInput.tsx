@@ -111,7 +111,6 @@ export interface ChatInputProps {
   /** the chat is answering; the send button becomes a stop button */
   loading: boolean;
   disabled?: boolean;
-  messageError?: boolean;
   onCancel: () => void;
   isVoiceInput: boolean;
   onVoiceStart: () => void;
@@ -123,7 +122,7 @@ export interface ChatInputProps {
 }
 
 export const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(function ChatInput(props, ref) {
-  const {value, files, loading, disabled, messageError, store, chat} = props;
+  const {value, files, loading, disabled, store, chat} = props;
   const textarea = React.useRef<HTMLTextAreaElement>(null);
   const fileInput = React.useRef<HTMLInputElement>(null);
   // files are read asynchronously, so a second one added meanwhile must not be dropped
@@ -132,8 +131,9 @@ export const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(f
   React.useImperativeHandle(ref, () => textarea.current as HTMLTextAreaElement);
 
   const webSearchSupported = useWebSearchSupport(chat?.modelProvider || store?.modelProvider, props.webSearchEnabled, props.onWebSearchChange);
-  const locked = disabled || messageError;
-  const canSend = !locked && !loading && (value.trim() !== "" || files.length > 0);
+  // a failed answer keeps its regenerate link, but a new question can still be asked
+  const locked = disabled;
+  const canSend = !locked &&!loading && (value.trim() !== "" || files.length > 0);
 
   // grows with its content up to a few lines, then scrolls
   const fitHeight = React.useCallback(() => {
@@ -238,7 +238,7 @@ export const ChatInput = React.forwardRef<HTMLTextAreaElement, ChatInputProps>(f
           rows={1}
           value={value}
           disabled={disabled}
-          placeholder={messageError ? "" : i18next.t("chat:Type message here")}
+          placeholder={i18next.t("chat:Type message here")}
           className="max-h-[200px] min-h-9 flex-1 resize-none bg-transparent px-1 py-2 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
           onChange={(e) => props.onChange(e.target.value)}
           onPaste={(e) => {
