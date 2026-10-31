@@ -349,7 +349,7 @@ func generateMessageAnswer(id string, responseWriter http.ResponseWriter, host s
 		return
 	}
 
-	embeddingProvider, embeddingProviderObj, err := object.GetEmbeddingProviderFromContext(store.Owner, "", lang)
+	embeddingProvider, embeddingProviderObj, err := object.GetEmbeddingProviderFromContext(store.Owner, store.EmbeddingProvider, lang)
 	if err != nil {
 		if err2 := writeInfoStream(responseWriter, i18n.Translate(lang, "message_answer:No embedding model configured, answering without knowledge base")); err2 != nil {
 			responseErrorStream(message, err2.Error())

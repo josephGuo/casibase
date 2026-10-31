@@ -17,8 +17,7 @@ package txt
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
-	"path/filepath"
+	"os"
 
 	"github.com/the-open-agent/openagent/util"
 )
@@ -27,19 +26,28 @@ func getTempFilePathFromUrl(url string) (string, error) {
 	return downloadToTempFile(url, util.DownloadFile)
 }
 
-func downloadToTempFile(url string, download func(url string) (*bytes.Buffer, error)) (string, error) {
-	buffer, err := download(url)
+func downloadToTempFile(fileURL string, download func(url string) (*bytes.Buffer, error)) (string, error) {
+	buffer, err := download(fileURL)
 	if err != nil {
 		return "", err
 	}
 
-	file, err := ioutil.TempFile("", filepath.Base(url))
+	// Signed URLs contain query characters that are invalid in Windows filenames.
+	// The parser receives the document extension separately, so the temp file
+	// needs neither the original filename nor any URL components.
+	file, err := os.CreateTemp("", "openagent-document-*")
 	if err != nil {
 		return "", err
 	}
 
 	_, err = io.Copy(file, buffer)
 	if err != nil {
+		file.Close()
+		os.Remove(file.Name())
+		return "", err
+	}
+	if err := file.Close(); err != nil {
+		os.Remove(file.Name())
 		return "", err
 	}
 
