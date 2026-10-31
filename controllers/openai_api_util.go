@@ -56,7 +56,7 @@ func getApiKnowledge(store *object.Store, modelProvider *object.Provider, questi
 		return nil, nil, nil
 	}
 
-	embeddingProvider, embeddingProviderObj, err := object.GetEmbeddingProviderFromContext(store.Owner, "", lang)
+	embeddingProvider, embeddingProviderObj, err := object.GetEmbeddingProviderFromContext(store.Owner, store.EmbeddingProvider, lang)
 	if err != nil || embeddingProviderObj == nil {
 		return nil, nil, nil
 	}
